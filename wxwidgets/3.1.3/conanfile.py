@@ -152,7 +152,7 @@ class wxWidgetsConan(ConanFile):
         if self.options.zlib == 'zlib':
             self.requires('zlib/1.2.11')
         if self.options.expat == 'expat' and self.options.xml:
-            self.requires('expat/2.2.7')
+            self.requires('expat/2.2.9')
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
@@ -181,7 +181,7 @@ class wxWidgetsConan(ConanFile):
         cmake.definitions['wxBUILD_DEMOS'] = 'OFF'
         cmake.definitions['wxBUILD_INSTALL'] = True
         cmake.definitions['wxBUILD_COMPATIBILITY'] = self.options.compatibility
-        if self.settings.compiler == 'clang':
+        if self.settings.compiler == 'clang' or self.settings.compiler == 'apple-clang':
             cmake.definitions['wxBUILD_PRECOMP'] = 'OFF'
 
         # platform-specific options
@@ -430,7 +430,8 @@ class wxWidgetsConan(ConanFile):
             add_component('xrc', library_pattern('xrc'), ['core', 'html', 'xml'])
 
         if self.settings.os == 'Macos':
-            for framework in ['Carbon',
+            self.cpp_info.components['base'].frameworks.extend([
+                              'Carbon',
                               'Cocoa',
                               'AudioToolbox',
                               'OpenGL',
@@ -445,13 +446,10 @@ class wxWidgetsConan(ConanFile):
                               'CoreMedia',
                               'Security',
                               'ImageIO',
-                              'System']:
-                self.cpp_info.components['base'].exelinkflags.append('-framework %s' % framework)
+                              'System'])
 
             if self.options.webview:
-                 self.cpp_info.components['base'].exelinkflags.append('-framework WebKit')
-
-            self.cpp_info.components['base'].sharedlinkflags = self.cpp_info.components['base'].exelinkflags
+                 self.cpp_info.components['base'].frameworks.append('WebKit')
         elif self.settings.os == 'Windows':
             self.cpp_info.components['base'].system_libs.extend(['kernel32',
                                        'user32',
