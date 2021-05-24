@@ -1,0 +1,4 @@
+sources:
+  "0.15.2b":
+    url: "https://github.com/audacity/libmad/archive/refs/tags/0.15.2b.tar.gz"
+    sha256: d199b85d4fe232a6583de4295582c044dc503834b43e32e5db4fa9b1e76dc9b8
