@@ -31,6 +31,10 @@ class BreakpadConan(ConanFile):
         if self.settings.os == 'Linux' or self.settings.os == 'Macos':
             autotools = AutoToolsBuildEnvironment(self)
             autotools.configure(configure_dir='breakpad')
+
+    def requirements(self):
+        if self.settings.os == 'Linux' or self.settings.os == 'Macos':
+            self.requires('libcurl/7.77.0')
         
     def build(self):
         cmake = CMake(self)
@@ -43,6 +47,7 @@ class BreakpadConan(ConanFile):
         self.copy("*.h", dst="include/processor", src="breakpad/src/processor")
         self.copy("*.h", dst="include/client", src="breakpad/src/client")
         self.copy("*.h", dst="include/common", src="breakpad/src/common")
+        self.copy("*.h", dst="include/third_party", src="breakpad/src/third_party")
         
         self.copy("*.lib", dst="lib", keep_path=False)
         self.copy("*.dll", dst="bin", keep_path=False)
@@ -54,3 +59,6 @@ class BreakpadConan(ConanFile):
         self.cpp_info.components["client"].libs.append("breakpad_client")
         self.cpp_info.components["processor"].libs.append("breakpad_processor")
         self.cpp_info.components["sender"].libs.append("breakpad_sender")
+
+        if self.settings.os == 'Linux' or self.settings.os == 'Macos':
+            self.cpp_info.components['sender'].requires.append('libcurl::libcurl')
