@@ -12,9 +12,24 @@ add_library(breakpad_sender STATIC)
 
 set(SRC_DIR breakpad/src/)
 
-target_include_directories(breakpad_client PRIVATE ${SRC_DIR})
-target_include_directories(breakpad_processor PRIVATE ${SRC_DIR})
-target_include_directories(breakpad_sender PRIVATE ${SRC_DIR})
+set(INCLUDES 
+    PRIVATE 
+        ${SRC_DIR}
+)
+
+if(UNIX)
+    #autoconf/conan workaround 
+    list(APPEND INCLUDES 
+        PRIVATE 
+            src
+    )
+    target_compile_definitions(breakpad_client PRIVATE -DHAVE_CONFIG_H)
+endif()
+
+
+target_include_directories(breakpad_client ${INCLUDES})
+target_include_directories(breakpad_processor ${INCLUDES})
+target_include_directories(breakpad_sender ${INCLUDES})
 
 target_sources(breakpad_processor 
     PRIVATE
@@ -97,8 +112,6 @@ if(APPLE)
             ${SRC_DIR}/common/mac/string_utilities.cc
             ${SRC_DIR}/common/mac/MachIPc.mm
     )
-    target_compile_definitions(breakpad_client PRIVATE -DHAVE_CONFIG_H)
-
 elseif(UNIX)
     target_sources(breakpad_client
         PRIVATE
@@ -123,8 +136,6 @@ elseif(UNIX)
             ${SRC_DIR}/common/linux/memory_mapped_file.cc
             ${SRC_DIR}/common/linux/safe_readlink.cc
     )
-    target_compile_definitions(breakpad_client PRIVATE -DHAVE_CONFIG_H)
-
 elseif(WIN32)
     target_sources(breakpad_client 
         PRIVATE
