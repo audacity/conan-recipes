@@ -1,0 +1,11 @@
+--- a/trunk/lame/frontend/lametime.c	Sat May  7 19:05:17 2011
++++ b/trunk/lame/frontend/lametime.c	Wed Jun  2 13:50:14 2021
+@@ -136,7 +136,7 @@
+ #elif defined __BORLANDC__
+     setmode(_fileno(fp), O_BINARY);
+ #elif defined __CYGWIN__
+-    setmode(fileno(fp), _O_BINARY);
++    setmode(fileno(fp), O_BINARY);
+ #elif defined _WIN32
+     _setmode(_fileno(fp), _O_BINARY);
+ #else
