@@ -136,7 +136,11 @@ class wxWidgetsConan(ConanFile):
                     installer.install(package)
 
     def build_requirements(self):
-        self.build_requires("ninja/1.10.1")
+        # On Windows, use default build system.
+        # MSVC works good anyway, but Ninja 
+        # won't work on Cygwin setups.
+        if self.settings.os != "Windows":
+            self.build_requires("ninja/1.10.1")
 
     def requirements(self):
         if self.options.png == 'libpng':
