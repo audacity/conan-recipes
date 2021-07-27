@@ -1,0 +1,71 @@
+binaries:
+  "1.8.1":
+    Windows:
+      "10.2": 
+        url: "https://download.pytorch.org/libtorch/cu102/libtorch-win-shared-with-deps-1.8.1%2Bcu102.zip"
+        sha256: "32fc86f200cefb7e834e10f39a008350e2a2a8b8912906e3409ab067860784de"
+      "11.1":
+        url: "https://download.pytorch.org/libtorch/cu111/libtorch-win-shared-with-deps-1.8.1%2Bcu111.zip"
+        sha256: "e4a548e878f5ba51c87815d0c1387e540dcd27c5f05ae4d3b6774d9d7357e0ea"
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-1.8.1%2Bcpu.zip"
+        sha256: "d64caefbc1a68503bf826647214cc945a963d41e022cc1e479c95f1b33fc8f46"
+    Windows-debug:
+      "10.2":
+        url: "https://download.pytorch.org/libtorch/cu102/libtorch-win-shared-with-deps-debug-1.8.1%2Bcu102.zip"
+        sha256: "a54bef82d4164b6655d2cd0d1d6432744109531ec890dbd011f1b95f86e3728f"
+      "11.1":
+        url: "https://download.pytorch.org/libtorch/cu111/libtorch-win-shared-with-deps-debug-1.8.1%2Bcu111.zip"
+        sha256: "cfc1c508faea6a4870ba7c8d33e7c2fd81574b6e02dc78ecd0e9fcc71fc33d27"
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-debug-1.8.1%2Bcpu.zip"
+        sha256: "98e3e5895692e19aca10762b80a979324e8a3abcad91136d701400eed8a3b685"
+    Macos:
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.8.1.zip"
+        sha256: "94bef12d2e97a4e247aae9cc651a2cf4b1bb4750e4eaa3d8e640d6358b13cad5"
+    Linux:
+      "10.2": 
+        url: "https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.8.1%2Bcu102.zip"
+        sha256: "f6032b9ed73161176201e501866e7b4878c8436fd64fc75a528243a2bbb88c72"
+      "11.1":
+        url: "https://download.pytorch.org/libtorch/cu111/libtorch-cxx11-abi-shared-with-deps-1.8.1%2Bcu111.zip"
+        sha256: "1f8aec376f9343538bd7c2fd3abb81ed3af11f575efe3aa72777c4d62044b832"
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.8.1%2Bcpu.zip"
+        sha256: "44ecf7f2fc671da7b67694fc9d64b2762039ad83de46407ae3e0868081b7ae2c"
+  "1.9.0":
+    Windows:
+      "10.2": 
+        url: "https://download.pytorch.org/libtorch/cu102/libtorch-win-shared-with-deps-1.9.0%2Bcu102.zip"
+        sha256: "480cfb2a600f15a099b0b99178b36a6930cb6196b0e1e67b48ac9e0a8778f03e"
+      "11.1":
+        url: "https://download.pytorch.org/libtorch/cu111/libtorch-win-shared-with-deps-1.9.0%2Bcu111.zip"
+        sha256: "bdb8c027204ce3c493b5b05a21980ad34180bbc5e5c17fe94cfb7a7180a48205"
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-1.9.0%2Bcpu.zip"
+        sha256: "9bcd5b2703e18f2374413e55907ac20b2e5d8f5ae06a669f2e9905096114b4f1"
+    Windows-debug:
+      "10.2":
+        url: "https://download.pytorch.org/libtorch/cu102/libtorch-win-shared-with-deps-debug-1.9.0%2Bcu102.zip"
+        sha256: "c04be94c82894cb95b4c9ddb044a6b0f948db0fad42ee24a6798560b0abc0357"
+      "11.1":
+        url: "https://download.pytorch.org/libtorch/cu111/libtorch-win-shared-with-deps-debug-1.9.0%2Bcu111.zip"
+        sha256: "58a022e7cd668b53679f599fe8bc4e13b5eec029e217b39a90a00943c2ea6949"
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-debug-1.9.0%2Bcpu.zip"
+        sha256: "96b03a2119c634b3a08d0a89878399031d9c544d9d40a9641a78c02de4993677"
+    Macos:
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.9.0.zip"
+        sha256: "5343b311201b1bd8e010ce613baedf4e5bf31dd098e1ac550b3c21f3192a4aad"
+    Linux:
+      "10.2": 
+        url: "https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcu102.zip"
+        sha256: "a6ea470b70725494388a36834f85311348b18872a0a7057714eb061b4d64caab"
+      "11.1":
+        url: "https://download.pytorch.org/libtorch/cu111/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcu111.zip"
+        sha256: "edc12091193ba772db77a6ec14e05cef6da881288fca0dfc89a031f631601f60"
+      "None":
+        url: "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.9.0%2Bcpu.zip"
+        sha256: "6b99edc046f37ad37a3b04dc86663895f10c362af09fdd10884f30360d0ba023"

@@ -29,3 +29,7 @@ However, it uses autotools for *nix systems, as CMake build does not set the ver
 This recipe is based onhttps://github.com/conan-io/conan-center-index/tree/master/recipes/libmp3lame.
 
 We add a patch for Cygwin builds to workaround https://sourceforge.net/p/lame/bugs/451/ 
+
+## libtorch-binary
+
+LibTorch library using the official binaries
