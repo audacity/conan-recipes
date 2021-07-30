@@ -22,11 +22,11 @@ class Libtorch(ConanFile):
             **self.conan_data["binaries"][self.version][_target_os][_target_arch])
 
     def package(self):
-        self.copy("*", src="libtorch/")
+        self.copy("*", src="libtorch/", excludes=("*_python*", "*_test*"))
 
     def package_info(self):
         self.cpp_info.name = "Torch"
-        self.cpp_info.libs = self.collect_libs()
+        self.cpp_info.libs = [lib for lib in self.collect_libs() if "_python" not in lib and "_test" not in lib]
         self.cpp_info.includedirs = ['include', 'include/torch/csrc/api/include']
         self.cpp_info.bindirs = ['bin']
         self.cpp_info.libdirs = ['lib']
