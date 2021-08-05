@@ -1,0 +1,105 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 32b2c9d..a4b3113 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -188,6 +188,8 @@ IF(WIN32)
+     SET(PA_PRIVATE_INCLUDES ${PA_PRIVATE_INCLUDES} ${PA_DS_INCLUDES})
+     SET(PA_SOURCES ${PA_SOURCES} ${PA_DS_SOURCES})
+     SET(PA_LIBRARY_DEPENDENCIES ${PA_LIBRARY_DEPENDENCIES} dsound)
++  ELSE()
++    SET(DEF_EXCLUDE_WINDS_SYMBOLS ";")
+   ENDIF(PA_USE_DS)
+ 
+   OPTION(PA_USE_WMME "Enable support for MME" ON)
+diff --git a/Makefile.in b/Makefile.in
+index 527e199..a688920 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -44,7 +44,7 @@ PALIB = libportaudio.la
+ PAINC = include/portaudio.h
+ 
+ PA_LDFLAGS = $(LDFLAGS) $(SHARED_FLAGS) -rpath $(libdir) -no-undefined \
+-	     -export-symbols-regex "(Pa|PaMacCore|PaJack|PaAlsa|PaAsio|PaOSS|PaWasapi|PaWasapiWinrt|PaWinMME)_.*" \
++	     -export-symbols-regex "(Pa|PaMacCore|PaJack|PaAlsa|PaAsio|PaOSS|PaWasapi|PaWasapiWinrt|PaWinMME|PaWinDS)_.*" \
+ 	     -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
+ 
+ COMMON_OBJS = \
+diff --git a/build/msvc/portaudio.def b/build/msvc/portaudio.def
+index b868975..e542ff8 100644
+--- a/build/msvc/portaudio.def
++++ b/build/msvc/portaudio.def
+@@ -60,3 +60,4 @@ PaWinMME_GetStreamInputHandleCount  @71
+ PaWinMME_GetStreamInputHandle       @72
+ PaWinMME_GetStreamOutputHandleCount @73
+ PaWinMME_GetStreamOutputHandle      @74
++PaWinDS_GetDeviceGUID               @75
+diff --git a/cmake_support/template_portaudio.def b/cmake_support/template_portaudio.def
+index 14d6b7d..fe4360c 100644
+--- a/cmake_support/template_portaudio.def
++++ b/cmake_support/template_portaudio.def
+@@ -63,3 +63,4 @@ PaUtil_SetDebugPrintFunction        @55
+ @DEF_EXCLUDE_WMME_SYMBOLS@PaWinMME_GetStreamInputHandle       @72
+ @DEF_EXCLUDE_WMME_SYMBOLS@PaWinMME_GetStreamOutputHandleCount @73
+ @DEF_EXCLUDE_WMME_SYMBOLS@PaWinMME_GetStreamOutputHandle      @74
++@DEF_EXCLUDE_WINDS_SYMBOLS@PaWinDS_GetDeviceGUID              @75
+diff --git a/include/pa_win_ds.h b/include/pa_win_ds.h
+index 8081abd..edd6b58 100644
+--- a/include/pa_win_ds.h
++++ b/include/pa_win_ds.h
+@@ -86,7 +86,7 @@ typedef struct PaWinDirectSoundStreamInfo{
+ 
+ }PaWinDirectSoundStreamInfo;
+ 
+-
++PaError PaWinDS_GetDeviceGUID (PaDeviceIndex device, GUID* pGUID);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/src/hostapi/dsound/pa_win_ds.c b/src/hostapi/dsound/pa_win_ds.c
+index 2ccb4f8..3fcffca 100644
+--- a/src/hostapi/dsound/pa_win_ds.c
++++ b/src/hostapi/dsound/pa_win_ds.c
+@@ -3257,3 +3257,43 @@ static signed long GetStreamWriteAvailable( PaStream* s )
+ 
+     return 0;
+ }
++
++static PaError GetDirectSoundDeviceInfoByDeviceIndex (PaWinDsDeviceInfo** info, PaDeviceIndex device)
++{
++    PaError ret;
++
++    PaDeviceIndex index;
++    PaUtilHostApiRepresentation* pApi;
++
++    if ((ret = PaUtil_GetHostApiRepresentation (&pApi, paDirectSound)) != paNoError)
++        return ret;
++
++    if (pApi == NULL)
++        return paNotInitialized;
++
++    // Get device index
++    if ((ret = PaUtil_DeviceIndexToHostApiDeviceIndex (&index, device, pApi)) != paNoError)
++        return ret;
++
++    // Validate index
++    if ((UINT32) index >= pApi->info.deviceCount)
++        return paInvalidDevice;
++
++    (*info) = (PaWinDsDeviceInfo*)pApi->deviceInfos[index];
++
++    return paNoError;
++}
++
++PaError PaWinDS_GetDeviceGUID (PaDeviceIndex device, GUID** pGUID)
++{
++    PaError ret;
++
++    PaWinDsDeviceInfo* deviceInfo;
++
++    if ((ret = GetDirectSoundDeviceInfoByDeviceIndex (&deviceInfo, device)) != paNoError)
++        return ret;
++
++    *pGUID = deviceInfo->lpGUID;
++
++    return ret;
++}

@@ -1,0 +1,25 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a4b3113..7732879 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -319,6 +319,20 @@ ELSE()
+       ENDIF()
+     ENDIF()
+ 
++    FIND_PACKAGE(OSS)
++    IF(OSS_FOUND)
++      OPTION(PA_USE_OSS "Enable support for OSS" ON)
++    ELSE()
++      OPTION(PA_USE_OSS "Enable support for OSS" OFF)
++    ENDIF()
++    IF(PA_USE_OSS)
++      SET(PA_PRIVATE_INCLUDE_PATHS ${PA_PRIVATE_INCLUDE_PATHS} ${OSS_INCLUDE_DIRS})
++      SET(PA_OSS_SOURCES src/hostapi/oss/pa_unix_oss.c)
++      SOURCE_GROUP("hostapi\\OSS" FILES ${PA_OSS_SOURCES})
++      SET(PA_SOURCES ${PA_SOURCES} ${PA_OSS_SOURCES})
++      SET(PA_PRIVATE_COMPILE_DEFINITIONS ${PA_PRIVATE_COMPILE_DEFINITIONS} PA_USE_OSS ${OSS_DEFINITIONS})
++    ENDIF()
++
+   ENDIF()
+ 
+   SET(PA_PKGCONFIG_LDFLAGS "${PA_PKGCONFIG_LDFLAGS} -lm -lpthread")
