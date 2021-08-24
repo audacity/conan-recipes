@@ -73,7 +73,7 @@ class ConanRecipe(ConanFile):
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
-        os.rename("portaudio", self.sources_folder)
+        os.rename("portaudio-19.7.0", self.sources_folder)
 
         if "patches" in self.conan_data:
             for p in self.conan_data["patches"][self.version]:
