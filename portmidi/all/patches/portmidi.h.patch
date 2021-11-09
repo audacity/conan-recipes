@@ -1,0 +1,13 @@
+diff --git a/pm_common/portmidi.h b/pm_common/portmidi.h
+index e07991e..7e9e163 100644
+--- a/pm_common/portmidi.h
++++ b/pm_common/portmidi.h
+@@ -491,7 +491,7 @@ PMEXPORT PmError Pm_Close( PortMidiStream* stream );
+     Pm_Synchronize. PortMidi will always synchronize at the 
+     first output message and periodically thereafter.
+ */
+-PmError Pm_Synchronize( PortMidiStream* stream );
++PMEXPORT PmError Pm_Synchronize( PortMidiStream* stream );
+ 
+ 
+ /**

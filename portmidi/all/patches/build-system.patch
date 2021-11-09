@@ -1,0 +1,357 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4919b78..8129cff 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2,7 +2,13 @@
+ # Roger B. Dannenberg
+ # 20 Sep 2009
+ 
+-cmake_minimum_required(VERSION 2.6)
++cmake_minimum_required(VERSION 3.12)
++
++option( BUILD_STATIC "Build static version of PortMidi libraries" On )
++option( BUILD_SHARED "Build shared version of PortMidi libraries" On )
++option( BUILD_JNI "Build JNI bindings" Off )
++option( BUILD_TEST "Link MSVC static runtime" Off )
++option( LINK_MSVC_STATIC_RUNTIME "Link MSVC static runtime" Off )
+ 
+ if(UNIX)
+   # allow user to set Release or Debug
+@@ -16,11 +22,6 @@ if(UNIX)
+   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY 
+       ${CMAKE_CACHEFILE_DIR}/${CMAKE_BUILD_TYPE}
+       CACHE STRING "executables go here")
+-
+-else(UNIX)
+-  # this does not seem to work for xcode:
+-  set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING 
+-      "Semicolon-separate list of supported configuration types")
+ endif(UNIX)
+ 
+ #set(CMAKE_RELATIVE_PATHS ON CACHE STRING "avoid absolute paths" FORCE)
+@@ -36,8 +37,6 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
+ set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
+ set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
+ 
+-set(CMAKE_OSX_ARCHITECTURES i386 ppc x86_64 CACHE STRING "change to needed architecture for a smaller library" FORCE)
+-
+ PROJECT(portmidi)
+ 
+ if(UNIX)
+@@ -68,10 +67,23 @@ endif(UNIX)
+ include_directories(pm_common porttime)
+ add_subdirectory(pm_common)
+ 
+-add_subdirectory(pm_test)
++if(BUILD_TEST)
++  add_subdirectory(pm_test)
++endif()
+ 
+-add_subdirectory(pm_dylib)
++if(BUILD_SHARED)
++  add_subdirectory(pm_dylib)
++endif()
+ 
+-# Cannot figure out how to make an xcode Java application with CMake
+-add_subdirectory(pm_java)
++if(BUILD_JNI)
++  #Cannot figure out how to make an xcode Java application with CMake
++  add_subdirectory(pm_java)
++endif()
+ 
++install( 
++  FILES 
++    pm_common/portmidi.h 
++    porttime/porttime.h 
++  TYPE
++    INCLUDE
++)
+diff --git a/pm_common/CMakeLists.txt b/pm_common/CMakeLists.txt
+index cbeeade..2c09940 100644
+--- a/pm_common/CMakeLists.txt
++++ b/pm_common/CMakeLists.txt
+@@ -7,27 +7,10 @@ if(APPLE OR WIN32)
+   # set the build directory for .dylib libraries
+   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+-
+-  # the first time CMake configures, save off CMake's built-in flags
+-  if(NOT DEFAULT_DEBUG_FLAGS)
+-    set(DEFAULT_DEBUG_FLAGS ${CMAKE_C_FLAGS_DEBUG} CACHE 
+-        STRING "CMake's default debug flags" FORCE)
+-    set(DEFAULT_RELEASE_FLAGS ${CMAKE_C_FLAGS_RELEASE} CACHE 
+-        STRING "CMake's default release flags" FORCE)
+-  else(NOT DEFAULT_DEBUG_FLAGS)
+-    message(STATUS "DEFAULT_DEBUG_FLAGS not nil: " ${DEFAULT_DEBUG_FLAGS})
+-  endif(NOT DEFAULT_DEBUG_FLAGS)
+ else(APPLE OR WIN32)
+-  set(LINUX_FLAGS "-DPMALSA")
++  add_compile_definitions(PMALSA)
+ endif(APPLE OR WIN32)
+ 
+-if(APPLE)
+-  set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.6.sdk CACHE 
+-      PATH "-isysroot parameter for compiler")
+-  set(CMAKE_C_FLAGS "-mmacosx-version-min=10.6" CACHE 
+-      STRING "needed in conjunction with CMAKE_OSX_SYSROOT" FORCE)
+-endif(APPLE)
+-
+ macro(prepend_path RESULT PATH)
+   set(${RESULT})
+   foreach(FILE ${ARGN})
+@@ -35,18 +18,12 @@ macro(prepend_path RESULT PATH)
+   endforeach(FILE)
+ endmacro(prepend_path)
+ 
+-set(CMAKE_C_FLAGS_DEBUG 
+-    "${DEFAULT_DEBUG_FLAGS} -DPM_CHECK_ERRORS=1 -DDEBUG ${LINUX_FLAGS}"
+-    CACHE STRING "enable extra checks for debugging" FORCE)
+-
+-set(CMAKE_C_FLAGS_RELEASE "${DEFAULT_RELEASE_FLAGS} ${LINUX_FLAGS}"
+-    CACHE STRING "flags for release version" FORCE)
++add_compile_definitions(
++  $<$<CONFIG:Debug>:DEBUG>
++)
+ 
+ # first include the appropriate system-dependent file:
+ if(UNIX)
+-  # add the -g switch for Linux and Mac OS X (not used in Win32)
+-  set (CMAKE_C_FLAGS_DEBUG "-g ${CMAKE_C_FLAGS_DEBUG}" 
+-       CACHE STRING "enable extra checks for debugging" FORCE)
+   if(APPLE)
+     set(MACSRC pmmacosxcm pmmac readbinaryplist finddefault)
+     prepend_path(LIBSRC ../pm_mac/ ${MACSRC})
+@@ -67,14 +44,16 @@ if(UNIX)
+     message(STATUS "SYSROOT: " ${CMAKE_OSX_SYSROOT})
+   else(APPLE)
+     # LINUX settings...
+-    include(FindJNI)
+-    message(STATUS "JAVA_JVM_LIB_PATH is " ${JAVA_JVM_LIB_PATH})
+-    message(STATUS "JAVA_INCLUDE_PATH is " ${JAVA_INCLUDE_PATH})
+-    message(STATUS "JAVA_INCLUDE_PATH2 is " ${JAVA_INCLUDE_PATH2})
+-    message(STATUS "JAVA_JVM_LIBRARY is " ${JAVA_JVM_LIBRARY})
+-    set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
+-    # libjvm.so is found relative to JAVA_INCLUDE_PATH:
+-    set(JAVAVM_LIB ${JAVA_JVM_LIBRARY}/libjvm.so)
++    if(BUILD_JNI)
++      include(FindJNI)
++      message(STATUS "JAVA_JVM_LIB_PATH is " ${JAVA_JVM_LIB_PATH})
++      message(STATUS "JAVA_INCLUDE_PATH is " ${JAVA_INCLUDE_PATH})
++      message(STATUS "JAVA_INCLUDE_PATH2 is " ${JAVA_INCLUDE_PATH2})
++      message(STATUS "JAVA_JVM_LIBRARY is " ${JAVA_JVM_LIBRARY})
++      set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
++      # libjvm.so is found relative to JAVA_INCLUDE_PATH:
++      set(JAVAVM_LIB ${JAVA_JVM_LIBRARY}/libjvm.so)
++    endif()
+ 
+     set(LINUXSRC pmlinuxalsa pmlinux finddefault)
+     prepend_path(LIBSRC ../pm_linux/ ${LINUXSRC})
+@@ -86,11 +65,14 @@ else(UNIX)
+   if(WIN32)
+     # /MDd is multithread debug DLL, /MTd is multithread debug
+     # /MD is multithread DLL, /MT is multithread. Change to static:
+-    include(../pm_win/static.cmake)
++    if(LINK_MSVC_STATIC_RUNTIME)
++      include(../pm_win/static.cmake)
++    endif()
+     
+-    include(FindJNI)
+-
+-    set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
++    if(BUILD_JNI)
++      include(FindJNI)
++      set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
++    endif()
+     # message(STATUS "JAVA_INCLUDE_PATHS: " ${JAVA_INCLUDE_PATHS})
+ 
+     set(WINSRC pmwin pmwinmm)
+@@ -105,24 +87,26 @@ set(JNI_EXTRA_LIBS ${PM_NEEDED_LIBS} ${JAVA_JVM_LIBRARY})
+ list(APPEND LIBSRC pmutil portmidi)
+ 
+ # now add the shared files to make the complete list of library sources
+-add_library(portmidi-static ${LIBSRC})
+-set_target_properties(portmidi-static PROPERTIES OUTPUT_NAME "portmidi_s")
+-target_link_libraries(portmidi-static ${PM_NEEDED_LIBS})
++if(BUILD_STATIC)
++  add_library(portmidi-static ${LIBSRC})
++  set_target_properties(portmidi-static PROPERTIES OUTPUT_NAME "portmidi_s")
++  target_link_libraries(portmidi-static ${PM_NEEDED_LIBS})
++endif()
+ 
+ # define the jni library
+-include_directories(${JAVA_INCLUDE_PATHS})
+-
+-set(JNISRC ${LIBSRC} ../pm_java/pmjni/pmjni.c)
+-add_library(pmjni SHARED ${JNISRC})
+-target_link_libraries(pmjni ${JNI_EXTRA_LIBS})
+-set_target_properties(pmjni PROPERTIES EXECUTABLE_EXTENSION "jnilib")
+-
+-# install the libraries (Linux and Mac OS X command line)
+-if(UNIX)
+-  INSTALL(TARGETS portmidi-static pmjni
+-    LIBRARY DESTINATION /usr/local/lib
+-    ARCHIVE DESTINATION /usr/local/lib)
+-# .h files installed by pm_dylib/CMakeLists.txt, so don't need them here
+-#  INSTALL(FILES portmidi.h ../porttime/porttime.h
+-#    DESTINATION /usr/local/include)
+-endif(UNIX)
++if(BUILD_JNI)
++  include_directories(${JAVA_INCLUDE_PATHS})
++
++  set(JNISRC ${LIBSRC} ../pm_java/pmjni/pmjni.c)
++  add_library(pmjni SHARED ${JNISRC})
++  target_link_libraries(pmjni ${JNI_EXTRA_LIBS})
++  set_target_properties(pmjni PROPERTIES EXECUTABLE_EXTENSION "jnilib")
++endif()
++
++if(BUILD_STATIC)
++  install(TARGETS portmidi-static)
++endif()
++
++if(BUILD_JNI)
++  install(TARGETS pmjni)
++endif()
+\ No newline at end of file
+diff --git a/pm_dylib/CMakeLists.txt b/pm_dylib/CMakeLists.txt
+index f693dd6..b53c708 100644
+--- a/pm_dylib/CMakeLists.txt
++++ b/pm_dylib/CMakeLists.txt
+@@ -9,20 +9,14 @@ if(APPLE OR WIN32)
+   # the "archive" output directory says where to put portmidi.lib, the
+   # static part of the lib/dll pair:
+   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+-
+-  # the first time CMake configures, save off CMake's built-in flags
+-  if(NOT DEFAULT_DEBUG_FLAGS)
+-    set(DEFAULT_DEBUG_FLAGS ${CMAKE_C_FLAGS_DEBUG} CACHE 
+-        STRING "CMake's default debug flags" FORCE)
+-    set(DEFAULT_RELEASE_FLAGS ${CMAKE_C_FLAGS_RELEASE} CACHE 
+-        STRING "CMake's default release flags" FORCE)
+-  else(NOT DEFAULT_DEBUG_FLAGS)
+-    message(STATUS "DEFAULT_DEBUG_FLAGS not nil: " ${DEFAULT_DEBUG_FLAGS})
+-  endif(NOT DEFAULT_DEBUG_FLAGS)
+ else(APPLE OR WIN32)
+-  set(LINUX_FLAGS "-DPMALSA")
++  add_compile_definitions(PMALSA)
+ endif(APPLE OR WIN32)
+ 
++if(WIN32)
++  add_compile_definitions(_WINDLL)
++endif()
++
+ macro(prepend_path RESULT PATH)
+   set(${RESULT})
+   foreach(FILE ${ARGN})
+@@ -30,18 +24,12 @@ macro(prepend_path RESULT PATH)
+   endforeach(FILE)
+ endmacro(prepend_path)
+ 
+-set(CMAKE_C_FLAGS_DEBUG 
+-    "${DEFAULT_DEBUG_FLAGS} -DPM_CHECK_ERRORS=1 -DDEBUG ${LINUX_FLAGS}"
+-    CACHE STRING "enable extra checks for debugging" FORCE)
+-
+-set(CMAKE_C_FLAGS_RELEASE "${DEFAULT_RELEASE_FLAGS} ${LINUX_FLAGS}"
+-    CACHE STRING "flags for release version" FORCE)
++add_compile_definitions(
++  $<$<CONFIG:Debug>:DEBUG>
++)
+ 
+ # first include the appropriate system-dependent file:
+ if(UNIX)
+-  # add the -g switch for Linux and Mac OS X (not used in Win32)
+-  set (CMAKE_C_FLAGS_DEBUG "-g ${CMAKE_C_FLAGS_DEBUG}" 
+-       CACHE STRING "enable extra checks for debugging" FORCE)
+   if(APPLE)
+     set(MACSRC pmmacosxcm pmmac readbinaryplist finddefault)
+     prepend_path(LIBSRC ../pm_mac/ ${MACSRC})
+@@ -63,23 +51,25 @@ if(UNIX)
+     message(STATUS "SYSROOT: " ${CMAKE_OSX_SYSROOT})
+   else(APPLE)
+     # LINUX settings...
+-    include(FindJNI)
+-    # message(STATUS "JAVA_JVM_LIB_PATH is " ${JAVA_JVM_LIB_PATH})
+-    # message(STATUS "JAVA_INCLUDE_PATH is " ${JAVA_INCLUDE_PATH})
+-    # note: should use JAVA_JVM_LIB_PATH, but it is not set properly
+-    # note: user might need to set JAVA_INCLUDE_PATH manually
+-    #
+-    # this will probably break on BSD and other Unix systems; the fix
+-    # depends on whether FindJNI can find Java or not. If yes, then
+-    # we should try to rely on automatically set JAVA_INCLUDE_PATH and
+-    # JAVA_INCLUDE_PATH2; if no, then we need to make both JAVA_INCLUDE_PATH
+-    # and JAVA_INCLUDE_PATH2 set by user (will need clear documentation
+-    # because JAVA_INCLUDE_PATH2 is pretty obscure)
+-    set(JAVA_INCLUDE_PATH  ${JAVA_INCLUDE_PATH-UNKNOWN}
+-        CACHE STRING "where to find Java SDK include directory")
+-    set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH}/linux)
+-    # libjvm.so is found relative to JAVA_INCLUDE_PATH:
+-    set(JAVAVM_LIB ${JAVA_INCLUDE_PATH}/../jre/lib/i386/client/libjvm.so)
++    if(BUILD_JNI)
++      include(FindJNI)
++      # message(STATUS "JAVA_JVM_LIB_PATH is " ${JAVA_JVM_LIB_PATH})
++      # message(STATUS "JAVA_INCLUDE_PATH is " ${JAVA_INCLUDE_PATH})
++      # note: should use JAVA_JVM_LIB_PATH, but it is not set properly
++      # note: user might need to set JAVA_INCLUDE_PATH manually
++      #
++      # this will probably break on BSD and other Unix systems; the fix
++      # depends on whether FindJNI can find Java or not. If yes, then
++      # we should try to rely on automatically set JAVA_INCLUDE_PATH and
++      # JAVA_INCLUDE_PATH2; if no, then we need to make both JAVA_INCLUDE_PATH
++      # and JAVA_INCLUDE_PATH2 set by user (will need clear documentation
++      # because JAVA_INCLUDE_PATH2 is pretty obscure)
++      set(JAVA_INCLUDE_PATH  ${JAVA_INCLUDE_PATH-UNKNOWN}
++          CACHE STRING "where to find Java SDK include directory")
++      set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH}/linux)
++      # libjvm.so is found relative to JAVA_INCLUDE_PATH:
++      set(JAVAVM_LIB ${JAVA_INCLUDE_PATH}/../jre/lib/i386/client/libjvm.so)
++    endif()
+ 
+     set(LINUXSRC pmlinuxalsa pmlinux finddefault)
+     prepend_path(LIBSRC ../pm_linux/ ${LINUXSRC})
+@@ -92,12 +82,14 @@ else(UNIX)
+     # /MDd is multithread debug DLL, /MTd is multithread debug
+     # /MD is multithread DLL, /MT is multithread 
+     
+-    include(FindJNI)
+-    # note: should use JAVA_JVM_LIB_PATH, but it is not set properly
+-    set(JAVAVM_LIB ${JAVA_INCLUDE_PATH}/../lib/jvm.lib)
++    if(BUILD_JNI)
++      include(FindJNI)
++      # note: should use JAVA_JVM_LIB_PATH, but it is not set properly
++      set(JAVAVM_LIB ${JAVA_INCLUDE_PATH}/../lib/jvm.lib)
+ 
+-    set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
+-    # message(STATUS "JAVA_INCLUDE_PATHS: " ${JAVA_INCLUDE_PATHS})
++      set(JAVA_INCLUDE_PATHS ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
++      # message(STATUS "JAVA_INCLUDE_PATHS: " ${JAVA_INCLUDE_PATHS})
++    endif()
+ 
+     set(WINSRC pmwin pmwinmm)
+     prepend_path(LIBSRC ../pm_win/ ${WINSRC})
+@@ -117,11 +109,4 @@ add_library(portmidi-dynamic SHARED ${LIBSRC})
+ set_target_properties(portmidi-dynamic PROPERTIES OUTPUT_NAME "portmidi")
+ target_link_libraries(portmidi-dynamic ${PM_NEEDED_LIBS})
+ 
+-# install the libraries (Linux and Mac OS X command line)
+-if(UNIX)
+-  INSTALL(TARGETS portmidi-dynamic
+-    LIBRARY DESTINATION /usr/local/lib
+-    ARCHIVE DESTINATION /usr/local/lib)
+-  INSTALL(FILES ../pm_common/portmidi.h ../porttime/porttime.h
+-    DESTINATION /usr/local/include)
+-endif(UNIX)
++install(TARGETS portmidi-dynamic)
+diff --git a/pm_test/CMakeLists.txt b/pm_test/CMakeLists.txt
+index 4fda450..e0502de 100644
+--- a/pm_test/CMakeLists.txt
++++ b/pm_test/CMakeLists.txt
+@@ -6,8 +6,8 @@ if(APPLE)
+ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+ endif(APPLE)
+ 
+-if(WIN32)
+-include(../pm_win/static.cmake)
++if(WIN32 AND LINK_MSVC_STATIC_RUNTIME)
++  include(../pm_win/static.cmake)
+ endif(WIN32)
+ 
+ macro(make_a_test name)
