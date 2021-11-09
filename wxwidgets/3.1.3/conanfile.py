@@ -141,7 +141,7 @@ class wxWidgetsConan(ConanFile):
 
     def build_requirements(self):
         # On Windows, use default build system.
-        # MSVC works good anyway, but Ninja 
+        # MSVC works good anyway, but Ninja
         # won't work on Cygwin setups.
         if self.settings.os != "Windows":
             self.build_requires("ninja/1.10.1")
@@ -164,7 +164,7 @@ class wxWidgetsConan(ConanFile):
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = "wxWidgets-" + self.version
+        extracted_dir = self.conan_data["folders"][self.version]
         os.rename(extracted_dir, self._source_subfolder)
 
     def add_libraries_from_pc(self, library):
@@ -296,7 +296,7 @@ class wxWidgetsConan(ConanFile):
             use_debug_suffix = (self.settings.os == 'Windows' or version_list < [3, 1, 3])
 
         debug = 'd' if use_debug_suffix else ''
-            
+
         if self.settings.os == 'Macos':
             prefix = 'wx_'
             toolkit = 'osx_cocoa'
@@ -382,7 +382,7 @@ class wxWidgetsConan(ConanFile):
             regexLibPattern = 'wxregex{unicode}{debug}' if self.settings.os == "Windows" else '{suffix}'
             add_component('regex', regexLibPattern, [])
 
-        add_component('base', '{prefix}base{version}{unicode}{debug}{suffix}', [])        
+        add_component('base', '{prefix}base{version}{unicode}{debug}{suffix}', [])
         add_component('core', library_pattern('core'), ['base'])
         add_component('adv', library_pattern('adv'), ['base'])
 
@@ -400,7 +400,7 @@ class wxWidgetsConan(ConanFile):
             self.cpp_info.components['core'].requires.append('libtiff::libtiff')
         if self.options.zlib == 'zlib':
             self.cpp_info.components['base'].requires.append('zlib::zlib')
-        
+
         if self.options.sockets:
             add_component('net', base_library_pattern('net'), ['base'])
         if self.options.xml:
