@@ -50,3 +50,11 @@ Patches:
 
 * `enable-oss.patch` reenable OSS host API when using CMake build system
   
+## PortMidi
+
+This recipe provides PortMidi built from r234 of PortMedia core
+
+Patches:
+
+* `build-system.patch` - adds CMake option to control the build precisely.
+* `portmidi.h.patch` - correctly export `Pm_Synchronize` for the shared library builds.
