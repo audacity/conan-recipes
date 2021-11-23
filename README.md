@@ -58,3 +58,8 @@ Patches:
 
 * `build-system.patch` - adds CMake option to control the build precisely.
 * `portmidi.h.patch` - correctly export `Pm_Synchronize` for the shared library builds.
+
+
+## WavPack
+
+This recipe provides WavPack 5.4.0

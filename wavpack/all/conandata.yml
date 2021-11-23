@@ -1,0 +1,4 @@
+sources:
+  "5.4.0":
+    url: "https://github.com/dbry/WavPack/archive/refs/tags/5.4.0.tar.gz"
+    sha256: "abbe5ca3fc918fdd64ef216200a5c896243ea803a059a0662cd362d0fa827cd2"
