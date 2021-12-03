@@ -58,18 +58,18 @@ class ConanRecipe(ConanFile):
             self.options.remove("fPIC")
         else:
             for opt in [
-                "with_asio", "with_directsound", "with_mme", 
+                "with_asio", "with_directsound", "with_mme",
                 "with_wasapi", "with_wdmks", "with_static_runtime"
                 ]:
                 self.options.remove(opt)
-            
+
             if self.settings.os == "Macos":
                 self.options.remove("with_oss")
                 self.options.remove("with_alsa")
                 self.options.remove("with_alsa_dynamic")
-                self.options.remove("with_jack") 
+                self.options.remove("with_jack")
             else:
-                self.options.remove("build_framework") 
+                self.options.remove("build_framework")
 
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
@@ -79,19 +79,19 @@ class ConanRecipe(ConanFile):
             for p in self.conan_data["patches"][self.version]:
                 tools.patch(**p)
 
-        if self.settings.os == "Windows" and self.options.with_asio:
-            # ASIO requires that Steinberg ASIO SDK Licensing Agreement Version 2.0.1
-            # is signed
-            tools.get(
-                url="https://download.steinberg.net/sdk_downloads/asiosdk_2.3.3_2019-06-14.zip", 
-                sha256="80F5BF2703563F6047ACEC2EDD468D0838C9F61ECED9F7CDCE9629B04E9710AC"
-            )
-
         if self.settings.os != "Windows" and self.settings.os != "Macos":
             shutil.copyfile("patches/19.7.0/FindOSS.cmake", os.path.join(self.sources_folder, "cmake_support", "FindOSS.cmake"))
 
     def _cmake_configure(self):
         if not self._cmake:
+            if self.settings.os == "Windows" and self.options.with_asio:
+                # ASIO requires that Steinberg ASIO SDK Licensing Agreement Version 2.0.1
+                # is signed
+                tools.get(
+                    url="https://download.steinberg.net/sdk_downloads/asiosdk_2.3.3_2019-06-14.zip",
+                    sha256="80F5BF2703563F6047ACEC2EDD468D0838C9F61ECED9F7CDCE9629B04E9710AC"
+                )
+
             cmake = CMake(self)
 
             cmake.definitions['PA_BUILD_SHARED'] = self.options.shared
@@ -117,7 +117,7 @@ class ConanRecipe(ConanFile):
             self._cmake = cmake
 
         return self._cmake
-            
+
     def build(self):
         cmake = self._cmake_configure()
         cmake.build()
@@ -127,15 +127,15 @@ class ConanRecipe(ConanFile):
         cmake.install()
 
         self.copy(
-            "LICENSE.txt", 
-            dst="licenses", 
+            "LICENSE.txt",
+            dst="licenses",
             src=os.path.join(self.package_folder, "share", "doc", "portaudio")
             )
 
         shutil.rmtree(os.path.join(self.package_folder, "share"))
         shutil.rmtree(os.path.join(self.package_folder, "lib", "cmake"))
         shutil.rmtree(os.path.join(self.package_folder, "lib", "pkgconfig"))
-        
+
     def package_info(self):
         self.cpp_info.name = "PortAudio"
 
