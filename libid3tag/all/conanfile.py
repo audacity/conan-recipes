@@ -44,7 +44,7 @@ class LibId3TagConan(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
 
 
     def _configure_cmake(self):
@@ -69,7 +69,7 @@ class LibId3TagConan(ConanFile):
         self.copy("COPYRIGHT", dst="licenses", src=self._source_subfolder)
         self.copy("COPYING", dst="licenses", src=self._source_subfolder)
         self.copy("CREDITS", dst="licenses", src=self._source_subfolder)
-        
+
         cmake = self._configure_cmake()
         cmake.install()
 

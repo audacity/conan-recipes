@@ -165,7 +165,7 @@ class wxWidgetsConan(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = self.conan_data["folders"][self.version]
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
 
     def add_libraries_from_pc(self, library):
         pkg_config = tools.PkgConfig(library)

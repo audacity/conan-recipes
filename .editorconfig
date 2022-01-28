@@ -12,7 +12,7 @@ insert_final_newline = true
 [Makefile]
 indent_style = tab
 
-[*.yml, *.yaml]
+[*.{yml,yaml}]
 indent_style = space
 indent_size = 2
 
@@ -26,6 +26,5 @@ trim_trailing_whitespace = false
 end_of_line = lf
 
 [*.patch]
-
 trim_trailing_whitespace = false
 insert_final_newline = false
