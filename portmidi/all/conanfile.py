@@ -79,3 +79,5 @@ class PortMidiConan(ConanFile):
             self.cpp_info.system_libs.append('winmm')
         elif self.settings.os == "Macos":
             self.cpp_info.frameworks.extend(['CoreMIDI', 'CoreAudio', 'CoreFoundation', 'CoreServices'])
+        else:
+            self.cpp_info.system_libs.append('alsa')
