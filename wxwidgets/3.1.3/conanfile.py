@@ -379,7 +379,7 @@ class wxWidgetsConan(ConanFile):
                 self.cpp_info.components[name].defines.append('__WXGTK__')
 
         if not self.options.shared:
-            regexLibPattern = 'wxregex{unicode}{debug}' if self.settings.os == "Windows" else '{suffix}'
+            regexLibPattern = 'wxregex{unicode}{debug}' if self.settings.os == "Windows" else 'wxregex{unicode}{debug}{suffix}'
             add_component('regex', regexLibPattern, [])
 
         add_component('base', '{prefix}base{version}{unicode}{debug}{suffix}', [])
