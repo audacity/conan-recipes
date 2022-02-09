@@ -22,7 +22,7 @@ class LibMP3LameConan(ConanFile):
 
     @property
     def _is_msvc(self):
-        return self.settings.compiler == 'Visual Studio'
+        return str(self.settings.compiler) in ["Visual Studio", "msvc"]
 
     @property
     def _source_subfolder(self):

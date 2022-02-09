@@ -99,6 +99,10 @@ class wxWidgetsConan(ConanFile):
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
 
+    @property
+    def _is_msvc(self):
+        return str(self.settings.compiler) in ["Visual Studio", "msvc"]
+
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
@@ -193,7 +197,7 @@ class wxWidgetsConan(ConanFile):
             cmake.definitions['wxBUILD_PRECOMP'] = 'OFF'
 
         # platform-specific options
-        if self.settings.compiler == 'Visual Studio':
+        if self._is_msvc:
             cmake.definitions['wxBUILD_USE_STATIC_RUNTIME'] = 'MT' in str(self.settings.compiler.runtime)
             cmake.definitions['wxBUILD_MSVC_MULTIPROC'] = True
         if self.settings.os == 'Linux':
@@ -365,6 +369,7 @@ class wxWidgetsConan(ConanFile):
                                 'wxNO_WEBVIEW_LIB'])
                 # see cmake/init.cmake
                 compiler_prefix = {'Visual Studio': 'vc',
+                                'msvc': 'vc',
                                 'gcc': 'gcc',
                                 'clang': 'clang'}.get(str(self.settings.compiler))
 
@@ -485,7 +490,7 @@ class wxWidgetsConan(ConanFile):
             self.add_libraries_from_pc('x11')
             self.cpp_info.components['base'].system_libs.extend(['dl', 'pthread', 'SM'])
 
-        if self.settings.compiler == 'Visual Studio':
+        if self._is_msvc:
             self.cpp_info.components['base'].includedirs.append(os.path.join('include', 'msvc'))
         elif self.settings.os != 'Windows':
             unix_include_path = os.path.join("include", "wx{}".format(version_suffix_major_minor))
