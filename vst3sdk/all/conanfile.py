@@ -19,6 +19,7 @@ class Vst3SDKConan(ConanFile):
         tools.rename(extracted_dir, 'vst3sdk')
 
         tools.patch(base_path="vst3sdk", patch_file="patches/disable-validator.diff")
+        tools.patch(base_path="vst3sdk", patch_file="patches/stdatomic-msvc.diff")
 
     def build(self):
         cmake = CMake(self)
