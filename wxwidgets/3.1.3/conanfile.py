@@ -84,7 +84,7 @@ class wxWidgetsConan(ConanFile):
                "richtext": True,
                "sockets": True,
                "stc": True,
-               "webview": True,
+               "webview": False,
                "xml": True,
                "xrc": True,
                "cairo": True,
