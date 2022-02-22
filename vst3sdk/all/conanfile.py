@@ -1,5 +1,5 @@
-from conans import ConanFile, CMake, AutoToolsBuildEnvironment, tools
-
+from conans import ConanFile, CMake, tools
+import os
 
 class Vst3SDKConan(ConanFile):
     name = "vst3sdk"
@@ -10,13 +10,16 @@ class Vst3SDKConan(ConanFile):
     topics = ("vst3")
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
-    exports_sources=[ "patches/*" ]
+    exports_sources=[ 'CMakeLists.txt', "patches/*" ]
 
     def source(self):
-        self.run('git clone --recursive https://github.com/steinbergmedia/vst3sdk.git -b v3.7.3_build_20')
+        tools.get(**self.conan_data["sources"][self.version])
+
+        extracted_dir = os.path.join('VST_SDK', 'vst3sdk')
+        tools.rename(extracted_dir, 'vst3sdk')
 
         tools.patch(base_path="vst3sdk", patch_file="patches/disable-validator.diff")
-        
+
     def build(self):
         cmake = CMake(self)
         cmake.definitions["SMTG_ADD_VST3_HOSTING_SAMPLES"] = "OFF"
@@ -27,7 +30,7 @@ class Vst3SDKConan(ConanFile):
         cmake.definitions["SMTG_RUN_VST_VALIDATOR"] = "OFF"
 
         #In-source builds are not allowed
-        cmake.configure(source_folder="vst3sdk", build_folder='build')
+        cmake.configure(build_folder='build')
         cmake.build()
 
     def package(self):
@@ -35,7 +38,7 @@ class Vst3SDKConan(ConanFile):
         self.copy("*.h", dst="include/base", src="vst3sdk/base", keep_path=True)
         self.copy("*.h", dst="include/pluginterfaces", src="vst3sdk/pluginterfaces", keep_path=True)
         self.copy("*.h", dst="include/public.sdk/source", src="vst3sdk/public.sdk/source", keep_path=True)
-        
+
         self.copy("*.lib", dst="lib", keep_path=False)
         self.copy("*.dll", dst="bin", keep_path=False)
         self.copy("*.so", dst="lib", keep_path=False)
