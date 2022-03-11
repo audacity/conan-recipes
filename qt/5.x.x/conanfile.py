@@ -715,9 +715,6 @@ class QtConan(ConanFile):
                     build_env["PATH"].append(os.path.join(self.source_folder, "qt5", "gnuwin32", "bin"))
 
                 with tools.environment_append(build_env):
-                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n", flush=True)
-                    self.run(r'powershell -Command "echo $env:Path"', run_environment=True)
-
                     if tools.os_info.is_macos:
                         open(".qmake.stash" , "w").close()
                         open(".qmake.super" , "w").close()
