@@ -1,0 +1,20 @@
+--- a/wavpackdll/wavpackdll.rc	2021-01-13 00:07:57.000000000 +0300
++++ b/wavpackdll/wavpackdll.rc	2022-04-15 12:43:24.884754500 +0300
+@@ -7,7 +7,7 @@
+ //
+ // Generated from the TEXTINCLUDE 2 resource.
+ //
+-#include "afxres.h"
++#include <windows.h>
+ 
+ /////////////////////////////////////////////////////////////////////////////
+ #undef APSTUDIO_READONLY_SYMBOLS
+@@ -34,7 +34,7 @@
+ 
+ 2 TEXTINCLUDE 
+ BEGIN
+-    "#include ""afxres.h""\r\n"
++    "#include <windows.h>\r\n"
+     "\0"
+ END
+ 

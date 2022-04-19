@@ -1,7 +1,5 @@
 from conans import ConanFile, tools, CMake
 from conans.errors import ConanInvalidConfiguration
-import os
-
 
 class WavPackConan(ConanFile):
     name = "wavpack"
@@ -26,7 +24,7 @@ class WavPackConan(ConanFile):
         "enable_dsd": True
     }
 
-    exports_sources = ["CMakeLists.txt"]
+    exports_sources = ["CMakeLists.txt", "patches/*"]
 
     _cmake = None
 
@@ -41,6 +39,9 @@ class WavPackConan(ConanFile):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = "WavPack-" + self.version
         tools.rename(extracted_dir, self._source_subfolder)
+
+        tools.patch(patch_file="patches/wavpackdll.rc.patch", base_path=self._source_subfolder)
+        tools.patch(patch_file="patches/CMakeLists.txt.patch", base_path=self._source_subfolder)
 
     def _configure_cmake(self):
         if self._cmake:
@@ -78,7 +79,8 @@ class WavPackConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.name = "WavPack"
+        self.cpp_info.names["cmake_find_package"] = "WavPack"
+        self.cpp_info.names["cmake_find_package_multi"] = "WavPack"
 
         self.cpp_info.libs = self.collect_libs()
 
