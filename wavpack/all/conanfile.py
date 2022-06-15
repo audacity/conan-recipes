@@ -1,3 +1,4 @@
+import os
 from conans import ConanFile, tools, CMake
 from conans.errors import ConanInvalidConfiguration
 
@@ -77,6 +78,10 @@ class WavPackConan(ConanFile):
 
         cmake = self._configure_cmake()
         cmake.install()
+
+        # On Linux, header gets installed to $prefix/include/wavpack/wavpack.h
+        # Let's duplicate this behavior
+        self.copy("*.h", dst="include/wavpack", src=os.path.join(self._source_subfolder, "include"))
 
     def package_info(self):
         self.cpp_info.names["cmake_find_package"] = "WavPack"
