@@ -33,7 +33,7 @@ class ExpatConan(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
 
     def _configure_cmake(self):
         if self._cmake:
@@ -59,11 +59,11 @@ class ExpatConan(ConanFile):
     def _build_cmake(self):
         cmake = self._configure_cmake()
         cmake.build()
-    
+
     def _install_cmake(self):
         cmake = self._configure_cmake()
         cmake.install()
-    
+
     def _configure_autotools(self):
         if self._autotools:
             return self._autotools
@@ -77,7 +77,7 @@ class ExpatConan(ConanFile):
         self._autotools.configure(args=args, configure_dir=self._source_subfolder)
 
         return self._autotools
-    
+
     def _build_autotools(self):
         autotools = self._configure_autotools()
         autotools.make()
@@ -93,15 +93,15 @@ class ExpatConan(ConanFile):
         if self.settings.os == "Windows":
             self._build_cmake()
         else:
-            self._build_autotools()        
+            self._build_autotools()
 
     def package(self):
         self.copy(pattern="COPYING", dst="licenses", src=self._source_subfolder)
-        
+
         if self.settings.os == "Windows":
             self._install_cmake()
         else:
-            self._install_autotools() 
+            self._install_autotools()
 
         tools.rmdir(os.path.join(self.package_folder, "lib", "pkgconfig"))
         tools.rmdir(os.path.join(self.package_folder, "lib", "cmake"))

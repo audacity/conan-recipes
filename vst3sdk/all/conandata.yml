@@ -1,0 +1,4 @@
+sources:
+  "3.7.3":
+    url: "https://download.steinberg.net/sdk_downloads/vst-sdk_3.7.3_build-20_2021-08-10.zip"
+    sha256: "6f369245e2ed323c97bad1f0dbf608fdd9b0f9dd4c8ac0dcd7cf737b68d4d738"

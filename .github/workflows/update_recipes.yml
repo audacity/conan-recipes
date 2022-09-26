@@ -1,0 +1,51 @@
+name: Update Conan Recipes
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  CONAN_RECIPES_REMOTE: ${{ secrets.CONAN_RECIPES_REMOTE }}
+  CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_LOGIN_USERNAME }}
+  CONAN_PASSWORD: ${{ secrets.CONAN_PASSWORD }}
+
+jobs:
+  check_recipes:
+    name: Check on ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: Ubuntu 18.04 (x86_64)
+          os: ubuntu-18.04
+        - name: macOS (x86_64)
+          os: macos-11
+        - name: Windows MSVC 2019 (x86_64)
+          os: windows-2019
+        - name: Windows MSVC 2022 (x86_64)
+          os: windows-2022
+    steps:
+      - uses: actions/checkout@v2
+      - uses: audacity/audacity-actions/dependencies@v1
+      - uses: audacity/audacity-actions/update_recipes@v1
+        with:
+          recipes_remote: ${{ secrets.CONAN_RECIPES_REMOTE }}
+          login: ${{ secrets.CONAN_LOGIN_USERNAME }}
+          password: ${{ secrets.CONAN_PASSWORD }}
+          default_channel: audacity/testing
+          skip_upload: true
+  upload_recipes:
+    name: Upload Recipes
+    runs-on: ubuntu-20.04
+    needs: [check_recipes]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: audacity/audacity-actions/dependencies@v1
+      - uses: audacity/audacity-actions/update_recipes@v1
+        with:
+          recipes_remote: ${{ secrets.CONAN_RECIPES_REMOTE }}
+          login: ${{ secrets.CONAN_LOGIN_USERNAME }}
+          password: ${{ secrets.CONAN_PASSWORD }}
+          default_channel: ${{ (!startsWith(github.ref, 'refs/heads/master') && 'audacity/testing') || '' }}
+          skip_upload: false

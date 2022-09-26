@@ -22,7 +22,7 @@ class LibMP3LameConan(ConanFile):
 
     @property
     def _is_msvc(self):
-        return self.settings.compiler == 'Visual Studio'
+        return str(self.settings.compiler) in ["Visual Studio", "msvc"]
 
     @property
     def _source_subfolder(self):
@@ -35,7 +35,7 @@ class LibMP3LameConan(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = "lame-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
 
     def _apply_patch(self):
         tools.replace_in_file(os.path.join(self._source_subfolder, 'include', 'libmp3lame.sym'), 'lame_init_old\n', '')

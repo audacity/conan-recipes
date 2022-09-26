@@ -84,7 +84,7 @@ class wxWidgetsConan(ConanFile):
                "richtext": True,
                "sockets": True,
                "stc": True,
-               "webview": True,
+               "webview": False,
                "xml": True,
                "xrc": True,
                "cairo": True,
@@ -98,6 +98,10 @@ class wxWidgetsConan(ConanFile):
     }
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
+
+    @property
+    def _is_msvc(self):
+        return str(self.settings.compiler) in ["Visual Studio", "msvc"]
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -126,9 +130,9 @@ class wxWidgetsConan(ConanFile):
                 if self.options.opengl:
                     packages.extend(['mesa-common-dev%s' % arch_suffix,
                                      'libgl1-mesa-dev%s' % arch_suffix])
-                if self.options.webview:
-                    packages.extend(['libsoup2.4-dev%s' % arch_suffix,
-                                     'libwebkitgtk-dev%s' % arch_suffix])
+                #if self.options.webview:
+                #    packages.extend(['libsoup2.4-dev%s' % arch_suffix,
+                #                     'libwebkitgtk-dev%s' % arch_suffix])
                 # TODO : GTK3
                 #                    'libwebkitgtk-3.0-dev%s' % arch_suffix])
                 if self.options.mediactrl:
@@ -165,7 +169,7 @@ class wxWidgetsConan(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = self.conan_data["folders"][self.version]
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
 
     def add_libraries_from_pc(self, library):
         pkg_config = tools.PkgConfig(library)
@@ -193,7 +197,7 @@ class wxWidgetsConan(ConanFile):
             cmake.definitions['wxBUILD_PRECOMP'] = 'OFF'
 
         # platform-specific options
-        if self.settings.compiler == 'Visual Studio':
+        if self._is_msvc:
             cmake.definitions['wxBUILD_USE_STATIC_RUNTIME'] = 'MT' in str(self.settings.compiler.runtime)
             cmake.definitions['wxBUILD_MSVC_MULTIPROC'] = True
         if self.settings.os == 'Linux':
@@ -365,6 +369,7 @@ class wxWidgetsConan(ConanFile):
                                 'wxNO_WEBVIEW_LIB'])
                 # see cmake/init.cmake
                 compiler_prefix = {'Visual Studio': 'vc',
+                                'msvc': 'vc',
                                 'gcc': 'gcc',
                                 'clang': 'clang'}.get(str(self.settings.compiler))
 
@@ -379,7 +384,7 @@ class wxWidgetsConan(ConanFile):
                 self.cpp_info.components[name].defines.append('__WXGTK__')
 
         if not self.options.shared:
-            regexLibPattern = 'wxregex{unicode}{debug}' if self.settings.os == "Windows" else '{suffix}'
+            regexLibPattern = 'wxregex{unicode}{debug}' if self.settings.os == "Windows" else 'wxregex{unicode}{debug}{suffix}'
             add_component('regex', regexLibPattern, [])
 
         add_component('base', '{prefix}base{version}{unicode}{debug}{suffix}', [])
@@ -485,7 +490,7 @@ class wxWidgetsConan(ConanFile):
             self.add_libraries_from_pc('x11')
             self.cpp_info.components['base'].system_libs.extend(['dl', 'pthread', 'SM'])
 
-        if self.settings.compiler == 'Visual Studio':
+        if self._is_msvc:
             self.cpp_info.components['base'].includedirs.append(os.path.join('include', 'msvc'))
         elif self.settings.os != 'Windows':
             unix_include_path = os.path.join("include", "wx{}".format(version_suffix_major_minor))

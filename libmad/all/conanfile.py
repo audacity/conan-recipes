@@ -13,18 +13,18 @@ class LibmadConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
     generators = ["cmake", "cmake_find_package"]
     options = {
-        "shared": [True, False], 
-        "fPIC": [True, False], 
-        "opt_accuracy": [True, False], 
-        "opt_speed": [True, False], 
+        "shared": [True, False],
+        "fPIC": [True, False],
+        "opt_accuracy": [True, False],
+        "opt_speed": [True, False],
         "opt_sso": [True, False]
     }
 
     default_options = {
-        "shared": False, 
-        "fPIC": True, 
-        "opt_accuracy": True, 
-        "opt_speed": False, 
+        "shared": False,
+        "fPIC": True,
+        "opt_accuracy": True,
+        "opt_speed": False,
         "opt_sso": False
     }
 
@@ -48,7 +48,7 @@ class LibmadConan(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = self.name + "-" + self.version
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
 
     def _configure_cmake(self):
         if self._cmake:

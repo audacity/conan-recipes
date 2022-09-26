@@ -1,1 +1,8 @@
 build/
+.venv
+.idea
+
+.conan/
+.offline/
+
+.DS_Store

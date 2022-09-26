@@ -40,7 +40,7 @@ class PortMidiConan(ConanFile):
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = os.path.join("portmedia-code-" + self.version, "portmidi", "trunk")
-        os.rename(extracted_dir, self._source_subfolder)
+        tools.rename(extracted_dir, self._source_subfolder)
 
         tools.patch(patch_file="patches/build-system.patch", base_path=self._source_subfolder)
         tools.patch(patch_file="patches/portmidi.h.patch", base_path=self._source_subfolder)
@@ -77,3 +77,7 @@ class PortMidiConan(ConanFile):
 
         if self.settings.os == "Windows" and not self.options.shared:
             self.cpp_info.system_libs.append('winmm')
+        elif self.settings.os == "Macos":
+            self.cpp_info.frameworks.extend(['CoreMIDI', 'CoreAudio', 'CoreFoundation', 'CoreServices'])
+        else:
+            self.cpp_info.system_libs.extend(['m', 'pthread', 'asound'])

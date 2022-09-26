@@ -63,3 +63,16 @@ Patches:
 ## WavPack
 
 This recipe provides WavPack 5.4.0
+
+Patches:
+
+* `CMakeLists.txt.patch` - fixes the build environment when both GCC and MSVC are present in PATH
+* `wavpackdll.rc.patch` - removes the requirement for the MFC SDK on Windows
+
+## VST3 SDK
+
+This recipe provides VST3 SDK from Steinberg
+
+## Qt
+
+This recipe is a fixed recipe from conan-center for the Qt5

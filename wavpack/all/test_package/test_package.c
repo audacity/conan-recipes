@@ -1,4 +1,4 @@
-#include <wavpack.h>
+#include <wavpack/wavpack.h>
 #include <stdio.h>
 
 int main() {
