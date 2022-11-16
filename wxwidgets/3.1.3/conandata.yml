@@ -11,6 +11,9 @@ sources:
   "3.1.3.3-audacity":
     url: "https://github.com/audacity/wxWidgets/archive/v3.1.3.1-audacity.tar.gz"
     sha256: "bc62edab621cf0a568ce6716407d5090701c09b57335044f92066b302bb70d1d"
+  "3.1.3.4-audacity":
+    url: "https://github.com/audacity/wxWidgets/archive/v3.1.3.1-audacity.tar.gz"
+    sha256: "bc62edab621cf0a568ce6716407d5090701c09b57335044f92066b302bb70d1d"
 patches:
   "3.1.3-audacity":
     - patch_file: "patches/d9deaa8b76128613a84f3d085eb1e4b05631083a.patch"
@@ -26,8 +29,14 @@ patches:
       base_path: "source_subfolder"
     - patch_file: "patches/fix-cocoa-process.diff"
       base_path: "source_subfolder"
+  "3.1.3.4-audacity":
+    - patch_file: "patches/d9deaa8b76128613a84f3d085eb1e4b05631083a.patch"
+      base_path: "source_subfolder"
+    - patch_file: "patches/fix-cocoa-process.diff"
+      base_path: "source_subfolder"
 folders:
   "3.1.3-audacity": "wxWidgets-3.1.3-audacity"
   "3.1.3.1-audacity": "wxWidgets-3.1.3.1-audacity"
   "3.1.3.2-audacity": "wxWidgets-3.1.3.1-audacity"
   "3.1.3.3-audacity": "wxWidgets-3.1.3.1-audacity"
+  "3.1.3.4-audacity": "wxWidgets-3.1.3.1-audacity"

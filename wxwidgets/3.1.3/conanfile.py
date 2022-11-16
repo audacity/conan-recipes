@@ -175,7 +175,7 @@ class wxWidgetsConan(ConanFile):
         pkg_config = tools.PkgConfig(library)
         libs = [lib[2:] for lib in pkg_config.libs_only_l]  # cut -l prefix
         lib_paths = [lib[2:] for lib in pkg_config.libs_only_L]  # cut -L prefix
-        self.cpp_info.components['base'].libs.extend(libs)
+        self.cpp_info.components['base'].system_libs.extend(libs)
         self.cpp_info.components['base'].libdirs.extend(lib_paths)
         self.cpp_info.components['base'].sharedlinkflags.extend(pkg_config.libs_only_other)
         self.cpp_info.components['base'].exelinkflags.extend(pkg_config.libs_only_other)
@@ -488,7 +488,7 @@ class wxWidgetsConan(ConanFile):
         else:
             self.add_libraries_from_pc('gtk+-2.0')
             self.add_libraries_from_pc('x11')
-            self.cpp_info.components['base'].system_libs.extend(['dl', 'pthread', 'SM'])
+            self.cpp_info.components['base'].system_libs.extend(['dl', 'pthread', 'SM', 'uuid'])
 
         if self._is_msvc:
             self.cpp_info.components['base'].includedirs.append(os.path.join('include', 'msvc'))
