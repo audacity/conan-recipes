@@ -1,0 +1,9 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "C:\\devel\\projects\\github\\conan-io\\conan-recipes\\harfbuzz\\all\\test_package\\build\\generators\\CMakePresets.json"
+    ]
+}
