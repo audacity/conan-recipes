@@ -1,0 +1,881 @@
+From 7343775c0caea34f801663be2b30f56cc5e8cbf2 Mon Sep 17 00:00:00 2001
+From: Vitaly Sverchinsky <sverchinsky@gmail.com>
+Date: Mon, 14 Nov 2022 01:26:49 +0300
+Subject: [PATCH] audacity-crashreporter
+
+---
+ client/crash_report_database.h                |  7 +++
+ client/crash_report_database_generic.cc       | 59 ++++++++++--------
+ client/crash_report_database_mac.mm           |  9 +++
+ client/crash_report_database_win.cc           | 47 ++++++++------
+ client/prune_crash_reports_test.cc            |  1 +
+ handler/BUILD.gn                              | 12 ++++
+ handler/crash_report_upload_thread.h          |  5 +-
+ handler/handler_main.cc                       | 61 ++++++++++++++++++-
+ .../linux/crash_report_exception_handler.cc   |  6 --
+ .../linux/crash_report_exception_handler.h    |  6 --
+ handler/mac/crash_report_exception_handler.cc |  6 --
+ handler/mac/crash_report_exception_handler.h  |  6 --
+ handler/posix/crashreporter_caller.cc         | 33 ++++++++++
+ handler/posix/crashreporter_caller.h          | 35 +++++++++++
+ handler/win/crash_report_exception_handler.cc |  8 +--
+ handler/win/crash_report_exception_handler.h  |  8 +--
+ handler/win/crashreporter_caller.cc           | 59 ++++++++++++++++++
+ handler/win/crashreporter_caller.h            | 34 +++++++++++
+ 18 files changed, 317 insertions(+), 85 deletions(-)
+ create mode 100644 handler/posix/crashreporter_caller.cc
+ create mode 100644 handler/posix/crashreporter_caller.h
+ create mode 100644 handler/win/crashreporter_caller.cc
+ create mode 100644 handler/win/crashreporter_caller.h
+
+diff --git a/client/crash_report_database.h b/client/crash_report_database.h
+index fea49853..f8d7cf9b 100644
+--- a/client/crash_report_database.h
++++ b/client/crash_report_database.h
+@@ -232,6 +232,11 @@ class CrashReportDatabase {
+     kCannotRequestUpload,
+   };
+ 
++  class ReportPendingDelegate {
++  public:
++    virtual void ReportPending(const UUID&) = 0;
++  };
++
+   CrashReportDatabase(const CrashReportDatabase&) = delete;
+   CrashReportDatabase& operator=(const CrashReportDatabase&) = delete;
+ 
+@@ -272,6 +277,8 @@ class CrashReportDatabase {
+   //!     database.
+   virtual Settings* GetSettings() = 0;
+ 
++  virtual void SetReportPendingDelegate(ReportPendingDelegate* delegate) = 0;
++
+   //! \brief Creates a record of a new crash report.
+   //!
+   //! Callers should write the crash report using the FileWriter provided.
+diff --git a/client/crash_report_database_generic.cc b/client/crash_report_database_generic.cc
+index 9d48b68b..d6ebc408 100644
+--- a/client/crash_report_database_generic.cc
++++ b/client/crash_report_database_generic.cc
+@@ -170,6 +170,7 @@ class CrashReportDatabaseGeneric : public CrashReportDatabase {
+ 
+   // CrashReportDatabase:
+   Settings* GetSettings() override;
++  void SetReportPendingDelegate(ReportPendingDelegate* delegate) override;
+   OperationStatus PrepareNewCrashReport(
+       std::unique_ptr<NewReport>* report) override;
+   OperationStatus FinishedWritingCrashReport(std::unique_ptr<NewReport> report,
+@@ -260,6 +261,7 @@ class CrashReportDatabaseGeneric : public CrashReportDatabase {
+   base::FilePath base_dir_;
+   Settings settings_;
+   InitializationStateDcheck initialized_;
++  ReportPendingDelegate* report_pending_delegate_{nullptr};
+ };
+ 
+ CrashReportDatabaseGeneric::CrashReportDatabaseGeneric() = default;
+@@ -320,6 +322,10 @@ Settings* CrashReportDatabaseGeneric::GetSettings() {
+   return &settings_;
+ }
+ 
++void CrashReportDatabaseGeneric::SetReportPendingDelegate(ReportPendingDelegate* delegate) {
++  report_pending_delegate_ = delegate;
++}
++
+ OperationStatus CrashReportDatabaseGeneric::PrepareNewCrashReport(
+     std::unique_ptr<NewReport>* report) {
+   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
+@@ -340,36 +346,41 @@ OperationStatus CrashReportDatabaseGeneric::FinishedWritingCrashReport(
+   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
+ 
+   base::FilePath path = ReportPath(report->ReportID(), kPending);
+-  ScopedLockFile lock_file;
+-  if (!lock_file.ResetAcquire(path)) {
+-    return kBusyError;
+-  }
++  {
++    ScopedLockFile lock_file;
++    if (!lock_file.ResetAcquire(path)) {
++      return kBusyError;
++    }
+ 
+-  if (!WriteNewMetadata(ReplaceFinalExtension(path, kMetadataExtension))) {
+-    return kDatabaseError;
+-  }
++    if (!WriteNewMetadata(ReplaceFinalExtension(path, kMetadataExtension))) {
++      return kDatabaseError;
++    }
+ 
+-  FileOffset size = report->Writer()->Seek(0, SEEK_END);
++    FileOffset size = report->Writer()->Seek(0, SEEK_END);
+ 
+-  report->Writer()->Close();
+-  if (!MoveFileOrDirectory(report->file_remover_.get(), path)) {
+-    return kFileSystemError;
+-  }
+-  // We've moved the report to pending, so it no longer needs to be removed.
+-  std::ignore = report->file_remover_.release();
++    report->Writer()->Close();
++    if (!MoveFileOrDirectory(report->file_remover_.get(), path)) {
++      return kFileSystemError;
++    }
++    // We've moved the report to pending, so it no longer needs to be removed.
++    std::ignore = report->file_remover_.release();
+ 
+-  // Close all the attachments and disarm their removers too.
+-  for (auto& writer : report->attachment_writers_) {
+-    writer->Close();
+-  }
+-  for (auto& remover : report->attachment_removers_) {
+-    std::ignore = remover.release();
+-  }
++    // Close all the attachments and disarm their removers too.
++    for (auto& writer : report->attachment_writers_) {
++      writer->Close();
++    }
++    for (auto& remover : report->attachment_removers_) {
++      std::ignore = remover.release();
++    }
+ 
+-  *uuid = report->ReportID();
++    *uuid = report->ReportID();
++    
++    Metrics::CrashReportPending(Metrics::PendingReportReason::kNewlyCreated);
++    Metrics::CrashReportSize(size);
++  }
+ 
+-  Metrics::CrashReportPending(Metrics::PendingReportReason::kNewlyCreated);
+-  Metrics::CrashReportSize(size);
++  if(report_pending_delegate_)
++    report_pending_delegate_->ReportPending(*uuid);
+ 
+   return kNoError;
+ }
+diff --git a/client/crash_report_database_mac.mm b/client/crash_report_database_mac.mm
+index 52319bef..200ef6ac 100644
+--- a/client/crash_report_database_mac.mm
++++ b/client/crash_report_database_mac.mm
+@@ -141,6 +141,7 @@ class CrashReportDatabaseMac : public CrashReportDatabase {
+ 
+   // CrashReportDatabase:
+   Settings* GetSettings() override;
++  void SetReportPendingDelegate(ReportPendingDelegate* delegate) override;
+   OperationStatus PrepareNewCrashReport(
+       std::unique_ptr<NewReport>* report) override;
+   OperationStatus FinishedWritingCrashReport(std::unique_ptr<NewReport> report,
+@@ -256,6 +257,7 @@ class CrashReportDatabaseMac : public CrashReportDatabase {
+   Settings settings_;
+   bool xattr_new_names_;
+   InitializationStateDcheck initialized_;
++  ReportPendingDelegate* report_pending_delegate_{nullptr};
+ };
+ 
+ 
+@@ -327,6 +329,10 @@ Settings* CrashReportDatabaseMac::GetSettings() {
+   return &settings_;
+ }
+ 
++void CrashReportDatabaseMac::SetReportPendingDelegate(ReportPendingDelegate* delegate) {
++  report_pending_delegate_ = delegate;
++}
++
+ CrashReportDatabase::OperationStatus
+ CrashReportDatabaseMac::PrepareNewCrashReport(
+     std::unique_ptr<NewReport>* out_report) {
+@@ -399,6 +405,9 @@ CrashReportDatabaseMac::FinishedWritingCrashReport(
+   Metrics::CrashReportPending(Metrics::PendingReportReason::kNewlyCreated);
+   Metrics::CrashReportSize(size);
+ 
++  if(report_pending_delegate_)
++    report_pending_delegate_->ReportPending(*uuid);
++
+   return kNoError;
+ }
+ 
+diff --git a/client/crash_report_database_win.cc b/client/crash_report_database_win.cc
+index 6331f650..94ce62aa 100644
+--- a/client/crash_report_database_win.cc
++++ b/client/crash_report_database_win.cc
+@@ -633,6 +633,7 @@ class CrashReportDatabaseWin : public CrashReportDatabase {
+ 
+   // CrashReportDatabase:
+   Settings* GetSettings() override;
++  void SetReportPendingDelegate(ReportPendingDelegate* delegate) override;
+   OperationStatus PrepareNewCrashReport(
+       std::unique_ptr<NewReport>* report) override;
+   OperationStatus FinishedWritingCrashReport(std::unique_ptr<NewReport> report,
+@@ -665,6 +666,7 @@ class CrashReportDatabaseWin : public CrashReportDatabase {
+   base::FilePath base_dir_;
+   Settings settings_;
+   InitializationStateDcheck initialized_;
++  ReportPendingDelegate* report_pending_delegate_{nullptr};  // weak
+ };
+ 
+ CrashReportDatabaseWin::CrashReportDatabaseWin(const base::FilePath& path)
+@@ -707,6 +709,10 @@ Settings* CrashReportDatabaseWin::GetSettings() {
+   return &settings_;
+ }
+ 
++void CrashReportDatabaseWin::SetReportPendingDelegate(ReportPendingDelegate* delegate) {
++  report_pending_delegate_ = delegate;
++}
++
+ OperationStatus CrashReportDatabaseWin::PrepareNewCrashReport(
+     std::unique_ptr<NewReport>* report) {
+   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
+@@ -727,28 +733,33 @@ OperationStatus CrashReportDatabaseWin::FinishedWritingCrashReport(
+     UUID* uuid) {
+   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
+ 
+-  std::unique_ptr<Metadata> metadata(AcquireMetadata());
+-  if (!metadata)
+-    return kDatabaseError;
+-  metadata->AddNewRecord(ReportDisk(report->ReportID(),
+-                                    report->file_remover_.get(),
+-                                    time(nullptr),
+-                                    ReportState::kPending));
++  {
++    std::unique_ptr<Metadata> metadata(AcquireMetadata());
++    if (!metadata)
++      return kDatabaseError;
++    metadata->AddNewRecord(ReportDisk(report->ReportID(),
++                                      report->file_remover_.get(),
++                                      time(nullptr),
++                                      ReportState::kPending));
+ 
+-  std::ignore = report->file_remover_.release();
++    std::ignore = report->file_remover_.release();
+ 
+-  // Close all the attachments and disarm their removers too.
+-  for (auto& writer : report->attachment_writers_) {
+-    writer->Close();
+-  }
+-  for (auto& remover : report->attachment_removers_) {
+-    std::ignore = remover.release();
+-  }
++    // Close all the attachments and disarm their removers too.
++    for (auto& writer : report->attachment_writers_) {
++      writer->Close();
++    }
++    for (auto& remover : report->attachment_removers_) {
++      std::ignore = remover.release();
++    }
+ 
+-  *uuid = report->ReportID();
++    *uuid = report->ReportID();
+ 
+-  Metrics::CrashReportPending(Metrics::PendingReportReason::kNewlyCreated);
+-  Metrics::CrashReportSize(report->Writer()->Seek(0, SEEK_END));
++    Metrics::CrashReportPending(Metrics::PendingReportReason::kNewlyCreated);
++    Metrics::CrashReportSize(report->Writer()->Seek(0, SEEK_END));
++  }
++  
++  if(report_pending_delegate_)
++    report_pending_delegate_->ReportPending(*uuid);
+ 
+   return kNoError;
+ }
+diff --git a/client/prune_crash_reports_test.cc b/client/prune_crash_reports_test.cc
+index cce26aa0..231ff939 100644
+--- a/client/prune_crash_reports_test.cc
++++ b/client/prune_crash_reports_test.cc
+@@ -37,6 +37,7 @@ class MockDatabase : public CrashReportDatabase {
+  public:
+   // CrashReportDatabase:
+   MOCK_METHOD(Settings*, GetSettings, (), (override));
++  MOCK_METHOD(void, SetReportPendingDelegate, (ReportPendingDelegate*), (override));
+   MOCK_METHOD(OperationStatus,
+               PrepareNewCrashReport,
+               (std::unique_ptr<NewReport>*),
+diff --git a/handler/BUILD.gn b/handler/BUILD.gn
+index 0fe4760d..750ae4ef 100644
+--- a/handler/BUILD.gn
++++ b/handler/BUILD.gn
+@@ -97,6 +97,18 @@ static_library("common") {
+     "minidump_to_upload_parameters.cc",
+     "minidump_to_upload_parameters.h",
+   ]
++  if (crashpad_is_win) {
++    sources += [
++      "win/crashreporter_caller.cc",
++      "win/crashreporter_caller.h",
++    ]
++  }
++  if (crashpad_is_linux  || crashpad_is_mac) {
++    sources += [
++      "posix/crashreporter_caller.cc",
++      "posix/crashreporter_caller.h",
++    ]
++  }
+   if (crashpad_is_mac || crashpad_is_ios) {
+     sources += [
+       "mac/file_limit_annotation.cc",
+diff --git a/handler/crash_report_upload_thread.h b/handler/crash_report_upload_thread.h
+index 70f16283..d5d1add0 100644
+--- a/handler/crash_report_upload_thread.h
++++ b/handler/crash_report_upload_thread.h
+@@ -42,7 +42,8 @@ namespace crashpad {
+ //! being caught. This may happen if crash reports are added to the database by
+ //! other processes.
+ class CrashReportUploadThread : public WorkerThread::Delegate,
+-                                public Stoppable {
++                                public Stoppable,
++                                public CrashReportDatabase::ReportPendingDelegate {
+  public:
+    //! \brief Options to be passed to the CrashReportUploadThread constructor.
+    struct Options {
+@@ -84,7 +85,7 @@ class CrashReportUploadThread : public WorkerThread::Delegate,
+   //!     report.
+   //!
+   //! This method may be called from any thread.
+-  void ReportPending(const UUID& report_uuid);
++  void ReportPending(const UUID& report_uuid) override;
+ 
+   // Stoppable:
+ 
+diff --git a/handler/handler_main.cc b/handler/handler_main.cc
+index 48ef8b65..674fe1b4 100644
+--- a/handler/handler_main.cc
++++ b/handler/handler_main.cc
+@@ -57,6 +57,10 @@
+ #include "util/string/split_string.h"
+ #include "util/synchronization/semaphore.h"
+ 
++#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_APPLE)
++#include "handler/posix/crashreporter_caller.h"
++#endif
++
+ #if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+ #include "handler/linux/cros_crash_report_exception_handler.h"
+ #endif
+@@ -83,6 +87,7 @@
+ #include <windows.h>
+ 
+ #include "handler/win/crash_report_exception_handler.h"
++#include "handler/win/crashreporter_caller.h"
+ #include "util/win/exception_handler_server.h"
+ #include "util/win/handle.h"
+ #include "util/win/initial_client_data.h"
+@@ -115,6 +120,13 @@ void Usage(const base::FilePath& me) {
+ #endif  // ATTACHMENTS_SUPPORTED
+       // clang-format off
+ "      --database=PATH         store the crash report database at PATH\n"
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_APPLE)
++"      --crashreporter-path=PATH\n"
++"                              pass minidump to a specified program when\n"
++"                              crash occurs\n"
++"      --crashreporter-argument=ARGUMENT\n"
++"                              additional argument to the crashreporter\n"
++#endif
+   // clang-format on
+ #if BUILDFLAG(IS_APPLE)
+       // clang-format off
+@@ -224,6 +236,10 @@ struct Options {
+   std::map<std::string, std::string> monitor_self_annotations;
+   std::string url;
+   base::FilePath database;
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_APPLE)
++  base::FilePath crashreporter_path;
++  std::vector<std::string> crashreporter_arguments;
++#endif
+   base::FilePath metrics_dir;
+   std::vector<std::string> monitor_self_arguments;
+ #if BUILDFLAG(IS_APPLE)
+@@ -581,6 +597,10 @@ int HandlerMain(int argc,
+     kOptionAttachment,
+ #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+     kOptionDatabase,
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_APPLE)
++    kOptionCrashreporterPath,
++    kOptionCrashreporterArgument,
++#endif
+ #if BUILDFLAG(IS_APPLE)
+     kOptionHandshakeFD,
+ #endif  // BUILDFLAG(IS_APPLE)
+@@ -637,6 +657,10 @@ int HandlerMain(int argc,
+     {"attachment", required_argument, nullptr, kOptionAttachment},
+ #endif  // ATTACHMENTS_SUPPORTED
+     {"database", required_argument, nullptr, kOptionDatabase},
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_APPLE)
++    {"crashreporter-path", required_argument, nullptr, kOptionCrashreporterPath},
++    {"crashreporter-argument", required_argument, nullptr, kOptionCrashreporterArgument},
++#endif
+ #if BUILDFLAG(IS_APPLE)
+     {"handshake-fd", required_argument, nullptr, kOptionHandshakeFD},
+ #endif  // BUILDFLAG(IS_APPLE)
+@@ -756,6 +780,17 @@ int HandlerMain(int argc,
+             ToolSupport::CommandLineArgumentToFilePathStringType(optarg));
+         break;
+       }
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_APPLE)
++      case kOptionCrashreporterPath: {
++        options.crashreporter_path = base::FilePath(
++            ToolSupport::CommandLineArgumentToFilePathStringType(optarg));
++        break;
++      }
++      case kOptionCrashreporterArgument: {
++        options.crashreporter_arguments.push_back(optarg);
++        break;
++      }
++#endif
+ #if BUILDFLAG(IS_APPLE)
+       case kOptionHandshakeFD: {
+         if (!StringToNumber(optarg, &options.handshake_fd) ||
+@@ -1012,6 +1047,24 @@ int HandlerMain(int argc,
+   }
+ 
+   ScopedStoppable upload_thread;
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_APPLE)
++  std::unique_ptr<CrashreporterCaller> crashreporter_caller;
++  if (!options.crashreporter_path.empty()) {
++    crashreporter_caller = std::unique_ptr<CrashreporterCaller>(new CrashreporterCaller(
++        database.get(),
++        &options.crashreporter_path,
++        &options.crashreporter_arguments
++      )
++      //, 
++      //[&](CrashreporterCaller* caller) { 
++      //  database->SetReportPendingDelegate(nullptr); 
++      //  delete caller; 
++      //}
++    );
++    database->SetReportPendingDelegate(crashreporter_caller.get());
++  }
++  else
++#endif
+   if (!options.url.empty()) {
+     // TODO(scottmg): options.rate_limit should be removed when we have a
+     // configurable database setting to control upload limiting.
+@@ -1024,7 +1077,11 @@ int HandlerMain(int argc,
+     upload_thread_options.watch_pending_reports = options.periodic_tasks;
+ 
+     upload_thread.Reset(new CrashReportUploadThread(
+-        database.get(), options.url, upload_thread_options));
++        database.get(),
++        options.url,
++        upload_thread_options));
++    database->SetReportPendingDelegate(
++      static_cast<CrashReportUploadThread*>(upload_thread.Get()));
+     upload_thread.Get()->Start();
+   }
+ 
+@@ -1053,7 +1110,6 @@ int HandlerMain(int argc,
+   } else {
+     exception_handler = std::make_unique<CrashReportExceptionHandler>(
+         database.get(),
+-        static_cast<CrashReportUploadThread*>(upload_thread.Get()),
+         &options.annotations,
+         &options.attachments,
+         true,
+@@ -1063,7 +1119,6 @@ int HandlerMain(int argc,
+ #else
+   exception_handler = std::make_unique<CrashReportExceptionHandler>(
+       database.get(),
+-      static_cast<CrashReportUploadThread*>(upload_thread.Get()),
+       &options.annotations,
+ #if defined(ATTACHMENTS_SUPPORTED)
+       &options.attachments,
+diff --git a/handler/linux/crash_report_exception_handler.cc b/handler/linux/crash_report_exception_handler.cc
+index 88378a9f..58723097 100644
+--- a/handler/linux/crash_report_exception_handler.cc
++++ b/handler/linux/crash_report_exception_handler.cc
+@@ -101,14 +101,12 @@ bool WriteMinidumpLogFromFile(FileReaderInterface* file_reader) {
+ 
+ CrashReportExceptionHandler::CrashReportExceptionHandler(
+     CrashReportDatabase* database,
+-    CrashReportUploadThread* upload_thread,
+     const std::map<std::string, std::string>* process_annotations,
+     const std::vector<base::FilePath>* attachments,
+     bool write_minidump_to_database,
+     bool write_minidump_to_log,
+     const UserStreamDataSources* user_stream_data_sources)
+     : database_(database),
+-      upload_thread_(upload_thread),
+       process_annotations_(process_annotations),
+       attachments_(attachments),
+       write_minidump_to_database_(write_minidump_to_database),
+@@ -268,10 +266,6 @@ bool CrashReportExceptionHandler::WriteMinidumpToDatabase(
+     return false;
+   }
+ 
+-  if (upload_thread_) {
+-    upload_thread_->ReportPending(uuid);
+-  }
+-
+   if (local_report_id != nullptr) {
+     *local_report_id = uuid;
+   }
+diff --git a/handler/linux/crash_report_exception_handler.h b/handler/linux/crash_report_exception_handler.h
+index 76fce92f..9d98f21f 100644
+--- a/handler/linux/crash_report_exception_handler.h
++++ b/handler/linux/crash_report_exception_handler.h
+@@ -19,7 +19,6 @@
+ #include <string>
+ 
+ #include "client/crash_report_database.h"
+-#include "handler/crash_report_upload_thread.h"
+ #include "handler/linux/exception_handler_server.h"
+ #include "handler/user_stream_data_source.h"
+ #include "util/linux/exception_handler_protocol.h"
+@@ -39,9 +38,6 @@ class CrashReportExceptionHandler : public ExceptionHandlerServer::Delegate {
+   //! \brief Creates a new object that will store crash reports in \a database.
+   //!
+   //! \param[in] database The database to store crash reports in. Weak.
+-  //! \param[in] upload_thread The upload thread to notify when a new crash
+-  //!     report is written into \a database. Report upload is skipped if this
+-  //!     value is `nullptr`.
+   //! \param[in] process_annotations A map of annotations to insert as
+   //!     process-level annotations into each crash report that is written. Do
+   //!     not confuse this with module-level annotations, which are under the
+@@ -64,7 +60,6 @@ class CrashReportExceptionHandler : public ExceptionHandlerServer::Delegate {
+   //!     minidump streams. `nullptr` if not required.
+   CrashReportExceptionHandler(
+       CrashReportDatabase* database,
+-      CrashReportUploadThread* upload_thread,
+       const std::map<std::string, std::string>* process_annotations,
+       const std::vector<base::FilePath>* attachments,
+       bool write_minidump_to_database,
+@@ -110,7 +105,6 @@ class CrashReportExceptionHandler : public ExceptionHandlerServer::Delegate {
+                           ProcessSnapshotSanitized* sanitized_snapshot);
+ 
+   CrashReportDatabase* database_;  // weak
+-  CrashReportUploadThread* upload_thread_;  // weak
+   const std::map<std::string, std::string>* process_annotations_;  // weak
+   const std::vector<base::FilePath>* attachments_;  // weak
+   bool write_minidump_to_database_;
+diff --git a/handler/mac/crash_report_exception_handler.cc b/handler/mac/crash_report_exception_handler.cc
+index ad3bac14..7e224c47 100644
+--- a/handler/mac/crash_report_exception_handler.cc
++++ b/handler/mac/crash_report_exception_handler.cc
+@@ -44,11 +44,9 @@ namespace crashpad {
+ 
+ CrashReportExceptionHandler::CrashReportExceptionHandler(
+     CrashReportDatabase* database,
+-    CrashReportUploadThread* upload_thread,
+     const std::map<std::string, std::string>* process_annotations,
+     const UserStreamDataSources* user_stream_data_sources)
+     : database_(database),
+-      upload_thread_(upload_thread),
+       process_annotations_(process_annotations),
+       user_stream_data_sources_(user_stream_data_sources) {}
+ 
+@@ -182,10 +180,6 @@ kern_return_t CrashReportExceptionHandler::CatchMachException(
+           Metrics::CaptureResult::kFinishedWritingCrashReportFailed);
+       return KERN_FAILURE;
+     }
+-
+-    if (upload_thread_) {
+-      upload_thread_->ReportPending(uuid);
+-    }
+   }
+ 
+   if (client_options.system_crash_reporter_forwarding != TriState::kDisabled &&
+diff --git a/handler/mac/crash_report_exception_handler.h b/handler/mac/crash_report_exception_handler.h
+index 16c66912..3ce1c78e 100644
+--- a/handler/mac/crash_report_exception_handler.h
++++ b/handler/mac/crash_report_exception_handler.h
+@@ -21,7 +21,6 @@
+ #include <string>
+ 
+ #include "client/crash_report_database.h"
+-#include "handler/crash_report_upload_thread.h"
+ #include "handler/user_stream_data_source.h"
+ #include "util/mach/exc_server_variants.h"
+ 
+@@ -35,9 +34,6 @@ class CrashReportExceptionHandler final
+   //! \brief Creates a new object that will store crash reports in \a database.
+   //!
+   //! \param[in] database The database to store crash reports in. Weak.
+-  //! \param[in] upload_thread The upload thread to notify when a new crash
+-  //!     report is written into \a database. Report upload is skipped if this
+-  //!     value is `nullptr`.
+   //! \param[in] process_annotations A map of annotations to insert as
+   //!     process-level annotations into each crash report that is written. Do
+   //!     not confuse this with module-level annotations, which are under the
+@@ -54,7 +50,6 @@ class CrashReportExceptionHandler final
+   //!     minidump streams. `nullptr` if not required.
+   CrashReportExceptionHandler(
+       CrashReportDatabase* database,
+-      CrashReportUploadThread* upload_thread,
+       const std::map<std::string, std::string>* process_annotations,
+       const UserStreamDataSources* user_stream_data_sources);
+ 
+@@ -86,7 +81,6 @@ class CrashReportExceptionHandler final
+ 
+  private:
+   CrashReportDatabase* database_;  // weak
+-  CrashReportUploadThread* upload_thread_;  // weak
+   const std::map<std::string, std::string>* process_annotations_;  // weak
+   const UserStreamDataSources* user_stream_data_sources_;  // weak
+ };
+diff --git a/handler/posix/crashreporter_caller.cc b/handler/posix/crashreporter_caller.cc
+new file mode 100644
+index 00000000..72deed05
+--- /dev/null
++++ b/handler/posix/crashreporter_caller.cc
+@@ -0,0 +1,33 @@
++#include "crashreporter_caller.h"
++#include "util/posix/double_fork_and_exec.h"
++#include "base/files/file_path.h"
++
++namespace crashpad {
++
++CrashreporterCaller::CrashreporterCaller(
++  CrashReportDatabase* database,
++  base::FilePath* crashreporter_path,
++  std::vector<std::string>* crashreporter_arguments)
++    : database_(database)
++    , crashreporter_path_(crashreporter_path)
++    , crashreporter_arguments_(crashreporter_arguments)
++{ }
++
++void CrashreporterCaller::ReportPending(const UUID& uuid)
++{
++  database_->SkipReportUpload(uuid, Metrics::CrashSkippedReason::kUploadsDisabled);
++
++  CrashReportDatabase::Report report;
++  if (database_->LookUpCrashReport(uuid, &report) ==
++      CrashReportDatabase::kNoError) {
++
++    std::vector<std::string> argv(1, crashreporter_path_->value());
++    for(const auto& arg : *crashreporter_arguments_)
++      argv.push_back(arg);
++    argv.push_back(report.file_path.value());
++    DoubleForkAndExec(argv, nullptr, -1, false, nullptr);
++  }
++}
++
++}
++
+diff --git a/handler/posix/crashreporter_caller.h b/handler/posix/crashreporter_caller.h
+new file mode 100644
+index 00000000..8a495529
+--- /dev/null
++++ b/handler/posix/crashreporter_caller.h
+@@ -0,0 +1,35 @@
++#ifndef CRASHPAD_CLIENT_CRASHREPORTER_CALLER_H_
++#define CRASHPAD_CLIENT_CRASHREPORTER_CALLER_H_
++
++#include <string>
++#include <vector>
++#include "client/crash_report_database.h"
++
++namespace base {
++    class FilePath;
++}
++
++namespace crashpad {
++
++class CrashreporterCaller final : public CrashReportDatabase::ReportPendingDelegate 
++{
++public:
++
++  CrashreporterCaller(
++    CrashReportDatabase* database,
++    base::FilePath* crashreporter_path,
++    std::vector<std::string>* crashreporter_arguments
++  );
++
++  void ReportPending(const UUID& uuid) override;
++
++private:
++  CrashReportDatabase* database_;  // weak
++  const base::FilePath* crashreporter_path_;  // weak
++  const std::vector<std::string>* crashreporter_arguments_;  // weak
++};
++
++}
++
++#endif
++
+diff --git a/handler/win/crash_report_exception_handler.cc b/handler/win/crash_report_exception_handler.cc
+index 2098a574..4111a772 100644
+--- a/handler/win/crash_report_exception_handler.cc
++++ b/handler/win/crash_report_exception_handler.cc
+@@ -20,7 +20,6 @@
+ #include "base/strings/utf_string_conversions.h"
+ #include "client/crash_report_database.h"
+ #include "client/settings.h"
+-#include "handler/crash_report_upload_thread.h"
+ #include "minidump/minidump_file_writer.h"
+ #include "minidump/minidump_user_extension_stream_data_source.h"
+ #include "snapshot/win/process_snapshot_win.h"
+@@ -30,17 +29,16 @@
+ #include "util/win/registration_protocol_win.h"
+ #include "util/win/scoped_process_suspend.h"
+ #include "util/win/termination_codes.h"
++#include "util/win/command_line.h"
+ 
+ namespace crashpad {
+ 
+ CrashReportExceptionHandler::CrashReportExceptionHandler(
+     CrashReportDatabase* database,
+-    CrashReportUploadThread* upload_thread,
+     const std::map<std::string, std::string>* process_annotations,
+     const std::vector<base::FilePath>* attachments,
+     const UserStreamDataSources* user_stream_data_sources)
+     : database_(database),
+-      upload_thread_(upload_thread),
+       process_annotations_(process_annotations),
+       attachments_(attachments),
+       user_stream_data_sources_(user_stream_data_sources) {}
+@@ -141,10 +139,6 @@ unsigned int CrashReportExceptionHandler::ExceptionHandlerServerException(
+           Metrics::CaptureResult::kFinishedWritingCrashReportFailed);
+       return termination_code;
+     }
+-
+-    if (upload_thread_) {
+-      upload_thread_->ReportPending(uuid);
+-    }
+   }
+ 
+   Metrics::ExceptionCaptureResult(Metrics::CaptureResult::kSuccess);
+diff --git a/handler/win/crash_report_exception_handler.h b/handler/win/crash_report_exception_handler.h
+index d322370f..c3fa3eac 100644
+--- a/handler/win/crash_report_exception_handler.h
++++ b/handler/win/crash_report_exception_handler.h
+@@ -26,19 +26,15 @@
+ namespace crashpad {
+ 
+ class CrashReportDatabase;
+-class CrashReportUploadThread;
+ 
+ //! \brief An exception handler that writes crash reports for exception messages
+ //!     to a CrashReportDatabase.
+ class CrashReportExceptionHandler final
+     : public ExceptionHandlerServer::Delegate {
+- public:
++ public: 
+   //! \brief Creates a new object that will store crash reports in \a database.
+   //!
+   //! \param[in] database The database to store crash reports in. Weak.
+-  //! \param[in] upload_thread The upload thread to notify when a new crash
+-  //!     report is written into \a database. Report upload is skipped if this
+-  //!     value is `nullptr`.
+   //! \param[in] process_annotations A map of annotations to insert as
+   //!     process-level annotations into each crash report that is written. Do
+   //!     not confuse this with module-level annotations, which are under the
+@@ -57,7 +53,6 @@ class CrashReportExceptionHandler final
+   //!     minidump streams. `nullptr` if not required.
+   CrashReportExceptionHandler(
+       CrashReportDatabase* database,
+-      CrashReportUploadThread* upload_thread,
+       const std::map<std::string, std::string>* process_annotations,
+       const std::vector<base::FilePath>* attachments,
+       const UserStreamDataSources* user_stream_data_sources);
+@@ -80,7 +75,6 @@ class CrashReportExceptionHandler final
+ 
+  private:
+   CrashReportDatabase* database_;  // weak
+-  CrashReportUploadThread* upload_thread_;  // weak
+   const std::map<std::string, std::string>* process_annotations_;  // weak
+   const std::vector<base::FilePath>* attachments_;  // weak
+   const UserStreamDataSources* user_stream_data_sources_;  // weak
+diff --git a/handler/win/crashreporter_caller.cc b/handler/win/crashreporter_caller.cc
+new file mode 100644
+index 00000000..6fe075fd
+--- /dev/null
++++ b/handler/win/crashreporter_caller.cc
+@@ -0,0 +1,59 @@
++#include "crashreporter_caller.h"
++#include "util/win/command_line.h"
++#include "base/logging.h"
++#include "base/strings/utf_string_conversions.h"
++#include "base/files/file_path.h"
++
++namespace crashpad {
++
++CrashreporterCaller::CrashreporterCaller(
++  CrashReportDatabase* database,
++  base::FilePath* crashreporter_path,
++  std::vector<std::string>* crashreporter_arguments)
++    : database_(database)
++    , crashreporter_path_(crashreporter_path)
++    , crashreporter_arguments_(crashreporter_arguments)
++{ }
++
++void CrashreporterCaller::ReportPending(const UUID& uuid)
++{
++  database_->SkipReportUpload(uuid, Metrics::CrashSkippedReason::kUploadsDisabled);
++
++  CrashReportDatabase::Report report;
++  if (database_->LookUpCrashReport(uuid, &report) ==
++      CrashReportDatabase::kNoError) {
++    
++    std::wstring command_line;
++    AppendCommandLineArgument(crashreporter_path_->value(), &command_line);
++    for(auto& arg : *crashreporter_arguments_)
++      AppendCommandLineArgument(base::UTF8ToWide(arg), &command_line);
++    AppendCommandLineArgument(report.file_path.value(), &command_line);
++
++    PROCESS_INFORMATION process_info{};
++    STARTUPINFOW startup_info{};
++    startup_info.cb = sizeof(startup_info);
++    startup_info.dwFlags = STARTF_USESHOWWINDOW;
++    startup_info.wShowWindow = SW_SHOW;
++    auto rv = CreateProcessW(
++      nullptr, 
++      &command_line[0], 
++      nullptr, 
++      nullptr, 
++      false, 
++      0, 
++      nullptr, 
++      nullptr, 
++      &startup_info, 
++      &process_info);
++
++    if(rv == 0)
++      LOG(ERROR) << "Failed to start crash report delegate program";
++    else
++    {
++      CloseHandle(process_info.hProcess);
++      CloseHandle(process_info.hThread);
++    }
++  }
++}
++
++}
+diff --git a/handler/win/crashreporter_caller.h b/handler/win/crashreporter_caller.h
+new file mode 100644
+index 00000000..a498bd8e
+--- /dev/null
++++ b/handler/win/crashreporter_caller.h
+@@ -0,0 +1,34 @@
++#ifndef CRASHPAD_CLIENT_CRASHREPORTER_CALLER_H_
++#define CRASHPAD_CLIENT_CRASHREPORTER_CALLER_H_
++
++#include <string>
++#include <vector>
++#include "client/crash_report_database.h"
++
++namespace base {
++    class FilePath;
++}
++
++namespace crashpad {
++
++class CrashreporterCaller final : public CrashReportDatabase::ReportPendingDelegate 
++{
++public:
++
++  CrashreporterCaller(
++    CrashReportDatabase* database,
++    base::FilePath* crashreporter_path,
++    std::vector<std::string>* crashreporter_arguments
++  );
++
++  void ReportPending(const UUID& uuid) override;
++
++private:
++  CrashReportDatabase* database_;  // weak
++  const base::FilePath* crashreporter_path_;  // weak
++  const std::vector<std::string>* crashreporter_arguments_;  // weak
++};
++
++}
++
++#endif
+\ No newline at end of file
+-- 
+2.31.1.windows.1
+
