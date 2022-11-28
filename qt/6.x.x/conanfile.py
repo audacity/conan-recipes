@@ -422,6 +422,9 @@ class QtConan(ConanFile):
         if self.options.qtwayland:
             self.build_requires("wayland/1.21.0")
 
+        if cross_building(self, skip_x64_x86=True):
+            self.build_requires("qt-tools/6.3.1@audacity/testing")
+
     def source(self):
         tools.get(**self.conan_data["sources"][self.version],
                   strip_root=True, destination="qt6")
@@ -707,6 +710,9 @@ class QtConan(ConanFile):
 
         if self.settings.os == "Windows":
             cmake.definitions["HOST_PERL"] = getattr(self, "user_info_build", self.deps_user_info)["strawberryperl"].perl
+
+        if cross_building(self, skip_x64_x86=True):
+            cmake.definitions["QT_HOST_PATH"] = getattr(self, "user_info_build", self.deps_user_info)["qt-tools"].rootpath
 
         try:
             cmake.configure(source_folder="qt6")
