@@ -1,0 +1,11 @@
+--- a/src/libmpg123/mangle.h
++++ b/src/libmpg123/mangle.h
+@@ -11,7 +11,7 @@
+ #define __MANGLE_H
+ 
+ #include "config.h"
+-#include "intsym.h"
++#include "../intsym.h"
+ 
+ #if (defined OPT_I486)  || (defined OPT_I586) || (defined OPT_I586_DITHER) \
+  || (defined OPT_MMX)   || (defined OPT_SSE)  || (defined OPT_3DNOW) || (defined OPT_3DNOWEXT) \
