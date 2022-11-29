@@ -712,17 +712,19 @@ class QtConan(ConanFile):
             cmake.definitions["HOST_PERL"] = getattr(self, "user_info_build", self.deps_user_info)["strawberryperl"].perl
 
         if cross_building(self, skip_x64_x86=True):
-            cmake.definitions["QT_HOST_PATH"] = getattr(self, "user_info_build", self.deps_user_info)["qt-tools"].rootpath
+            qt_tools_path = getattr(self, "user_info_build", self.deps_user_info)["qt-tools"].rootpath
+            cmake.definitions["QT_HOST_PATH"] = qt_tools_path
+            cmake.definitions["Qt6HostInfo_DIR"] = os.path.join(qt_tools_path, "lib", "cmake", "Qt6HostInfo")
 
         try:
             cmake.configure(source_folder="qt6")
         except:
-            cmake_err_log = os.path.join(self.build_folder, "CMakeFiles", "CMakeError.log")
-            cmake_out_log = os.path.join(self.build_folder, "CMakeFiles", "CMakeOutput.log")
-            if os.path.isfile(cmake_err_log):
-                self.output.info(tools.load(cmake_err_log))
-            if os.path.isfile(cmake_out_log):
-                self.output.info(tools.load(cmake_out_log))
+            #cmake_err_log = os.path.join(self.build_folder, "CMakeFiles", "CMakeError.log")
+            #cmake_out_log = os.path.join(self.build_folder, "CMakeFiles", "CMakeOutput.log")
+            #if os.path.isfile(cmake_err_log):
+            #    self.output.info(tools.load(cmake_err_log))
+            #if os.path.isfile(cmake_out_log):
+            #    self.output.info(tools.load(cmake_out_log))
             raise
         return cmake
 
@@ -820,20 +822,23 @@ class QtConan(ConanFile):
         if self.options.get_safe("qtremoteobjects"):
             targets.append("repc")
         for target in targets:
-            exe_path = None
-            for path_ in ["bin/{0}{1}".format(target, extension),
-                          "lib/{0}{1}".format(target, extension)]:
-                if os.path.isfile(os.path.join(self.package_folder, path_)):
-                    exe_path = path_
-                    break
-            if not exe_path:
-                self.output.warn("Could not find path to {0}{1}".format(target, extension))
             filecontents += textwrap.dedent("""\
                 if(NOT TARGET ${{QT_CMAKE_EXPORT_NAMESPACE}}::{0})
                     add_executable(${{QT_CMAKE_EXPORT_NAMESPACE}}::{0} IMPORTED)
-                    set_target_properties(${{QT_CMAKE_EXPORT_NAMESPACE}}::{0} PROPERTIES IMPORTED_LOCATION ${{CMAKE_CURRENT_LIST_DIR}}/../../../{1})
+
+                    find_program(QT_CMAKE_EXECUTABLE_{0}
+                        NAMES {0}
+                        HINTS
+                            ${{CMAKE_CURRENT_LIST_DIR}}/../../..
+                            ${{QT_HOST_PATH}}
+                        PATH_SUFFIXES bin libexec lib
+                        NO_DEFAULT_PATH)
+
+                    mark_as_advanced(QT_CMAKE_EXECUTABLE_{0})
+
+                    set_target_properties(${{QT_CMAKE_EXPORT_NAMESPACE}}::{0} PROPERTIES IMPORTED_LOCATION ${{QT_CMAKE_EXECUTABLE_{0}}})
                 endif()
-                """.format(target, exe_path))
+                """.format(target))
 
         filecontents += textwrap.dedent("""\
             if(NOT DEFINED QT_DEFAULT_MAJOR_VERSION)
