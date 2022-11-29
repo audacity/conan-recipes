@@ -29,19 +29,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: Ubuntu_18.04
-          os: ubuntu-18.04
-          arch: x64
-          generator: Unix Makefiles
-          force_gcc11: false
-          build_type: RelWithDebInfo
-        - name: Ubuntu_18.04_Debug
-          os: ubuntu-18.04
-          arch: x64
-          generator: Unix Makefiles
-          force_gcc11: false
-          build_type: Debug
-
         - name: Ubuntu_20.04
           os: ubuntu-20.04
           arch: x64
@@ -125,3 +112,6 @@ jobs:
         generator: ${{ matrix.config.generator }}
         configuration_types: Debug;Release;RelWithDebInfo;MinSizeRel
         build_type: ${{ matrix.config.build_type }}
+        arch: ${{ matrix.config.arch }}
+        cmake_options:
+          -Daudacity_enable_experimental_qt_support=ON
