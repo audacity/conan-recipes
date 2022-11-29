@@ -60,38 +60,26 @@ class QtToolsConan(ConanFile):
 
         cmake = CMake(self, generator="Ninja", build_type="Release")
 
+        cmake.definitions["QT_BUILD_TOOLS"] = "ON"
+        cmake.definitions["QT_BUILD_DOCS"] = "ON"
+
+
         cmake.definitions["QT_BUILD_TESTS"] = "OFF"
         cmake.definitions["QT_BUILD_EXAMPLES"] = "OFF"
-        cmake.definitions["QT_BUILD_TOOLS"] = "ON"
         cmake.definitions["QT_BUILD_BENCHMARKS"] = "OFF"
-        cmake.definitions["QT_BUILD_DOCS"] = "OFF"
 
-        cmake.definitions["QT_BUILD_SUBMODULES"] = "qtbase;qtdeclarative;qtshadertools;qttools"
-
-        cmake.definitions["BUILD_SHARED_LIBS"] = "OFF"
-        cmake.definitions["FEATURE_static"] = "ON"
-        cmake.definitions["FEATURE_dynamic"] = "OFF"
-
-        if self._is_msvc:
-            cmake.definitions["FEATURE_static_runtime"] = "ON"
+        cmake.definitions["BUILD_SHARED_LIBS"] = "ON"
+        cmake.definitions["FEATURE_static"] = "OFF"
+        cmake.definitions["FEATURE_dynamic"] = "ON"
 
         cmake.definitions["FEATURE_release"] = "ON"
         cmake.definitions["FEATURE_debug"] = "OFF"
         cmake.definitions["FEATURE_debug_and_release"] = "OFF"
         cmake.definitions["FEATURE_optimize_size"] = "ON"
 
-        cmake.definitions["FEATURE_pkg_config"] = "OFF"
-        cmake.definitions["FEATURE_dbus"] = "OFF"
-        cmake.definitions["FEATURE_sql"] = "OFF"
-
-        cmake.definitions["BUILD_qtactiveqt"] = "ON"
-        cmake.definitions["BUILD_qtbase"] = "ON"
-        cmake.definitions["BUILD_qtdeclarative"] = "ON"
-        cmake.definitions["BUILD_qtimageformats"] = "ON"
-        cmake.definitions["BUILD_qtlanguageserver"] = "ON"
-        cmake.definitions["BUILD_qtshadertools"] = "ON"
-        cmake.definitions["BUILD_qttools"] = "ON"
-        cmake.definitions["BUILD_qtsvg"] = "ON"
+        cmake.definitions["FEATURE_sql"] = "ON"
+        cmake.definitions["FEATURE_sql_sqlite"] = "ON"
+        cmake.definitions["FEATURE_help"] = "ON"
 
         if self.settings.os == "Windows":
             cmake.definitions["HOST_PERL"] = getattr(self, "user_info_build", self.deps_user_info)["strawberryperl"].perl
@@ -112,17 +100,6 @@ class QtToolsConan(ConanFile):
             cmake.install()
 
         self.copy("*LICENSE*", src="qt6/", dst="licenses")
-        for dir in os.listdir(self.package_folder):
-            if dir == "lib":
-                for libdir in os.listdir(os.path.join(self.package_folder, dir)):
-                    if not libdir == "cmake":
-                        entry_path = os.path.join(self.package_folder, dir, libdir)
-                        if os.path.isdir(entry_path):
-                            tools.rmdir(os.path.join(self.package_folder, dir, libdir))
-                        else:
-                            os.remove(entry_path)
-            elif dir not in ["bin", "qml", "libexec"]:
-                tools.rmdir(os.path.join(self.package_folder, dir))
 
         tools.remove_files_by_mask(self.package_folder, "*.pdb*")
         tools.remove_files_by_mask(self.package_folder, "*.lib*")
@@ -131,7 +108,6 @@ class QtToolsConan(ConanFile):
         tools.remove_files_by_mask(self.package_folder, "*.la*")
         tools.remove_files_by_mask(self.package_folder, "*.prl*")
         tools.remove_files_by_mask(self.package_folder, "*.pc*")
-        tools.remove_files_by_mask(self.package_folder, "*.cmake*")
         tools.remove_files_by_mask(self.package_folder, "*.o*")
 
         with open(os.path.join(self.package_folder, "bin", "qt.conf"), "w") as f:
