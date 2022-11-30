@@ -30,71 +30,49 @@ jobs:
       matrix:
         config:
         - name: Ubuntu_20.04
-          os: ubuntu-20.04
+          os: audacity-ubuntu-20.04
           arch: x64
           generator: Unix Makefiles
-          force_gcc11: false
           build_type: RelWithDebInfo
-        - name: Ubuntu_20.04+Debug
-          os: ubuntu-20.04
+        - name: Ubuntu_20.04_Debug
+          os: audacity-ubuntu-20.04
           arch: x64
           generator: Unix Makefiles
-          force_gcc11: false
           build_type: Debug
 
-        - name: Ubuntu_20.04_GCC11
-          os: ubuntu-20.04
+        - name: Ubuntu_22.04
+          os: audacity-ubuntu-22.04
           arch: x64
           generator: Unix Makefiles
-          force_gcc11: true
           build_type: RelWithDebInfo
-        - name: Ubuntu_20.04_GCC11_Debug
-          os: ubuntu-20.04
+        - name: Ubuntu_22.04_Debug
+          os: audacity-ubuntu-22.04
           arch: x64
           generator: Unix Makefiles
-          force_gcc11: true
           build_type: Debug
-
-        - name: macOS_Intel
-          os: macos-11
-          arch: x64
-          generator: Xcode
-          force_gcc11: false
-          build_type: RelWithDebInfo
-
-        - name: macOS_AppleSilicon
-          os: macos-11
-          arch: arm64
-          generator: Xcode
-          force_gcc11: false
-          build_type: RelWithDebInfo
 
         - name: Windows_32bit_2019
-          os: windows-2019
+          os: audacity-windows-latest
           arch: x32
           generator: Visual Studio 16 2019
-          force_gcc11: false
           build_type: RelWithDebInfo
 
         - name: Windows_64bit_2019
-          os: windows-2019
+          os: audacity-windows-latest
           arch: x64
           generator: Visual Studio 16 2019
-          force_gcc11: false
           build_type: RelWithDebInfo
 
         - name: Windows_32bit_2022
-          os: windows-2022
+          os: audacity-windows-latest
           arch: x32
           generator: Visual Studio 17 2022
-          force_gcc11: false
           build_type: RelWithDebInfo
 
         - name: Windows_64bit_2022
-          os: windows-2022
+          os: audacity-windows-latest
           arch: x64
           generator: Visual Studio 17 2022
-          force_gcc11: false
           build_type: RelWithDebInfo
     steps:
     - name: Checkout Audacity
@@ -104,8 +82,6 @@ jobs:
         ref: ${{ github.event.inputs.audacity_ref }}
     - name: Setup dependencies
       uses: audacity/audacity-actions/dependencies@v1
-      with:
-        force_gcc11: ${{ matrix.config.force_gcc11 }}
     - name: Configure
       uses: audacity/audacity-actions/configure@v1
       with:
