@@ -91,3 +91,7 @@ jobs:
         arch: ${{ matrix.config.arch }}
         cmake_options:
           -Daudacity_enable_experimental_qt_support=ON
+    - name: Cleanup Conan files
+      shell: bash
+      run: |
+        conan remove "*" -f
