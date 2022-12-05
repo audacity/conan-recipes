@@ -1,4 +1,4 @@
-name: Build Audacity Dependencies
+name: Build Audacity Dependencies (macOS)
 
 on:
   workflow_dispatch:
@@ -29,55 +29,23 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: Ubuntu_20.04
-          os: audacity-ubuntu-20.04
+        - name: Xcode_13.2.1
+          os: audacity-macos
           arch: x64
-          generator: Unix Makefiles
+          generator: Xcode
           build_type: RelWithDebInfo
-        - name: Ubuntu_20.04_Debug
-          os: audacity-ubuntu-20.04
-          arch: x64
-          generator: Unix Makefiles
-          build_type: Debug
+          xcode_version: 13.2.1
 
-        - name: Ubuntu_22.04
-          os: audacity-ubuntu-22.04
-          arch: x64
-          generator: Unix Makefiles
-          build_type: RelWithDebInfo
-        - name: Ubuntu_22.04_Debug
-          os: audacity-ubuntu-22.04
-          arch: x64
-          generator: Unix Makefiles
-          build_type: Debug
-
-        - name: Windows_32bit_2019
-          os: audacity-windows-latest
-          arch: x32
-          generator: Visual Studio 16 2019
-          build_type: RelWithDebInfo
-        - name: Windows_64bit_2019
-          os: audacity-windows-latest
-          arch: x64
-          generator: Visual Studio 16 2019
-          build_type: RelWithDebInfo
-
-        - name: Windows_32bit_2022
-          os: audacity-windows-latest
-          arch: x32
-          generator: Visual Studio 17 2022
-          build_type: RelWithDebInfo
-        - name: Windows_64bit_2022
-          os: audacity-windows-latest
-          arch: x64
-          generator: Visual Studio 17 2022
-          build_type: RelWithDebInfo
     steps:
     - name: Checkout Audacity
       uses: actions/checkout@v2
       with:
         repository: ${{ github.event.inputs.audacity_repo }}
         ref: ${{ github.event.inputs.audacity_ref }}
+    - name: Select Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: ${{ matrix.config.xcode_version }}
     - name: Setup dependencies
       uses: audacity/audacity-actions/dependencies@v1
     - name: Configure
