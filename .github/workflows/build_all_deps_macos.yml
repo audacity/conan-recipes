@@ -11,6 +11,8 @@ on:
         description: Audacity Branch or Tag
         required: true
         default: master
+  push:
+
 jobs:
   build:
     env:
