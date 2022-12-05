@@ -40,7 +40,7 @@ jobs:
 
     steps:
     - name: Checkout Audacity
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: ${{ github.event.inputs.audacity_repo }}
         ref: ${{ github.event.inputs.audacity_ref }}
@@ -49,7 +49,9 @@ jobs:
       with:
         xcode-version: ${{ matrix.config.xcode_version }}
     - name: Setup dependencies
-      uses: audacity/audacity-actions/dependencies@v1
+      shell: bash
+      run: |
+        brew install conan
     - name: Configure
       uses: audacity/audacity-actions/configure@v1
       with:
