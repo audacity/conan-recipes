@@ -33,7 +33,7 @@ jobs:
         config:
         - name: Xcode_13.2.1
           os: audacity-macos
-          arch: x64
+          arch: arm64
           generator: Xcode
           build_type: RelWithDebInfo
           xcode_version: 13.2.1
