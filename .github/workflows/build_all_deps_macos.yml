@@ -31,12 +31,30 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: Xcode_13.2.1
+        - name: Xcode_13.2.1 (x86_x64)
+          os: audacity-macos
+          arch: x64
+          generator: Xcode
+          build_type: RelWithDebInfo
+          xcode_version: 13.2.1
+        - name: Xcode_13.2.1 (Arm64)
           os: audacity-macos
           arch: arm64
           generator: Xcode
           build_type: RelWithDebInfo
           xcode_version: 13.2.1
+        - name: Xcode_14.0.1 (x86_x64)
+          os: audacity-macos
+          arch: x64
+          generator: Xcode
+          build_type: RelWithDebInfo
+          xcode_version: 14.0.1
+        - name: Xcode_14.0.1 (Arm64)
+          os: audacity-macos
+          arch: arm64
+          generator: Xcode
+          build_type: RelWithDebInfo
+          xcode_version: 14.0.1
 
     steps:
     - name: Checkout Audacity

@@ -80,6 +80,7 @@ class QtToolsConan(ConanFile):
         cmake.definitions["FEATURE_sql"] = "ON"
         cmake.definitions["FEATURE_sql_sqlite"] = "ON"
         cmake.definitions["FEATURE_help"] = "ON"
+        cmake.definitions["FEATURE_printsupport"] = "ON"
 
         if self.settings.os == "Windows":
             cmake.definitions["HOST_PERL"] = getattr(self, "user_info_build", self.deps_user_info)["strawberryperl"].perl
