@@ -1,0 +1,5 @@
+sources:
+  "1.6.0":
+    url: "https://github.com/KDAB/KDDockWidgets/releases/download/v1.6.0/kddockwidgets-1.6.0.tar.gz"
+    sha256: ab7503b96f4aa3ab76312c830dd268118169e3a367e40e9b6bfde66cb0bc4957
+
