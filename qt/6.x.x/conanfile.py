@@ -66,6 +66,8 @@ class QtConan(ConanFile):
     license = "LGPL-3.0"
     settings = "os", "arch", "compiler", "build_type"
 
+    python_requires = "audacity_build_helpers/1.0.0@audacity/testing"
+
     options = {
         "shared": [True, False],
         "opengl": ["no", "desktop", "dynamic"],
@@ -150,6 +152,8 @@ class QtConan(ConanFile):
     short_paths = True
 
     _submodules_tree = None
+
+    _dependencies_paths = []
 
     @property
     def _is_msvc(self):
@@ -771,10 +775,16 @@ class QtConan(ConanFile):
     def _cmake_qt6_private_file(self, module):
         return os.path.join("lib", "cmake", "Qt6{0}".format(module), "conan_qt_qt6_{0}private.cmake".format(module.lower()))
 
+    def _fix_tools_dependencies(self):
+        build_tools = self.python_requires["audacity_build_helpers"].module
+        build_tools.fix_external_dependencies(self)
+
+
     def package(self):
         with self._build_context():
             cmake = self._configure_cmake()
             cmake.install()
+
         tools.save(os.path.join(self.package_folder, "bin", "qt.conf"), qt.content_template("..", "res", self.settings.os))
         self.copy("*LICENSE*", src="qt6/", dst="licenses")
         for module in self._get_module_tree:
@@ -794,9 +804,6 @@ class QtConan(ConanFile):
             if not os.path.isfile(module) and not helper_modules:
                 tools.rmdir(os.path.join(self.package_folder, "lib", "cmake", m))
 
-        extension = ""
-        if self.settings.os == "Windows":
-            extension = ".exe"
         filecontents = "set(QT_CMAKE_EXPORT_NAMESPACE Qt6)\n"
         ver = tools.Version(self.version)
         filecontents += "set(QT_VERSION_MAJOR %s)\n" % ver.major
@@ -893,6 +900,11 @@ class QtConan(ConanFile):
                     APPEND PROPERTY INTERFACE_LINK_LIBRARIES "$<${entrypoint_conditions}:${QT_CMAKE_EXPORT_NAMESPACE}::EntryPointPrivate>"
                 )""")
             tools.save(os.path.join(self.package_folder, self._cmake_entry_point_file), contents)
+
+        # There are chances, that some of the depenencies are build as shared libraries, regardless of the qt build type
+        # When building tools, i.e. when not cross-compiling, it leads to the problems on all platforms supported
+        if not cross_building(self, skip_x64_x86=True):
+            self._fix_tools_dependencies()
 
     def package_id(self):
         del self.info.options.cross_compile
