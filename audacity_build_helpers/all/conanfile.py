@@ -86,10 +86,10 @@ class WindowsDependencyProcessor:
 
         return self.__dependencies.values()
 
-    def fixup(self, conanfile, executables, looukp_directories):
+    def fixup(self, conanfile, executables, lookup_directories):
         package_dir = conanfile.package_folder.lower()
 
-        dependencies = self.__collect_all(conanfile, executables, looukp_directories)
+        dependencies = self.__collect_all(conanfile, executables, lookup_directories)
 
         for dependency in dependencies:
             if dependency.path.lower().startswith(package_dir):
@@ -97,16 +97,65 @@ class WindowsDependencyProcessor:
 
             target_path = os.path.join(conanfile.package_folder, "bin", dependency.name)
 
-            if os.path.exists(target_path):
-                continue
-
             print(f"Copying {dependency.name} to package folder...")
             shutil.copy(dependency.path, target_path)
 
 
+class LinuxDependencyProcessor:
+    __lookup_directories = []
+    __dependencies = {}
+
+    def __init__(self, patchelf_path) -> None:
+        if patchelf_path is not None:
+            os.environ["PATH"] = patchelf_path + os.pathsep + os.environ["PATH"]
+
+    def __resolve_dependency(self, name):
+        for lookup_dir in self.__lookup_directories:
+            path = os.path.join(lookup_dir, name)
+            if os.path.exists(path):
+                return Dependency(name, path)
+
+        return None
+
+    def __run_objdump(self, binary):
+        print(f"Running objdump on {binary}")
+        try:
+            lines = subprocess.check_output(["objdump", "-x", binary]).decode("utf-8").splitlines()
+        except subprocess.CalledProcessError:
+            print(f"Failed to run objdump on {binary}")
+            return []
+
+        for line in lines:
+            match = re.match(r"\s+NEEDED\s+(.+\.so.*)", line)
+            if match:
+                dep = self.__resolve_dependency(match.group(1))
+                if dep:
+                    yield dep
+
+    def __recursive_collect(self, binary):
+        for dependency in self.__run_objdump(binary):
+            if dependency.name not in self.__dependencies:
+                self.__dependencies[dependency.name] = dependency
+                self.__recursive_collect(dependency.path)
+
+    def fixup(self, conanfile, executables, lookup_directories):
+        self.__lookup_directories = [os.path.join(conanfile.package_folder, "lib")] + lookup_directories
+
+        for executable in executables:
+            self.__recursive_collect(executable)
+            subprocess.run(["patchelf", "--set-rpath", "$ORIGIN/../lib", executable])
+
+        for dependency in self.__dependencies.values():
+            target_path = os.path.join(conanfile.package_folder, "lib", dependency.name)
+            # Do not copy libraries that are already in the package folder
+            if not dependency.path.startswith(conanfile.package_folder):
+                shutil.copy2(dependency.path, target_path)
+
+            subprocess.check_call(["patchelf", "--set-rpath", "$ORIGIN", target_path])
+
 
 # Fixes the package that has shared libraries as external dependencies
-def fix_external_dependencies(conanfile, executables=None, additional_paths=None):
+def fix_external_dependencies(conanfile, executables=None, additional_paths=None, patchelf_path=None):
     print("Collecting dependencies...")
     if not executables:
         executables = collect_executables(conanfile)
@@ -122,7 +171,10 @@ def fix_external_dependencies(conanfile, executables=None, additional_paths=None
 
     if conanfile.settings.os == "Windows":
         collector = WindowsDependencyProcessor()
-        return collector.fixup(conanfile, executables, additional_paths)
+        collector.fixup(conanfile, executables, additional_paths)
+    else:
+        collector = LinuxDependencyProcessor(patchelf_path)
+        collector.fixup(conanfile, executables, additional_paths)
 
 
 class AudacityBuildHelpers(ConanFile):
@@ -132,3 +184,5 @@ class AudacityBuildHelpers(ConanFile):
     license = "MIT"
     description = "Build helpers for Audacity"
     exports = "*.py"
+    settings = "os"
+
