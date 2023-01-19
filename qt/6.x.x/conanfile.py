@@ -429,6 +429,9 @@ class QtConan(ConanFile):
         if cross_building(self, skip_x64_x86=True):
             self.build_requires("qt-tools/6.3.1@audacity/testing")
 
+        if self.settings.os not in ["Windows", "Macos"]:
+            self.build_requires("patchelf/0.13")
+
     def source(self):
         tools.get(**self.conan_data["sources"][self.version],
                   strip_root=True, destination="qt6")
@@ -775,10 +778,14 @@ class QtConan(ConanFile):
     def _cmake_qt6_private_file(self, module):
         return os.path.join("lib", "cmake", "Qt6{0}".format(module), "conan_qt_qt6_{0}private.cmake".format(module.lower()))
 
+    def _get_patchelf_path(self):
+        if self.settings.os in ["Windows", "Macos"]:
+            return None
+        return self.dependencies.build["patchelf"].cpp_info.bindirs[0]
+
     def _fix_tools_dependencies(self):
         build_tools = self.python_requires["audacity_build_helpers"].module
-        build_tools.fix_external_dependencies(self)
-
+        build_tools.fix_external_dependencies(self, patchelf_path=self._get_patchelf_path())
 
     def package(self):
         with self._build_context():
