@@ -41,6 +41,8 @@ def collect_executables(conanfile):
 class Dependency:
     name: str
     path: str
+    # Used on macOS only to store the initial library name
+    lib_line: str = None
 
 class WindowsDependencyProcessor:
     __dependencies = {}
@@ -153,6 +155,116 @@ class LinuxDependencyProcessor:
 
             subprocess.check_call(["patchelf", "--set-rpath", "$ORIGIN", target_path])
 
+class MacDependencyProcessor:
+    __dependencies = {}
+    __lookup_paths = None
+
+    def __is_system_lib(self, path):
+        return path.startswith('/System/') or path.startswith('/usr/')
+
+    def __collect_rpaths(self, file):
+        result = []
+
+        try:
+            with subprocess.Popen(['otool', '-l', file], stdout=subprocess.PIPE) as p:
+                lines = [line.decode('utf-8').strip() for line in p.stdout.readlines()]
+                for line_index in range(len(lines)):
+                    if lines[line_index] == 'cmd LC_RPATH':
+                        rpath_match = re.match(r'path\s+(.*)\s+\(', lines[line_index + 2])
+                        if rpath_match:
+                            rpath = rpath_match.group(1)
+                            result.append(rpath)
+
+                    line_index = line_index + 1
+        except:
+            pass
+
+        return result
+
+
+    def __get_dylib_id(self, file):
+        try:
+            with subprocess.Popen(['otool', '-D', file], stdout=subprocess.PIPE) as p:
+                lines = [line.decode('utf-8').strip() for line in p.stdout.readlines()]
+                if len(lines) == 2:
+                    return lines[1].split('/')[-1]
+        except:
+            pass
+
+        return ''
+
+
+    def __collect_file_dependencies(self, file):
+        result = []
+        dylib_id = self.__get_dylib_id(file)
+
+        print(f"Collecting dependencies for {file}")
+        with subprocess.Popen(['otool', '-L', file], stdout=subprocess.PIPE) as p:
+            lines = [line.decode('utf-8').strip() for line in p.stdout.readlines()]
+            for line in lines:
+                match = re.match(r'(.*)\s+\(', line)
+                if match:
+                    lib_line = match.group(1)
+                    name = lib_line.split('/')[-1]
+                    if name != dylib_id and not self.__is_system_lib(lib_line):
+                        path = self.__resolve_lib(name)
+                        if path is not None:
+                            result.append(Dependency(name, path, lib_line))
+
+        return result
+
+    def __resolve_lib(self, lib_name):
+        for path in self.__lookup_paths:
+            lib_path = os.path.join(path, lib_name)
+            if os.path.exists(lib_path):
+                return lib_path
+
+        return None
+
+    def __recursive_collect_dependencies(self, name, file):
+        dependencies = self.__collect_file_dependencies(file)
+
+        self.__dependencies[name] = {
+            'file': file,
+            'dependencies': dependencies
+        }
+
+        for dependency in dependencies:
+            if dependency.name not in self.__dependencies:
+                self.__recursive_collect_dependencies(dependency.name, dependency.path)
+
+    def fixup(self, conanfile, executables, lookup_directories):
+        self.__lookup_paths = [os.path.join(conanfile.package_folder, "lib")] + lookup_directories
+
+        for file in executables:
+            self.__recursive_collect_dependencies(os.path.basename(file), file)
+
+        for name, details in self.__dependencies.items():
+            if not details['file'].startswith(conanfile.package_folder):
+                # All scanned executables are in the package folder, so we only need to copy the
+                # libraries that are not in the package folder
+                shutil.copy2(details['file'], os.path.join(conanfile.package_folder, "lib", name))
+                details['file'] = os.path.join(conanfile.package_folder, "lib", name)
+
+            install_name_tool_args = []
+
+            rpaths = self.__collect_rpaths(details['file'])
+            for rpath in rpaths:
+                install_name_tool_args.append("-delete_rpath")
+                install_name_tool_args.append(rpath)
+
+            for dependency in details['dependencies']:
+                install_name_tool_args.append("-change")
+                install_name_tool_args.append(dependency.lib_line)
+                if name.endswith(".dylib"):
+                    install_name_tool_args.append(f"@loader_path/{dependency.name}")
+                else:
+                    install_name_tool_args.append(f"@executable_path/../lib/{dependency.name}")
+
+            if len(install_name_tool_args) > 0:
+                print(f"Fixing dependencies for {name}")
+                subprocess.check_call(["install_name_tool"] + install_name_tool_args + [details['file']])
+
 
 # Fixes the package that has shared libraries as external dependencies
 def fix_external_dependencies(conanfile, executables=None, additional_paths=None, patchelf_path=None):
@@ -171,6 +283,9 @@ def fix_external_dependencies(conanfile, executables=None, additional_paths=None
 
     if conanfile.settings.os == "Windows":
         collector = WindowsDependencyProcessor()
+        collector.fixup(conanfile, executables, additional_paths)
+    elif conanfile.settings.os == "Macos":
+        collector = MacDependencyProcessor()
         collector.fixup(conanfile, executables, additional_paths)
     else:
         collector = LinuxDependencyProcessor(patchelf_path)
