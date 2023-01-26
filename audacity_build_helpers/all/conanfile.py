@@ -179,7 +179,7 @@ class MacDependencyProcessor:
         except:
             pass
 
-        return result
+        return list(set(result))
 
 
     def __get_dylib_id(self, file):
