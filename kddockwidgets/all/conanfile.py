@@ -9,7 +9,7 @@
 
 from conans import ConanFile, tools
 from conan.tools.cmake import cmake_layout, CMakeDeps, CMake, CMakeToolchain
-
+from conan.tools.build import cross_building
 
 class KDDockWidgetsConan(ConanFile):
     name = "kddockwidgets"
@@ -49,6 +49,9 @@ class KDDockWidgetsConan(ConanFile):
     def build_requirements(self):
         self.tool_requires("ninja/1.11.0")
 
+        if cross_building(self, skip_x64_x86=True):
+            self.tool_requires("qt-tools/6.3.1@audacity/testing")
+
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         extracted_dir = self.name + "-" + self.version
@@ -70,6 +73,9 @@ class KDDockWidgetsConan(ConanFile):
         tc.cache_variables["KDDockWidgets_PYTHON_BINDINGS"] = self.options.build_python_bindings
         tc.cache_variables["KDDockWidgets_QT6"] = self.options.build_for_qt6
         tc.cache_variables["KDDockWidgets_QTQUICK"] = True
+        if cross_building(self, skip_x64_x86=True):
+            host_tools = self.dependencies.direct_build["qt-tools"].package_folder
+            tc.cache_variables["QT_HOST_PATH"] = host_tools
         tc.generate()
 
         deps = CMakeDeps(self)
