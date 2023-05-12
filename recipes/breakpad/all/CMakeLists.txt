@@ -1,26 +1,23 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.16)
 project(breakpad)
 
 set( CMAKE_CXX_STANDARD 14 )
-
-include(conanbuildinfo.cmake)
-conan_basic_setup()
 
 add_library(breakpad_client STATIC)
 add_library(breakpad_processor STATIC)
 add_library(breakpad_sender STATIC)
 
-set(SRC_DIR breakpad/src/)
+set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
-set(INCLUDES 
-    PRIVATE 
+set(INCLUDES
+    PRIVATE
         ${SRC_DIR}
 )
 
 if(UNIX)
-    #autoconf/conan workaround 
-    list(APPEND INCLUDES 
-        PRIVATE 
+    #autoconf/conan workaround
+    list(APPEND INCLUDES
+        PRIVATE
             src
     )
     target_compile_definitions(breakpad_client PRIVATE -DHAVE_CONFIG_H)
@@ -31,7 +28,7 @@ target_include_directories(breakpad_client ${INCLUDES})
 target_include_directories(breakpad_processor ${INCLUDES})
 target_include_directories(breakpad_sender ${INCLUDES})
 
-target_sources(breakpad_processor 
+target_sources(breakpad_processor
     PRIVATE
         ${SRC_DIR}/processor/basic_code_modules.cc
         ${SRC_DIR}/processor/basic_source_line_resolver.cc
@@ -91,7 +88,7 @@ target_sources(breakpad_processor
 )
 
 if(APPLE)
-    target_sources(breakpad_client 
+    target_sources(breakpad_client
         PRIVATE
             ${SRC_DIR}/client/minidump_file_writer.cc
             ${SRC_DIR}/client/mac/crash_generation/crash_generation_client.cc
@@ -137,7 +134,7 @@ elseif(UNIX)
             ${SRC_DIR}/common/linux/safe_readlink.cc
     )
 elseif(WIN32)
-    target_sources(breakpad_client 
+    target_sources(breakpad_client
         PRIVATE
             ${SRC_DIR}/client/windows/handler/exception_handler.cc
             ${SRC_DIR}/client/windows/crash_generation/crash_generation_client.cc
@@ -157,7 +154,7 @@ if(UNIX)
             ${SRC_DIR}/common/linux/http_upload.cc
     )
     target_link_libraries(breakpad_sender dl ${CURL_LIBRARIES})
-    
+
 elseif(WIN32)
     target_sources(breakpad_sender
         PRIVATE

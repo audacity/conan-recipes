@@ -48,3 +48,4 @@ build_order:
     - portmidi
     - vst3sdk
     - wavpack
+    - breakpad
