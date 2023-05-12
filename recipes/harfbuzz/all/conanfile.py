@@ -17,7 +17,7 @@ from conan.tools.files import (
 )
 from conan.tools.microsoft import is_msvc_static_runtime, is_msvc
 from conan.tools.scm import Version
-from conans.tools import stdcpp_library
+from conan.tools.build import stdcpp_library
 
 import glob
 import os
@@ -91,14 +91,16 @@ class HarfbuzzConan(ConanFile):
 
     def requirements(self):
         if self.options.with_freetype:
-            self.requires("freetype/2.12.1")
+            self.requires("freetype/2.13.0@audacity/stable")
         if self.options.with_icu:
-            self.requires("icu/71.1")
+            self.requires("icu/71.1@audacity/stable")
         if self.options.with_glib:
             self.requires("glib/2.74.1")
 
     def layout(self):
         basic_layout(self, src_folder="src")
+        self.folders.build = 'build'
+        self.folders.generators = 'build/conan'
 
     def generate(self):
         def is_enabled(value):
@@ -140,9 +142,9 @@ class HarfbuzzConan(ConanFile):
                   destination=self.source_folder, strip_root=True)
 
     def build_requirements(self):
-        self.tool_requires("meson/0.63.3")
+        self.tool_requires("meson/1.0.1@audacity/stable")
         if not self.conf.get("tools.gnu:pkg_config", default=False, check_type=str):
-            self.tool_requires("pkgconf/1.9.3")
+            self.tool_requires("pkgconf/1.9.3@audacity/stable")
 
     def build(self):
         apply_conandata_patches(self)
@@ -204,5 +206,5 @@ class HarfbuzzConan(ConanFile):
                 self.cpp_info.system_libs.append(libcxx)
 
     def package_id(self):
-        if self.options.with_glib and not self.options["glib"].shared:
+        if self.info.options.with_glib and not self.options["glib"].shared:
             self.info.requires["glib"].full_package_mode()
