@@ -1,6 +1,7 @@
 import os
-from conans import ConanFile, tools, CMake
-from conans.errors import ConanInvalidConfiguration
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
+from conan.tools.files import get, export_conandata_patches, apply_conandata_patches, copy, collect_libs
 
 class WavPackConan(ConanFile):
     name = "wavpack"
@@ -10,7 +11,6 @@ class WavPackConan(ConanFile):
     homepage = "https://www.wavpack.com/"
     license = "BSD"
     settings = "os", "arch", "compiler", "build_type"
-    generators = ["cmake", "cmake_find_package"]
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
@@ -25,67 +25,60 @@ class WavPackConan(ConanFile):
         "enable_dsd": True
     }
 
-    exports_sources = ["CMakeLists.txt", "patches/*"]
-
-    _cmake = None
-
-    _source_subfolder = "source_subfolder"
-    _build_subfolder = "build_subfolder"
 
     def config_options(self):
         if self.settings.os == 'Windows':
             del self.options.fPIC
 
+    def export_sources(self):
+        export_conandata_patches(self)
+
+    def layout(self):
+        cmake_layout(self, src_folder="src")
+
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = "WavPack-" + self.version
-        tools.rename(extracted_dir, self._source_subfolder)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        apply_conandata_patches(self)
 
-        tools.patch(patch_file="patches/wavpackdll.rc.patch", base_path=self._source_subfolder)
-        tools.patch(patch_file="patches/CMakeLists.txt.patch", base_path=self._source_subfolder)
+    def generate(self):
+        tc = CMakeToolchain(self)
+        tc.cache_variables['BUILD_SHARED_LIBS'] = self.options.shared
+        tc.cache_variables['WAVPACK_ENABLE_LEGACY'] = self.options.legacy_format
+        tc.cache_variables['WAVPACK_ENABLE_DSD'] = self.options.enable_dsd
+        tc.cache_variables['WAVPACK_INSTALL_CMAKE_MODULE'] = False
+        tc.cache_variables['WAVPACK_INSTALL_DOCS'] = False
+        tc.cache_variables['WAVPACK_INSTALL_PKGCONFIG_MODULE'] = False
+        tc.cache_variables['WAVPACK_ENABLE_LIBCRYPTO'] = False
+        tc.cache_variables['WAVPACK_BUILD_PROGRAMS'] = False
+        tc.cache_variables['WAVPACK_BUILD_COOLEDIT_PLUGIN'] = False
+        tc.cache_variables['WAVPACK_BUILD_WINAMP_PLUGIN'] = False
+        tc.cache_variables['BUILD_TESTING'] = False
+        tc.cache_variables['WAVPACK_BUILD_DOCS'] = False
+        tc.generate()
 
-    def _configure_cmake(self):
-        if self._cmake:
-            return self._cmake
-
-        cmake = CMake(self)
-
-        cmake.definitions['BUILD_SHARED_LIBS'] = self.options.shared
-        cmake.definitions['WAVPACK_ENABLE_LEGACY'] = self.options.legacy_format
-        cmake.definitions['WAVPACK_ENABLE_DSD'] = self.options.enable_dsd
-        cmake.definitions['WAVPACK_INSTALL_CMAKE_MODULE'] = False
-        cmake.definitions['WAVPACK_INSTALL_DOCS'] = False
-        cmake.definitions['WAVPACK_INSTALL_PKGCONFIG_MODULE'] = False
-        cmake.definitions['WAVPACK_ENABLE_LIBCRYPTO'] = False
-        cmake.definitions['WAVPACK_BUILD_PROGRAMS'] = False
-        cmake.definitions['WAVPACK_BUILD_COOLEDIT_PLUGIN'] = False
-        cmake.definitions['WAVPACK_BUILD_WINAMP_PLUGIN'] = False
-        cmake.definitions['BUILD_TESTING'] = False
-        cmake.definitions['WAVPACK_BUILD_DOCS'] = False
-
-        cmake.configure(build_folder=self._build_subfolder)
-
-        self._cmake = cmake
-
-        return self._cmake
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        self.copy("COPYING", dst="licenses", src=self._source_subfolder)
+        copy(self, "COPYING", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)
 
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
         cmake.install()
 
         # On Linux, header gets installed to $prefix/include/wavpack/wavpack.h
         # Let's duplicate this behavior
-        self.copy("*.h", dst="include/wavpack", src=os.path.join(self._source_subfolder, "include"))
+        copy(self, "*.h", dst=os.path.join(self.package_folder, 'include', 'wavpack'), src=os.path.join(self.source_folder, "include"))
 
     def package_info(self):
-        self.cpp_info.names["cmake_find_package"] = "WavPack"
-        self.cpp_info.names["cmake_find_package_multi"] = "WavPack"
+        self.cpp_info.set_property("cmake_find_mode", "both")
+        self.cpp_info.set_property("cmake_module_file_name", "WavPack")
+        self.cpp_info.set_property("cmake_module_target_name", "wavpack::wavpack")
+        self.cpp_info.set_property("cmake_file_name", "WavPack")
+        self.cpp_info.set_property("cmake_target_name", "wavpack::wavpack")
+        self.cpp_info.set_property("pkg_config_name", "wavpack")
 
-        self.cpp_info.libs = self.collect_libs()
+        self.cpp_info.libs = collect_libs(self)
 
