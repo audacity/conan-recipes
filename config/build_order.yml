@@ -1,0 +1,50 @@
+build_order:
+  - platforms: win32
+    packages:
+    - strawberryperl
+    - msys2
+    - winflexbison
+  - platforms: "*"
+    packages:
+    - audacity_build_helpers
+    - ninja
+    - gn
+    - nasm
+    - yasm
+    - meson
+    - pkgconf
+    - m4
+    - autoconf
+    - automake
+  - platforms: "*"
+    packages:
+    - zlib
+    - zstd
+    - brotli
+    - bzip2
+    - sqlite3
+    - libpng
+    - md4c
+    - pcre2
+    - double_conversion
+    - libjpeg-turbo
+    - icu
+    - freetype
+    - harfbuzz
+    - libcurl
+    - ogg
+    - flac
+    - opus
+    - opusfile
+    - vorbis
+    - mpg123
+    - libmp3lame
+    - libsndfile
+    - threadpool
+    - rapidjson
+    - catch2
+    - expat
+    - portaudio
+    - portmidi
+    - vst3sdk
+    - wavpack

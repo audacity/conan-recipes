@@ -1,0 +1,8 @@
+config:
+  version: 4.5.0
+  options: |
+    &:lzma=False
+    &:jpeg=libjpeg-turbo
+    &:jbig=False
+    &:libdeflate=False
+    &:webp=False

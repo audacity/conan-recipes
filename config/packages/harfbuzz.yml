@@ -1,0 +1,4 @@
+config:
+  version: 4.4.1
+  options: |
+    &:with_glib=False
