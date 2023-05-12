@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import shutil
-from conans import ConanFile, tools
+from conan import ConanFile, tools
 import os
 import re
 import subprocess
