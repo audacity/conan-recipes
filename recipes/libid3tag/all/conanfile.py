@@ -1,7 +1,7 @@
-from conans import ConanFile, tools, CMake
-from conans.errors import ConanInvalidConfiguration
+from conan import ConanFile, tools
+from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeDeps
+from conan.errors import ConanInvalidConfiguration
 import os
-
 
 class LibId3TagConan(ConanFile):
     name = "libid3tag"
@@ -13,64 +13,48 @@ class LibId3TagConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False], "zlib": ["system", "conan"]}
     default_options = {"shared": False, "fPIC": True, "zlib": "conan"}
-    generators = ["cmake", "cmake_find_package"]
-
-    exports_sources = ["CMakeLists.txt"]
-
-    _cmake = None
-
-    @property
-    def _source_subfolder(self):
-        return "source_subfolder"
-
-    @property
-    def _build_subfolder(self):
-        return "build_subfolder"
 
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
 
     def configure(self):
-        del self.settings.compiler.libcxx
-        del self.settings.compiler.cppstd
+        self.settings.rm_safe("compiler.cppstd")
+        self.settings.rm_safe("compiler.libcxx")
+
+    def validate(self):
         if self.settings.os == "Windows" and self.options.shared:
             raise ConanInvalidConfiguration("libid3tag does not support shared library for Windows")
 
+    def layout(self):
+        cmake_layout(self, src_folder="src")
+
     def requirements(self):
         if self.options.zlib == "conan":
-            self.requires("zlib/1.2.11")
+            self.requires("zlib/1.2.13@audacity/stable")
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = self.name + "-" + self.version
-        tools.rename(extracted_dir, self._source_subfolder)
+        tools.files.get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
+    def generate(self):
+        tc = CMakeToolchain(self)
+        tc.variables['BUILD_SHARED'] = self.options.shared
+        tc.generate()
 
-    def _configure_cmake(self):
-        if self._cmake:
-            return self._cmake
-
-        cmake = CMake(self)
-
-        cmake.definitions['BUILD_SHARED'] = self.options.shared
-
-        cmake.configure(build_folder=self._build_subfolder)
-
-        self._cmake = cmake
-
-        return self._cmake
+        cd = CMakeDeps(self)
+        cd.generate()
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        self.copy("COPYRIGHT", dst="licenses", src=self._source_subfolder)
-        self.copy("COPYING", dst="licenses", src=self._source_subfolder)
-        self.copy("CREDITS", dst="licenses", src=self._source_subfolder)
+        tools.files.copy(self, pattern="COPYRIGHT", src=self.source_folder, dst=os.path.join(self.package_folder,"licenses"))
+        tools.files.copy(self, pattern="COPYING", src=self.source_folder, dst=os.path.join(self.package_folder,"licenses"))
+        tools.files.copy(self, pattern="CREDITS", src=self.source_folder, dst=os.path.join(self.package_folder,"licenses"))
 
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
         cmake.install()
 
     def package_info(self):
