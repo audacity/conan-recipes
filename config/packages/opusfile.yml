@@ -1,0 +1,5 @@
+config:
+  version: "0.12"
+  options: |
+    &:http=False
+    &:shared=False

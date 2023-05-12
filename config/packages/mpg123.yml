@@ -1,0 +1,5 @@
+config:
+  version: 1.31.2
+  options: |
+    &:network=False
+    &:module=dummy

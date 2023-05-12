@@ -1,0 +1,4 @@
+config:
+  version: 0.15.2b
+  options: |
+    &:shared=False
