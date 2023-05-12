@@ -11,15 +11,13 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 3439db2..6371a65 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -89,7 +89,7 @@ endif(SMTG_AAX_SDK_PATH)
- 
+@@ -99,7 +99,7 @@
+
  # Add hosting examples, it includes the validator (must be done before any plug-ins to support running the validator after building)
  set(SDK_IDE_HOSTING_EXAMPLES_FOLDER FOLDER "HostingExamples")
 -add_subdirectory(public.sdk/samples/vst-hosting)
 +#add_subdirectory(public.sdk/samples/vst-hosting)
- 
- #-------------------------------------------------------------------------------
- # Here is added your own plug-ins folder location
--- 
-2.31.1.windows.1
+
+ # Add utilities
+ set(SDK_IDE_UTILITIES_FOLDER FOLDER "Utilities")
 
