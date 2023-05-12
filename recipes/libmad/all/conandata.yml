@@ -1,7 +1,0 @@
-sources:
-  "0.15.2b":
-    url: "https://github.com/audacity/libmad/archive/refs/tags/0.15.2b.tar.gz"
-    sha256: ea55f06e34464b4809ce43d94e5acec88dd0fa74fa338e09cfabef7eb05dc7ee
-  "0.15.2b-1":
-    url: "https://github.com/audacity/libmad/archive/refs/tags/0.15.2b-1.tar.gz"
-    sha256: 0d69463f0168ab224303ba69e0f6b345ff57f148f8b91e56b7daa6d8885ad9b9
