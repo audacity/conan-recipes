@@ -1,16 +1,18 @@
 import os
 import shutil
 
-from conans import ConanFile, CMake, tools
+from conan import ConanFile
+from conan.tools.files import export_conandata_patches, apply_conandata_patches, get, rmdir, copy, collect_libs
+from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 
+required_conan_version = ">=2.0.0"
 class ConanRecipe(ConanFile):
     name = "portaudio"
     settings = "os", "compiler", "build_type", "arch"
-    generators = ["cmake"]
-    sources_folder = "sources"
     description = "Conan package for the Portaudio library"
     url = "https://github.com/audacity/conan-recipes"
     license = "http://www.portaudio.com/license.html"
+
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
@@ -29,6 +31,7 @@ class ConanRecipe(ConanFile):
         # macOS specific options:
         "build_framework":  [True, False],
     }
+
     default_options = {
         'shared': False,
         'fPIC': True,
@@ -44,102 +47,99 @@ class ConanRecipe(ConanFile):
         "with_jack":  True,
         "build_framework": False,
     }
-    exports = ["CMakeLists.txt"]
-    exports_sources = ["patches/19.7.0/*"]
 
-    _cmake = None
-    _build_folder = "build_folder"
-
-    def configure(self):
-        del self.settings.compiler.libcxx
-        del self.settings.compiler.cppstd
-
+    def config_options(self):
         if self.settings.os == "Windows":
-            self.options.remove("fPIC")
+            del self.options.fPIC
         else:
             for opt in [
                 "with_asio", "with_directsound", "with_mme",
                 "with_wasapi", "with_wdmks", "with_static_runtime"
                 ]:
-                self.options.remove(opt)
+                del self.options[opt]
 
             if self.settings.os == "Macos":
-                self.options.remove("with_oss")
-                self.options.remove("with_alsa")
-                self.options.remove("with_alsa_dynamic")
-                self.options.remove("with_jack")
+                del self.options.with_oss
+                del self.options.with_alsa
+                del self.options.with_alsa_dynamic
             else:
-                self.options.remove("build_framework")
+                del self.options.build_framework
+
+    def configure(self):
+        self.settings.rm_safe('compiler.libcxx')
+        self.settings.rm_safe('compiler.cppstd')
+
+    def export_sources(self):
+        export_conandata_patches(self)
+        copy(self, "FindOSS.cmake", self.recipe_folder, os.path.join(self.export_sources_folder, "cmake_support"))
+
+    def layout(self):
+        cmake_layout(self, src_folder=os.path.join('src','portadio'))
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        tools.rename("portaudio-19.7.0", self.sources_folder)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        apply_conandata_patches(self)
 
-        if "patches" in self.conan_data:
-            for p in self.conan_data["patches"][self.version]:
-                tools.patch(**p)
+    def generate(self):
+        if self.options.get_safe('with_asio'):
+            self.output.write("ASIO requires that Steinberg ASIO SDK Licensing Agreement Version 2.0.1 is signed\n")
 
-        if self.settings.os != "Windows" and self.settings.os != "Macos":
-            shutil.copyfile("patches/19.7.0/FindOSS.cmake", os.path.join(self.sources_folder, "cmake_support", "FindOSS.cmake"))
+            get(self,
+                url="https://download.steinberg.net/sdk_downloads/asiosdk_2.3.3_2019-06-14.zip",
+                sha256="80F5BF2703563F6047ACEC2EDD468D0838C9F61ECED9F7CDCE9629B04E9710AC",
+                destination=os.path.realpath(os.path.join(self.source_folder, "..")))
 
-    def _cmake_configure(self):
-        if not self._cmake:
-            if self.settings.os == "Windows" and self.options.with_asio:
-                # ASIO requires that Steinberg ASIO SDK Licensing Agreement Version 2.0.1
-                # is signed
-                tools.get(
-                    url="https://download.steinberg.net/sdk_downloads/asiosdk_2.3.3_2019-06-14.zip",
-                    sha256="80F5BF2703563F6047ACEC2EDD468D0838C9F61ECED9F7CDCE9629B04E9710AC"
-                )
+        tc = CMakeToolchain(self)
 
-            cmake = CMake(self)
+        tc.variables['PA_BUILD_SHARED'] = self.options.shared
+        tc.variables['PA_BUILD_STATIC'] = not self.options.shared
 
-            cmake.definitions['PA_BUILD_SHARED'] = self.options.shared
-            cmake.definitions['PA_BUILD_STATIC'] = not self.options.shared
+        if self.settings.os == "Windows":
+            tc.variables['PA_USE_ASIO'] = self.options.with_asio
+            tc.variables['PA_USE_DS'] = self.options.with_directsound
+            tc.variables['PA_USE_WMME'] = self.options.with_mme
+            tc.variables['PA_USE_WASAPI'] = self.options.with_wasapi
+            tc.variables['PA_USE_WDMKS'] = self.options.with_wdmks
+            tc.variables['PA_USE_WDMKS_DEVICE_INFO'] = self.options.with_wdmks
+            tc.variables['PA_DLL_LINK_WITH_STATIC_RUNTIME'] = self.options.with_static_runtime
+        elif self.settings.os == "Macos":
+            tc.variables['PA_OUTPUT_OSX_FRAMEWORK'] = self.options.build_framework
+        else:
+            tc.variables['PA_USE_OSS'] = self.options.with_oss
+            tc.variables['PA_USE_JACK'] = self.options.with_jack
+            tc.variables['PA_USE_ALSA'] = self.options.with_alsa
+            tc.variables['PA_ALSA_DYNAMIC'] = self.options.with_alsa_dynamic
 
-            if self.settings.os == "Windows":
-                cmake.definitions['PA_USE_ASIO'] = self.options.with_asio
-                cmake.definitions['PA_USE_DS'] = self.options.with_directsound
-                cmake.definitions['PA_USE_WMME'] = self.options.with_mme
-                cmake.definitions['PA_USE_WASAPI'] = self.options.with_wasapi
-                cmake.definitions['PA_USE_WDMKS'] = self.options.with_wdmks
-                cmake.definitions['PA_USE_WDMKS_DEVICE_INFO'] = self.options.with_wdmks
-                cmake.definitions['PA_DLL_LINK_WITH_STATIC_RUNTIME'] = self.options.with_static_runtime
-            elif self.settings.os == "Macos":
-                cmake.definitions['PA_OUTPUT_OSX_FRAMEWORK'] = self.options.build_framework
-            else:
-                cmake.definitions['PA_USE_OSS'] = self.options.with_oss
-                cmake.definitions['PA_USE_JACK'] = self.options.with_jack
-                cmake.definitions['PA_USE_ALSA'] = self.options.with_alsa
-                cmake.definitions['PA_ALSA_DYNAMIC'] = self.options.with_alsa_dynamic
-
-            cmake.configure(build_folder=self._build_folder)
-            self._cmake = cmake
-
-        return self._cmake
+        tc.generate()
 
     def build(self):
-        cmake = self._cmake_configure()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        cmake = self._cmake_configure()
+        cmake = CMake(self)
         cmake.install()
 
-        self.copy(
+        copy(self,
             "LICENSE.txt",
-            dst="licenses",
+            dst=os.path.join(self.package_folder, "licenses"),
             src=os.path.join(self.package_folder, "share", "doc", "portaudio")
             )
 
-        shutil.rmtree(os.path.join(self.package_folder, "share"))
-        shutil.rmtree(os.path.join(self.package_folder, "lib", "cmake"))
-        shutil.rmtree(os.path.join(self.package_folder, "lib", "pkgconfig"))
+        rmdir(self, os.path.join(self.package_folder, "share"))
+        rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
+        rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
-        self.cpp_info.name = "PortAudio"
+        self.cpp_info.set_property("cmake_find_mode", "both")
+        self.cpp_info.set_property("cmake_module_file_name", "PortAudio")
+        self.cpp_info.set_property("cmake_module_target_name", "portaudio::portaudio")
+        self.cpp_info.set_property("cmake_file_name", "PortAudio")
+        self.cpp_info.set_property("cmake_target_name", "portaudio::portaudio")
+        self.cpp_info.set_property("pkg_config_name", "portaudio-2.0")
 
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.libs = collect_libs(self)
 
         if self.settings.os == "Macos":
             self.cpp_info.frameworks.extend(["CoreAudio","AudioToolbox","AudioUnit","CoreServices","Carbon"])
