@@ -1,0 +1,23 @@
+--- a/src/common/windows/http_upload.cc
++++ b/src/common/windows/http_upload.cc
+@@ -365,11 +365,6 @@
+       return false;
+     }
+
+-    string filename_utf8 = WideToUTF8(filename);
+-    if (filename_utf8.empty()) {
+-      return false;
+-    }
+-
+     if (set_content_type) {
+       request_body->append(
+           "Content-Disposition: form-data; "
+@@ -377,7 +372,7 @@
+           file_part_name_utf8 +
+           "\"; "
+           "filename=\"" +
+-          filename_utf8 + "\"\r\n");
++          file_part_name_utf8 + "\"\r\n");
+       request_body->append("Content-Type: application/octet-stream\r\n");
+       request_body->append("\r\n");
+     }
