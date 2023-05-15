@@ -4,7 +4,7 @@ from conan.tools.files import apply_conandata_patches, export_conandata_patches,
 from conan.tools.scm import Version
 import os
 
-required_conan_version = ">=1.53.0"
+required_conan_version = ">=2.0.0"
 
 
 class ZlibConan(ConanFile):
@@ -106,5 +106,3 @@ class ZlibConan(ConanFile):
             libname = "z"
         self.cpp_info.libs = [libname]
 
-        self.cpp_info.names["cmake_find_package"] = "ZLIB"
-        self.cpp_info.names["cmake_find_package_multi"] = "ZLIB"
