@@ -1,23 +1,14 @@
 patches:
   cci.20220219-audacity:
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-0001-fix-openssl-link-order.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-0002-remove-fPIC-Werror-LTO.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-0003-compilers-from-env.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-0004-use-conan-linux-syscall-support-package.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-0005-allow-all-archs.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-0006-mini_chromium-win_helper-py3.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20210507-0007-use-system-zlib.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-0007-static-lib-tool_support.patch
-  - base_path: source_subfolder
-    patch_file: patches/cci.20220219-audacity-0001-crashreporter.patch
+  - patch_file: patches/cci.20220219-0001-fix-openssl-link-order.patch
+  - patch_file: patches/cci.20220219-0002-remove-fPIC-Werror-LTO.patch
+  - patch_file: patches/cci.20220219-0003-compilers-from-env.patch
+  - patch_file: patches/cci.20220219-0004-use-conan-linux-syscall-support-package.patch
+  - patch_file: patches/cci.20220219-0005-allow-all-archs.patch
+  - patch_file: patches/cci.20220219-0006-mini_chromium-win_helper-py3.patch
+  - patch_file: patches/cci.20210507-0007-use-system-zlib.patch
+  - patch_file: patches/cci.20220219-0007-static-lib-tool_support.patch
+  - patch_file: patches/cci.20220219-audacity-0001-crashreporter.patch
 sources:
   cci.20220219-audacity:
     crashpad:

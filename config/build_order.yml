@@ -49,3 +49,4 @@ build_order:
     - vst3sdk
     - wavpack
     - breakpad
+    - crashpad
