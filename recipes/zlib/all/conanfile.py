@@ -1,6 +1,6 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import apply_conandata_patches, export_conandata_patches, get, load, replace_in_file, save
+from conan.tools.files import apply_conandata_patches, export_conandata_patches, get, load, replace_in_file, save, collect_libs
 from conan.tools.scm import Version
 import os
 
@@ -100,9 +100,6 @@ class ZlibConan(ConanFile):
         self.cpp_info.set_property("cmake_file_name", "ZLIB")
         self.cpp_info.set_property("cmake_target_name", "ZLIB::ZLIB")
         self.cpp_info.set_property("pkg_config_name", "zlib")
-        if self.settings.os == "Windows" and not self._is_mingw:
-            libname = "zdll" if self.options.shared else "zlib"
-        else:
-            libname = "z"
-        self.cpp_info.libs = [libname]
+
+        self.cpp_info.libs = collect_libs(self)
 
