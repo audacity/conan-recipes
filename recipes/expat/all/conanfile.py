@@ -101,14 +101,13 @@ class ExpatConan(ConanFile):
         rmdir(self, os.path.join(self.package_folder, "share"))
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_find_mode", "both")
-        self.cpp_info.set_property("cmake_module_file_name", "EXPAT")
         self.cpp_info.set_property("cmake_module_target_name", "EXPAT::EXPAT")
-        self.cpp_info.set_property("cmake_file_name", "expat")
-        self.cpp_info.set_property("cmake_target_name", "expat::expat")
+        self.cpp_info.set_property("cmake_file_name", "EXPAT")
+        self.cpp_info.set_property("cmake_target_name", "EXPAT::EXPAT")
         self.cpp_info.set_property("pkg_config_name", "expat")
 
         self.cpp_info.libs = collect_libs(self)
+
         if not self.options.shared:
             self.cpp_info.defines = ["XML_STATIC"]
         if self.options.get_safe("char_type") in ("wchar_t", "ushort"):
@@ -118,7 +117,3 @@ class ExpatConan(ConanFile):
 
         if self.settings.os in ["Linux", "FreeBSD"]:
             self.cpp_info.system_libs.append("m")
-
-        # TODO: to remove in conan v2
-        self.cpp_info.names["cmake_find_package"] = "EXPAT"
-        self.cpp_info.names["cmake_find_package_multi"] = "expat"
