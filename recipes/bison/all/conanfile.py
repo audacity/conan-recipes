@@ -46,9 +46,11 @@ class BisonConan(ConanFile):
 
     def layout(self):
         basic_layout(self, src_folder="src")
+        self.folders.build = 'build'
+        self.folders.generators = 'build/generators'
 
     def requirements(self):
-        self.requires("m4/1.4.19")
+        self.requires("m4/1.4.19@audacity/stable")
 
     def validate(self):
         if is_msvc(self) and self.version == "3.8.2":
@@ -61,11 +63,11 @@ class BisonConan(ConanFile):
         if self._settings_build.os == "Windows":
             self.win_bash = True
             if not self.conf.get("tools.microsoft.bash:path", check_type=str):
-                self.tool_requires("msys2/cci.latest")
+                self.tool_requires("msys2/cci.latest@audacity/stable")
         if is_msvc(self):
-            self.tool_requires("automake/1.16.5")
+            self.tool_requires("automake/1.16.5@audacity/stable")
         if self.settings.os != "Windows":
-            self.tool_requires("flex/2.6.4")
+            self.tool_requires("flex/2.6.4@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
