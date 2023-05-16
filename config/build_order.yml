@@ -12,10 +12,10 @@ build_order:
     - nasm
     - yasm
     - meson
-    - pkgconf
     - m4
     - autoconf
     - automake
+    - pkgconf
   - platforms: "*"
     packages:
     - zlib
@@ -26,7 +26,7 @@ build_order:
     - libpng
     - md4c
     - pcre2
-    - double_conversion
+    - double-conversion
     - libjpeg-turbo
     - icu
     - freetype
@@ -50,4 +50,5 @@ build_order:
     - wavpack
     - breakpad
     - crashpad
+    - libtiff
     - wxwidgets
