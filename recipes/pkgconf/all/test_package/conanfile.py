@@ -31,7 +31,7 @@ class TestPackageConan(ConanFile):
             self.tool_requires("msys2/cci.latest@audacity/stable")
 
     def layout(self):
-        cmake_layout(self, src_folder="src")
+        cmake_layout(self, src_folder="sources")
 
     def generate(self):
         # Autotools project to test integration pkgconfig works
