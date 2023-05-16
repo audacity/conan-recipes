@@ -2,7 +2,7 @@ from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 from conan.tools.env import VirtualBuildEnv
-from conan.tools.files import copy, get, replace_in_file, rm, rmdir
+from conan.tools.files import copy, get, replace_in_file, rm, rmdir, collect_libs
 from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
 from conan.tools.scm import Version
 import os
@@ -149,26 +149,17 @@ class LibjpegTurboConan(ConanFile):
     def package_info(self):
         self.cpp_info.set_property("cmake_find_mode", "both")
         self.cpp_info.set_property("cmake_module_file_name", "JPEG")
-        self.cpp_info.set_property("cmake_file_name", "libjpeg-turbo")
+        self.cpp_info.set_property("cmake_file_name", "JPEG")
 
-        cmake_target_suffix = "-static" if not self.options.shared else ""
-        lib_suffix = "-static" if is_msvc(self) and not self.options.shared else ""
+        lib = collect_libs(self)
 
         self.cpp_info.components["jpeg"].set_property("cmake_module_target_name", "JPEG::JPEG")
-        self.cpp_info.components["jpeg"].set_property("cmake_target_name", f"libjpeg-turbo::jpeg{cmake_target_suffix}")
+        self.cpp_info.components["jpeg"].set_property("cmake_target_name", f"JPEG::JPEG")
         self.cpp_info.components["jpeg"].set_property("pkg_config_name", "libjpeg")
-        self.cpp_info.components["jpeg"].libs = [f"jpeg{lib_suffix}"]
+        self.cpp_info.components["jpeg"].libs = list(filter(lambda lib: 'turbo' not in lib, lib))
 
         if self.options.get_safe("turbojpeg"):
-            self.cpp_info.components["turbojpeg"].set_property("cmake_target_name", f"libjpeg-turbo::turbojpeg{cmake_target_suffix}")
+            self.cpp_info.components["turbojpeg"].set_property("cmake_target_name", f"JPEG::turbojpeg")
             self.cpp_info.components["turbojpeg"].set_property("pkg_config_name", "libturbojpeg")
-            self.cpp_info.components["turbojpeg"].libs = [f"turbojpeg{lib_suffix}"]
+            self.cpp_info.components["turbojpeg"].libs = list(filter(lambda lib: 'turbo' in lib, lib))
 
-        # TODO: to remove in conan v2
-        self.cpp_info.names["cmake_find_package"] = "JPEG"
-        self.cpp_info.names["cmake_find_package_multi"] = "libjpeg-turbo"
-        self.cpp_info.components["jpeg"].names["cmake_find_package"] = "JPEG"
-        self.cpp_info.components["jpeg"].names["cmake_find_package_multi"] = f"jpeg{cmake_target_suffix}"
-        if self.options.get_safe("turbojpeg"):
-            self.cpp_info.components["turbojpeg"].names["cmake_find_package"] = f"turbojpeg{cmake_target_suffix}"
-            self.cpp_info.components["turbojpeg"].names["cmake_find_package_multi"] = f"turbojpeg{cmake_target_suffix}"
