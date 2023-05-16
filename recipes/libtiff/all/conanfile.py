@@ -1,8 +1,7 @@
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, replace_in_file, rmdir
-from conan.tools.microsoft import is_msvc
+from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, replace_in_file, rmdir, collect_libs
 from conan.tools.scm import Version
 import os
 
@@ -167,10 +166,9 @@ class LibtiffConan(ConanFile):
         self.cpp_info.set_property("cmake_file_name", "TIFF")
         self.cpp_info.set_property("cmake_target_name", "TIFF::TIFF")
         self.cpp_info.set_property("pkg_config_name", f"libtiff-{Version(self.version).major}")
-        suffix = "d" if is_msvc(self) and self.settings.build_type == "Debug" else ""
-        if self.options.cxx:
-            self.cpp_info.libs.append(f"tiffxx{suffix}")
-        self.cpp_info.libs.append(f"tiff{suffix}")
+
+        self.cpp_info.libs = collect_libs(self)
+
         if self.settings.os in ["Linux", "Android", "FreeBSD", "SunOS", "AIX"]:
             self.cpp_info.system_libs.append("m")
 
@@ -184,7 +182,7 @@ class LibtiffConan(ConanFile):
         if self.options.jpeg == "libjpeg":
             self.cpp_info.requires.append("libjpeg::libjpeg")
         elif self.options.jpeg == "libjpeg-turbo":
-            self.cpp_info.requires.append("libjpeg-turbo::jpeg")
+            self.cpp_info.requires.append("libjpeg-turbo::libjpeg-turbo")
         elif self.options.jpeg == "mozjpeg":
             self.cpp_info.requires.append("mozjpeg::libjpeg")
         if self.options.jbig:

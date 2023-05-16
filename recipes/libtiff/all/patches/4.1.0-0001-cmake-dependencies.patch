@@ -79,7 +79,7 @@
 -if(ZSTD_LIBRARIES)
 -  list(APPEND TIFF_LIBRARY_DEPS ${ZSTD_LIBRARIES})
 +if(ZSTD_FOUND)
-+  list(APPEND TIFF_LIBRARY_DEPS $<IF:$<TARGET_EXISTS:zstd::libzstd_shared>,zstd::libzstd_shared,zstd::libzstd_static>)
++  list(APPEND TIFF_LIBRARY_DEPS zstd::zstd)
  endif()
  if(WEBP_LIBRARIES)
    list(APPEND TIFF_LIBRARY_DEPS ${WEBP_LIBRARIES})
