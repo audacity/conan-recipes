@@ -6,6 +6,7 @@ from conan.tools.apple import fix_apple_shared_install_name
 from conan.tools.build import cross_building
 from conan.tools.files import get, rmdir, copy, rm, export_conandata_patches, apply_conandata_patches
 from conan.tools.gnu import AutotoolsToolchain, Autotools
+from conan.tools.layout import basic_layout
 
 required_conan_version = ">=1.53.0"
 
@@ -37,10 +38,15 @@ class FlexConan(ConanFile):
     def requirements(self):
         # Flex requires M4 to be compiled. If consumer does not have M4
         # installed, Conan will need to know that Flex requires it.
-        self.requires("m4/1.4.19")
+        self.requires("m4/1.4.19@audacity/stable")
+
+    def layout(self):
+        basic_layout(self, src_folder="src")
+        self.folders.build = 'build'
+        self.folders.generators = 'build/generators'
 
     def build_requirements(self):
-        self.tool_requires("m4/1.4.19")
+        self.tool_requires("m4/1.4.19@audacity/stable")
         if hasattr(self, "settings_build") and cross_building(self):
             self.tool_requires(f"{self.name}/{self.version}")
 
