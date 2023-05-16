@@ -46,7 +46,7 @@ class TestPackageConan(ConanFile):
             self.build_requires("msys2/cci.latest@audacity/stable")
 
     def layout(self):
-        basic_layout(self, src_folder="src")
+        basic_layout(self)
 
     def generate(self):
         tc = AutotoolsToolchain(self)
