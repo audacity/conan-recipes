@@ -24,6 +24,9 @@ build_order:
     - patchelf
     - openssl
     - libuuid
+  - platforms: linux|macos
+    packages:
+    - flex
   - platforms: "*"
     packages:
     - zlib
