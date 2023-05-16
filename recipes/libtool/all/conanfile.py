@@ -50,11 +50,11 @@ class LibtoolConan(ConanFile):
         basic_layout(self, src_folder="src")
 
     def requirements(self):
-        self.requires("automake/1.16.5")
+        self.requires("automake/1.16.5@audacity/stable")
 
         #TODO: consider adding m4 as direct dependency, perhaps when we start using version ranges.
         # https://github.com/conan-io/conan-center-index/pull/16248#discussion_r1116332095
-        #self.requires("m4/1.4.19") 
+        #self.requires("m4/1.4.19")
 
     @property
     def _settings_build(self):
@@ -62,14 +62,14 @@ class LibtoolConan(ConanFile):
 
     def build_requirements(self):
         if hasattr(self, "settings_build"):
-            self.tool_requires("automake/1.16.5")
-            self.tool_requires("m4/1.4.19")               # Needed by configure
+            self.tool_requires("automake/1.16.5@audacity/stable")
+            self.tool_requires("m4/1.4.19@audacity/stable")               # Needed by configure
 
-        self.tool_requires("gnu-config/cci.20210814")
+        self.tool_requires("gnu-config/cci.20210814@audacity/stable")
         if self._settings_build.os == "Windows":
             self.win_bash = True
             if not self.conf.get("tools.microsoft.bash:path", check_type=str):
-                self.tool_requires("msys2/cci.latest")
+                self.tool_requires("msys2/cci.latest@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version],
@@ -230,7 +230,7 @@ class LibtoolConan(ConanFile):
         self.buildenv_info.append_path("AUTOMAKE_CONAN_INCLUDES", libtool_aclocal_dir)
         self.runenv_info.append_path("ACLOCAL_PATH", libtool_aclocal_dir)
         self.runenv_info.append_path("AUTOMAKE_CONAN_INCLUDES", libtool_aclocal_dir)
-        
+
         # For Conan 1.x downstream consumers, can be removed once recipe is Conan 1.x only:
         bin_path = os.path.join(self.package_folder, "bin")
         self.output.info(f"Appending PATH env: bin_path{bin_path}")
