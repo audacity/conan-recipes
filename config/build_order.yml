@@ -18,6 +18,8 @@ build_order:
     - pkgconf
   - platforms: linux
     packages:
+    - gnu-config
+    - libtool
     - openssl
   - platforms: "*"
     packages:
