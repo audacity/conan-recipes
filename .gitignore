@@ -18,3 +18,5 @@ conanrun*
 conanrunenv*
 deactivate_conanbuild*
 deactivate_conanrun*
+
+autom4te.cache/
