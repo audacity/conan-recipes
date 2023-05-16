@@ -49,7 +49,7 @@ class HarfbuzzConan(ConanFile):
         "fPIC": True,
         "with_freetype": True,
         "with_icu": False,
-        "with_glib": True,
+        "with_glib": False,
         "with_gdi": True,
         "with_uniscribe": True,
         "with_directwrite": False,
