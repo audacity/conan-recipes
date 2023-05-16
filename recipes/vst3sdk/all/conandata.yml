@@ -5,3 +5,4 @@ sources:
 patches:
   "3.7.7":
     - patch_file: "patches/disable-validator.diff"
+    - patch_file: "patches/moduleinfoparser.cpp.diff"
