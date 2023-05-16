@@ -180,6 +180,3 @@ class LibpngConan(ConanFile):
         if self.settings.os in ["Linux", "Android", "FreeBSD", "SunOS", "AIX"]:
             self.cpp_info.system_libs.append("m")
 
-        # TODO: Remove after Conan 2.0
-        self.cpp_info.names["cmake_find_package"] = "PNG"
-        self.cpp_info.names["cmake_find_package_multi"] = "PNG"
