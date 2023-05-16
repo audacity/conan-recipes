@@ -105,7 +105,7 @@
  endif()
  if(ZSTD_SUPPORT)
 -  target_link_libraries(tiff PRIVATE ZSTD::ZSTD)
-+  target_link_libraries(tiff PRIVATE $<IF:$<TARGET_EXISTS:zstd::libzstd_shared>,zstd::libzstd_shared,zstd::libzstd_static>)
++  target_link_libraries(tiff PRIVATE ZSTD::ZSTD)
    string(APPEND tiff_requires_private " libzstd")
  endif()
  if(WEBP_SUPPORT)
