@@ -1,6 +1,6 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import get, export_conandata_patches, apply_conandata_patches, copy, collect_libs
+from conan.tools.files import get, export_conandata_patches, apply_conandata_patches, copy, collect_libs, replace_in_file
 import os
 import time
 
@@ -42,6 +42,8 @@ class PortMidiConan(ConanFile):
             destination=os.path.realpath(os.path.join(self.source_folder, '..', '..')))
 
         apply_conandata_patches(self)
+
+        replace_in_file(self, os.path.join(self.source_folder, 'CMakeLists.txt'), 'CMAKE_CACHEFILE_DIR', 'CMAKE_BINARY_DIR')
 
     def generate(self):
         tc = CMakeToolchain(self)
