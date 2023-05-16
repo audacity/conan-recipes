@@ -1,6 +1,11 @@
-from conans import ConanFile, CMake, tools
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
+from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
+from conan.tools.system.package_manager import Apt, Dnf, PacMan
+from conan.tools.files import get, export_conandata_patches, apply_conandata_patches, copy
 import os
 
+required_conan_version = ">=2.0.0"
 
 class wxWidgetsConan(ConanFile):
     name = "wxwidgets"
@@ -10,10 +15,7 @@ class wxWidgetsConan(ConanFile):
     url = "https://github.com/bincrafters/conan-wxwidgets"
     homepage = "https://www.wxwidgets.org"
     license = "wxWidgets"
-    exports_sources = ["CMakeLists.txt", "patches/*"]
-    generators = ["cmake", "cmake_find_package"]
     settings = "os", "arch", "compiler", "build_type"
-    _cmake = None
 
     # 3rd-party dependencies
     #
@@ -61,8 +63,8 @@ class wxWidgetsConan(ConanFile):
                "url": [True, False],
                "protocol": [True, False],
                "fs_inet": [True, False],
-               "custom_enables": "ANY", # comma splitted list
-               "custom_disables": "ANY"}
+               "custom_enables": ["ANY"], # comma splitted list
+               "custom_disables": ["ANY"]}
     default_options = {
                "shared": False,
                "fPIC": True,
@@ -70,7 +72,7 @@ class wxWidgetsConan(ConanFile):
                "compatibility": "3.0",
                "zlib": "zlib",
                "png": "libpng",
-               "jpeg": "libjpeg",
+               "jpeg": "libjpeg-turbo",
                "tiff": "libtiff",
                "expat": "expat",
                "secretstore": True,
@@ -96,12 +98,14 @@ class wxWidgetsConan(ConanFile):
                "custom_enables": "",
                "custom_disables": ""
     }
-    _source_subfolder = "source_subfolder"
-    _build_subfolder = "build_subfolder"
 
     @property
     def _is_msvc(self):
-        return str(self.settings.compiler) in ["Visual Studio", "msvc"]
+        return is_msvc(self)
+
+    @property
+    def _is_linux(self):
+        return self.settings.os not in ["Windows", "Macos"]
 
     def config_options(self):
         if self.settings.os == 'Windows':
@@ -110,170 +114,165 @@ class wxWidgetsConan(ConanFile):
             del self.options.cairo
 
     def system_requirements(self):
-        if self.settings.os == 'Linux' and tools.os_info.is_linux:
-            if tools.os_info.with_apt:
-                installer = tools.SystemPackageTool()
-                if self.settings.arch == 'x86':
-                    arch_suffix = ':i386'
-                elif self.settings.arch == 'x86_64':
-                    arch_suffix = ':amd64'
-                elif self.settings.arch == 'armv7':
-                    arch_suffix = ':armhf'
-                elif self.settings.arch == 'armv8':
-                    arch_suffix = ':arm64'
-                packages = ['libx11-dev%s' % arch_suffix,
-                            'libgtk2.0-dev%s' % arch_suffix]
-                # TODO : GTK3
-                # packages.append('libgtk-3-dev%s' % arch_suffix)
-                if self.options.secretstore:
-                    packages.append('libsecret-1-dev%s' % arch_suffix)
-                if self.options.opengl:
-                    packages.extend(['mesa-common-dev%s' % arch_suffix,
-                                     'libgl1-mesa-dev%s' % arch_suffix])
-                #if self.options.webview:
-                #    packages.extend(['libsoup2.4-dev%s' % arch_suffix,
-                #                     'libwebkitgtk-dev%s' % arch_suffix])
-                # TODO : GTK3
-                #                    'libwebkitgtk-3.0-dev%s' % arch_suffix])
-                if self.options.mediactrl:
-                    packages.extend(['libgstreamer0.10-dev%s' % arch_suffix,
-                                     'libgstreamer-plugins-base0.10-dev%s' % arch_suffix])
-                if self.options.cairo:
-                    packages.append('libcairo2-dev%s' % arch_suffix)
-                for package in packages:
-                    installer.install(package)
+        apt = Apt(self)
+        dnf = Dnf(self)
+        pacman = PacMan(self)
+
+        apt.check('libx11-dev')
+        dnf.check('libX11-devel')
+        pacman.check('libx11')
+
+        apt.check('libgtk2.0-dev')
+        dnf.check('gtk2-devel')
+        pacman.check('gtk2')
+
+        if self.options.secretstore:
+            apt.check('libsecret-1-dev')
+            dnf.check('libsecret-devel')
+            pacman.check('libsecret')
+        if self.options.opengl:
+            apt.check(['libgl1-mesa-dev', 'mesa-common-dev'])
+            dnf.check(['mesa-libGL-devel', 'mesa-libGLU-devel'])
+            pacman.check(['mesa', 'glu'])
+
+        if self.options.webview:
+            apt.check(['libwebkitgtk-dev', 'libsoup2.4-dev'])
+            dnf.check(['webkitgtk2-devel', 'libsoup-devel'])
+            pacman.check(['webkitgtk', 'libsoup'])
+
+        if self.options.mediactrl:
+            apt.check(['libgstreamer0.10-dev', 'libgstreamer-plugins-base0.10-dev'])
+            dnf.check(['gstreamer-devel', 'gstreamer-plugins-base-devel'])
+            pacman.check(['gstreamer', 'gstreamer-plugins-base'])
+
+        if self.options.get_safe('cairo'):
+            apt.check(['libcairo2-dev'])
+            dnf.check(['cairo-devel'])
+            pacman.check(['cairo'])
 
     def build_requirements(self):
         # On Windows, use default build system.
         # MSVC works good anyway, but Ninja
         # won't work on Cygwin setups.
         if self.settings.os != "Windows":
-            self.build_requires("ninja/1.10.1")
+            self.build_requires("ninja/1.11.0@audacity/stable")
 
     def requirements(self):
         if self.options.png == 'libpng':
-            self.requires('libpng/1.6.37')
+            self.requires('libpng/1.6.39@audacity/stable')
         if self.options.jpeg == 'libjpeg':
             self.requires('libjpeg/9d')
         elif self.options.jpeg == 'libjpeg-turbo':
-            self.requires('libjpeg-turbo/2.0.5')
+            self.requires('libjpeg-turbo/2.1.5@audacity/stable')
         elif self.options.jpeg == 'mozjpeg':
             self.requires('mozjpeg/3.3.1')
         if self.options.tiff == 'libtiff':
-            self.requires('libtiff/4.0.9')
+            self.requires('libtiff/4.5.0@audacity/stable')
         if self.options.zlib == 'zlib':
-            self.requires('zlib/1.2.11')
+            self.requires('zlib/1.2.13@audacity/stable')
         if self.options.expat == 'expat' and self.options.xml:
-            self.requires('expat/2.2.9')
+            self.requires('expat/2.5.0@audacity/stable')
+
+    def export_sources(self):
+        export_conandata_patches(self)
 
     def source(self):
-        tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = self.conan_data["folders"][self.version]
-        tools.rename(extracted_dir, self._source_subfolder)
+        get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        apply_conandata_patches(self)
 
-    def add_libraries_from_pc(self, library):
-        pkg_config = tools.PkgConfig(library)
-        libs = [lib[2:] for lib in pkg_config.libs_only_l]  # cut -l prefix
-        lib_paths = [lib[2:] for lib in pkg_config.libs_only_L]  # cut -L prefix
-        self.cpp_info.components['base'].system_libs.extend(libs)
-        self.cpp_info.components['base'].libdirs.extend(lib_paths)
-        self.cpp_info.components['base'].sharedlinkflags.extend(pkg_config.libs_only_other)
-        self.cpp_info.components['base'].exelinkflags.extend(pkg_config.libs_only_other)
+    def generate(self):
+        tc = CMakeToolchain(self)
 
-    def _configure_cmake(self):
-        if self._cmake:
-            return self._cmake
-
-        cmake = CMake(self)
-
-        # generic build options
-        cmake.definitions['wxBUILD_SHARED'] = self.options.shared
-        cmake.definitions['wxBUILD_SAMPLES'] = 'OFF'
-        cmake.definitions['wxBUILD_TESTS'] = 'OFF'
-        cmake.definitions['wxBUILD_DEMOS'] = 'OFF'
-        cmake.definitions['wxBUILD_INSTALL'] = True
-        cmake.definitions['wxBUILD_COMPATIBILITY'] = self.options.compatibility
+        tc.variables['wxBUILD_SHARED'] = self.options.shared
+        tc.variables['wxBUILD_SAMPLES'] = 'OFF'
+        tc.variables['wxBUILD_TESTS'] = 'OFF'
+        tc.variables['wxBUILD_DEMOS'] = 'OFF'
+        tc.variables['wxBUILD_INSTALL'] = True
+        tc.variables['wxBUILD_COMPATIBILITY'] = self.options.compatibility
         if self.settings.compiler == 'clang' or self.settings.compiler == 'apple-clang':
-            cmake.definitions['wxBUILD_PRECOMP'] = 'OFF'
+            tc.variables['wxBUILD_PRECOMP'] = 'OFF'
 
         # platform-specific options
         if self._is_msvc:
-            cmake.definitions['wxBUILD_USE_STATIC_RUNTIME'] = 'MT' in str(self.settings.compiler.runtime)
-            cmake.definitions['wxBUILD_MSVC_MULTIPROC'] = True
-        if self.settings.os == 'Linux':
+            tc.variables['wxBUILD_USE_STATIC_RUNTIME'] = is_msvc_static_runtime(self)
+            tc.variables['wxBUILD_MSVC_MULTIPROC'] = True
+        if self._is_linux:
             # TODO : GTK3
             # cmake.definitions['wxBUILD_TOOLKIT'] = 'gtk3'
-            cmake.definitions['wxUSE_CAIRO'] = self.options.cairo
+            tc.variables['wxUSE_CAIRO'] = self.options.get_safe('cairo')
         # Disable some optional libraries that will otherwise lead to non-deterministic builds
         if self.settings.os != "Windows":
-            cmake.definitions['wxUSE_LIBSDL'] = 'OFF'
-            cmake.definitions['wxUSE_LIBICONV'] = 'OFF'
-            cmake.definitions['wxUSE_LIBNOTIFY'] = 'OFF'
-            cmake.definitions['wxUSE_LIBMSPACK'] = 'OFF'
-            cmake.definitions['wxUSE_LIBGNOMEVFS'] = 'OFF'
+            tc.variables['wxUSE_LIBSDL'] = 'OFF'
+            tc.variables['wxUSE_LIBICONV'] = 'OFF'
+            tc.variables['wxUSE_LIBNOTIFY'] = 'OFF'
+            tc.variables['wxUSE_LIBMSPACK'] = 'OFF'
+            tc.variables['wxUSE_LIBGNOMEVFS'] = 'OFF'
 
-        cmake.definitions['wxUSE_LIBPNG'] = 'sys' if self.options.png != 'off' else 'OFF'
-        cmake.definitions['wxUSE_LIBJPEG'] = 'sys' if self.options.jpeg != 'off' else 'OFF'
-        cmake.definitions['wxUSE_LIBTIFF'] = 'sys' if self.options.tiff != 'off' else 'OFF'
-        cmake.definitions['wxUSE_ZLIB'] = 'sys' if self.options.zlib != 'off' else 'OFF'
-        cmake.definitions['wxUSE_EXPAT'] = 'sys' if self.options.expat != 'off' else 'OFF'
+        tc.variables['wxUSE_LIBPNG'] = 'sys' if self.options.png != 'off' else 'OFF'
+        tc.variables['wxUSE_LIBJPEG'] = 'sys' if self.options.jpeg != 'off' else 'OFF'
+        tc.variables['wxUSE_LIBTIFF'] = 'sys' if self.options.tiff != 'off' else 'OFF'
+        tc.variables['wxUSE_ZLIB'] = 'sys' if self.options.zlib != 'off' else 'OFF'
+        tc.variables['wxUSE_EXPAT'] = 'sys' if self.options.expat != 'off' else 'OFF'
 
         # wxWidgets features
-        cmake.definitions['wxUSE_UNICODE'] = self.options.unicode
-        cmake.definitions['wxUSE_SECRETSTORE'] = self.options.secretstore
+        tc.variables['wxUSE_UNICODE'] = self.options.unicode
+        tc.variables['wxUSE_SECRETSTORE'] = self.options.secretstore
 
         # wxWidgets libraries
-        cmake.definitions['wxUSE_AUI'] = self.options.aui
-        cmake.definitions['wxUSE_OPENGL'] = self.options.opengl
-        cmake.definitions['wxUSE_HTML'] = self.options.html
-        cmake.definitions['wxUSE_MEDIACTRL'] = self.options.mediactrl
-        cmake.definitions['wxUSE_PROPGRID'] = self.options.propgrid
-        cmake.definitions['wxUSE_DEBUGREPORT'] = self.options.debugreport
-        cmake.definitions['wxUSE_RIBBON'] = self.options.ribbon
-        cmake.definitions['wxUSE_RICHTEXT'] = self.options.richtext
-        cmake.definitions['wxUSE_SOCKETS'] = self.options.sockets
-        cmake.definitions['wxUSE_STC'] = self.options.stc
-        cmake.definitions['wxUSE_WEBVIEW'] = self.options.webview
-        cmake.definitions['wxUSE_XML'] = self.options.xml
-        cmake.definitions['wxUSE_XRC'] = self.options.xrc
-        cmake.definitions['wxUSE_HELP'] = self.options.help
-        cmake.definitions['wxUSE_WXHTML_HELP'] = self.options.html_help
-        cmake.definitions['wxUSE_URL'] = self.options.protocol
-        cmake.definitions['wxUSE_PROTOCOL'] = self.options.protocol
-        cmake.definitions['wxUSE_FS_INET'] = self.options.fs_inet
+        tc.variables['wxUSE_AUI'] = self.options.aui
+        tc.variables['wxUSE_OPENGL'] = self.options.opengl
+        tc.variables['wxUSE_HTML'] = self.options.html
+        tc.variables['wxUSE_MEDIACTRL'] = self.options.mediactrl
+        tc.variables['wxUSE_PROPGRID'] = self.options.propgrid
+        tc.variables['wxUSE_DEBUGREPORT'] = self.options.debugreport
+        tc.variables['wxUSE_RIBBON'] = self.options.ribbon
+        tc.variables['wxUSE_RICHTEXT'] = self.options.richtext
+        tc.variables['wxUSE_SOCKETS'] = self.options.sockets
+        tc.variables['wxUSE_STC'] = self.options.stc
+        tc.variables['wxUSE_WEBVIEW'] = self.options.webview
+        tc.variables['wxUSE_XML'] = self.options.xml
+        tc.variables['wxUSE_XRC'] = self.options.xrc
+        tc.variables['wxUSE_HELP'] = self.options.help
+        tc.variables['wxUSE_WXHTML_HELP'] = self.options.html_help
+        tc.variables['wxUSE_URL'] = self.options.protocol
+        tc.variables['wxUSE_PROTOCOL'] = self.options.protocol
+        tc.variables['wxUSE_FS_INET'] = self.options.fs_inet
 
         if self.settings.os == "Windows" or self.settings.os == "Macos":
-            cmake.definitions['wxUSE_ACCESSIBILITY'] = True
+            tc.variables['wxUSE_ACCESSIBILITY'] = True
 
         for item in str(self.options.custom_enables).split(","):
             if len(item) > 0:
-                cmake.definitions[item] = True
+                tc.variables[item] = True
         for item in str(self.options.custom_disables).split(","):
             if len(item) > 0:
-                cmake.definitions[item] = False
+                tc.variables[item] = False
 
-        cmake.configure(build_folder=self._build_subfolder)
+        tc.cache_variables["CMAKE_CONFIGURATION_TYPES"] = "Release;Debug;MinSizeRel;RelWithDebInfo"
 
-        self._cmake = cmake
-        return self._cmake
+        tc.generate()
+
+        deps = CMakeDeps(self)
+        deps.generate()
+
+    def layout(self):
+        cmake_layout(self, src_folder='src')
 
     def build(self):
-        for patch in self.conan_data["patches"][self.version]:
-            tools.patch(**patch)
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        self.copy(pattern="licence.txt", dst="licenses", src=os.path.join(self._source_subfolder, "docs"))
-        cmake = self._configure_cmake()
-        cmake.install()
+        copy(self, "licence.txt", dst=os.path.join(self.package_folder, "licenses"), src=os.path.join(self.source_folder, "docs"))
+        CMake(self).install()
         # copy setup.h
-        self.copy(pattern='*setup.h', dst=os.path.join('include', 'wx'), src=os.path.join(self._build_subfolder, 'lib'),
+        copy(self, '*setup.h', dst=os.path.join(self.package_folder, 'include', 'wx'), src=os.path.join(self.build_folder, 'lib'),
                   keep_path=False)
 
         if self.settings.os == 'Windows':
             # copy wxrc.exe
-            self.copy(pattern='*.exe', dst='bin', src=os.path.join(self._build_subfolder, 'bin'), keep_path=False)
+            copy(self, '*.exe', dst=os.path.join(self.package_folder, 'bin'), src=os.path.join(self.build_folder, 'bin'), keep_path=False)
         else:
             # make relative symlink
             bin_dir = os.path.join(self.package_folder, 'bin')
@@ -328,9 +327,6 @@ class wxWidgetsConan(ConanFile):
                                         version=version, unicode=unicode,
                                         debug=debug, suffix=suffix
                                         )
-
-            self.cpp_info.components[name].names["cmake_find_package"] = name
-            self.cpp_info.components[name].names["cmake_find_package_multi"] = name
 
             self.cpp_info.components[name].libs = [libname]
             self.cpp_info.components[name].requires = requires
@@ -496,5 +492,3 @@ class wxWidgetsConan(ConanFile):
             unix_include_path = os.path.join("include", "wx{}".format(version_suffix_major_minor))
             self.cpp_info.components['base'].includedirs = [unix_include_path] + self.cpp_info.components['base'].includedirs
 
-        self.cpp_info.filenames["cmake_find_package"] = "wxWidgets"
-        self.cpp_info.filenames["cmake_find_package_multi"] = "wxWidgets"

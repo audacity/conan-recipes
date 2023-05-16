@@ -50,3 +50,4 @@ build_order:
     - wavpack
     - breakpad
     - crashpad
+    - wxwidgets
