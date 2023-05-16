@@ -214,17 +214,17 @@ class LibcurlConan(ConanFile):
     def build_requirements(self):
         if self._is_using_cmake_build:
             if self._is_win_x_android:
-                self.tool_requires("ninja/1.11.1")
+                self.tool_requires("ninja/1.11.0@audacity/stable")
         else:
-            self.tool_requires("libtool/2.4.7")
+            self.tool_requires("libtool/2.4.7@audacity/stable")
             if not self.conf.get("tools.gnu:pkg_config", check_type=str):
-                self.tool_requires("pkgconf/1.9.3")
+                self.tool_requires("pkgconf/1.9.3@audacity/stable")
             if self.settings.os in [ "tvOS", "watchOS" ]:
-                self.tool_requires("gnu-config/cci.20210814")
+                self.tool_requires("gnu-config/cci.20210814@audacity/stable")
             if self._settings_build.os == "Windows":
                 self.win_bash = True
                 if not self.conf.get("tools.microsoft.bash:path", check_type=str):
-                    self.tool_requires("msys2/cci.latest")
+                    self.tool_requires("msys2/cci.latest@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
