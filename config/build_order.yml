@@ -27,6 +27,7 @@ build_order:
   - platforms: linux|macos
     packages:
     - flex
+    - bison
   - platforms: "*"
     packages:
     - zlib
