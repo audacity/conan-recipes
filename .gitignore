@@ -1,4 +1,5 @@
 build/
+build-*/
 .venv
 .idea
 
@@ -11,3 +12,9 @@ __pycache__/
 
 CMakeUserPresets.json
 
+conanbuild*
+conanbuildenv*
+conanrun*
+conanrunenv*
+deactivate_conanbuild*
+deactivate_conanrun*
