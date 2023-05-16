@@ -21,6 +21,7 @@ build_order:
     - gnu-config
     - libtool
     - gperf
+    - fontconfig
     - patchelf
     - openssl
     - libuuid

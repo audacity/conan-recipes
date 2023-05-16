@@ -47,18 +47,20 @@ class FontconfigConan(ConanFile):
 
     def layout(self):
         basic_layout(self, src_folder="src")
+        self.folders.build = 'build'
+        self.folders.generators = 'build/generators'
 
     def requirements(self):
-        self.requires("freetype/2.13.0")
-        self.requires("expat/2.5.0")
+        self.requires("freetype/2.13.0@audacity/stable")
+        self.requires("expat/2.5.0@audacity/stable")
         if self.settings.os == "Linux":
-            self.requires("libuuid/1.0.3")
+            self.requires("libuuid/1.0.3@audacity/stable")
 
     def build_requirements(self):
-        self.tool_requires("gperf/3.1")
-        self.tool_requires("meson/1.0.1")
+        self.tool_requires("gperf/3.1@audacity/stable")
+        self.tool_requires("meson/1.0.1@audacity/stable")
         if not self.conf.get("tools.gnu:pkg_config", default=False, check_type=str):
-            self.tool_requires("pkgconf/1.9.3")
+            self.tool_requires("pkgconf/1.9.3@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
