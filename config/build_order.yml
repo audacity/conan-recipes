@@ -21,6 +21,7 @@ build_order:
     - gnu-config
     - libtool
     - openssl
+    - libuuid
   - platforms: "*"
     packages:
     - zlib

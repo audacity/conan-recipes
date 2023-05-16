@@ -53,7 +53,7 @@ class LibuuidConan(ConanFile):
             raise ConanInvalidConfiguration(f"{self.ref} is not supported on Windows")
 
     def build_requirements(self):
-        self.tool_requires("libtool/2.4.7")
+        self.tool_requires("libtool/2.4.7@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
