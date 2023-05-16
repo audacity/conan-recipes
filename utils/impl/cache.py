@@ -97,8 +97,11 @@ def clean_cache(package_name:str, package_version:str, user:str, channel:str, so
         safe_rm_tree(path)
 
     # Conan provides no way to cleanup test folders
-    tests_path = os.path.join(conan_recipe_store.get_recipe_store(package_name).get_recipe_folder(package_version), 'test_package', 'build')
-    safe_rm_tree(tests_path)
+    folders = ('build', 'build-relwithdebinfo', 'build-minsizerel', 'build-release', 'build-debug')
 
-    tests_path = os.path.join(conan_recipe_store.get_recipe_store(package_name).get_recipe_folder(package_version), 'test_v1_package', 'build')
-    safe_rm_tree(tests_path)
+    for folder in folders:
+        tests_path = os.path.join(conan_recipe_store.get_recipe_store(package_name).get_recipe_folder(package_version), 'test_package', folder)
+        safe_rm_tree(tests_path)
+
+        tests_path = os.path.join(conan_recipe_store.get_recipe_store(package_name).get_recipe_folder(package_version), 'test_v1_package', folder)
+        safe_rm_tree(tests_path)
