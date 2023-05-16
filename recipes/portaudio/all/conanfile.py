@@ -56,7 +56,7 @@ class ConanRecipe(ConanFile):
                 "with_asio", "with_directsound", "with_mme",
                 "with_wasapi", "with_wdmks", "with_static_runtime"
                 ]:
-                del self.options[opt]
+                self.options.rm_safe(opt)
 
             if self.settings.os == "Macos":
                 del self.options.with_oss
