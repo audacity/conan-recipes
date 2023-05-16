@@ -16,6 +16,9 @@ build_order:
     - autoconf
     - automake
     - pkgconf
+  - platforms: linux
+    packages:
+    - openssl
   - platforms: "*"
     packages:
     - zlib
