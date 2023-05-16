@@ -20,6 +20,7 @@ build_order:
     packages:
     - gnu-config
     - libtool
+    - gperf
     - openssl
     - libuuid
   - platforms: "*"

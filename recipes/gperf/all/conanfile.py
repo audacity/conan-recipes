@@ -37,7 +37,7 @@ class GperfConan(ConanFile):
         if self._settings_build.os == "Windows":
             self.win_bash = True
             if not self.conf.get("tools.microsoft.bash:path", check_type=str):
-                self.tool_requires("msys2/cci.latest")
+                self.tool_requires("msys2/cci.latest@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version],
@@ -66,10 +66,10 @@ class GperfConan(ConanFile):
             env.define("OBJDUMP", ":")
             env.define("RANLIB", ":")
             env.define("STRIP", ":")
-            
+
             #Prevent msys2 from performing erroneous path conversions for C++ files
             # when invoking cl.exe as this is already handled by the compile wrapper.
-            env.define("MSYS2_ARG_CONV_EXCL", "-Tp") 
+            env.define("MSYS2_ARG_CONV_EXCL", "-Tp")
             env.vars(self).save_script("conanbuild_gperf_msvc")
 
     def build(self):
