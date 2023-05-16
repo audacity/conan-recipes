@@ -25,6 +25,7 @@ build_order:
     - patchelf
     - openssl
     - libuuid
+    - linux-syscall-support
   - platforms: linux|macos
     packages:
     - flex

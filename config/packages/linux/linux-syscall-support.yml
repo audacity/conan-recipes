@@ -1,0 +1,3 @@
+config:
+  version: cci.20200813
+  build_tool: yes
