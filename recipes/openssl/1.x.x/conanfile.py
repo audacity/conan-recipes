@@ -228,7 +228,7 @@ class OpenSSLConan(ConanFile):
 
     def requirements(self):
         if self._full_version < "1.1.0" and not self.options.get_safe("no_zlib"):
-            self.requires("zlib/1.2.13")
+            self.requires("zlib/1.2.13@audacity/stable")
 
     def validate(self):
         if self.settings.os == "Emscripten":
@@ -238,13 +238,13 @@ class OpenSSLConan(ConanFile):
     def build_requirements(self):
         if self._settings_build.os == "Windows":
             if not self.options.no_asm:
-                self.tool_requires("nasm/2.15.05")
+                self.tool_requires("nasm/2.15.05@audacity/stable")
             if self._use_nmake:
-                self.tool_requires("strawberryperl/5.32.1.1")
+                self.tool_requires("strawberryperl/5.32.1.1@audacity/stable")
             else:
                 self.win_bash = True
                 if not self.conf.get("tools.microsoft.bash:path", check_type=str):
-                    self.tool_requires("msys2/cci.latest")
+                    self.tool_requires("msys2/cci.latest@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version],
@@ -652,7 +652,7 @@ class OpenSSLConan(ConanFile):
         if self.settings.os in ["iOS", "tvOS", "watchOS"] and self.conf.get("tools.apple:enable_bitcode", check_type=bool):
             cflags.append("-fembed-bitcode")
             cxxflags.append("-fembed-bitcode")
-        
+
         config = config_template.format(targets=targets,
                                         target=self._target,
                                         ancestor=ancestor,
