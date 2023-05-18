@@ -58,10 +58,10 @@ if __name__ == "__main__":
         if not args.profile_build:
             args.profile_build = args.profile_host
 
-        build_profile = f"{utils.get_profiles_dir()}/{args.profile_host}.profile"
+        build_profile = f"{utils.get_profiles_dir()}/{args.profile_build}.profile"
 
         if not os.path.isfile(build_profile):
-            raise RuntimeError(f'Build profile {host_profile} does not exist')
+            raise RuntimeError(f'Build profile {build_profile} does not exist')
 
         path = args.path if args.path else utils.get_recipes_dir()
 
