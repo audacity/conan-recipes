@@ -3,6 +3,7 @@ from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
 from conan.tools.system.package_manager import Apt, Dnf, PacMan
 from conan.tools.files import get, export_conandata_patches, apply_conandata_patches, copy
+from conan.tools.gnu import PkgConfig
 import os
 
 required_conan_version = ">=2.0.0"
@@ -118,18 +119,18 @@ class wxWidgetsConan(ConanFile):
         dnf = Dnf(self)
         pacman = PacMan(self)
 
-        apt.check('libx11-dev')
-        dnf.check('libX11-devel')
-        pacman.check('libx11')
+        apt.check(['libx11-dev'])
+        dnf.check(['libX11-devel'])
+        pacman.check(['libx11'])
 
-        apt.check('libgtk2.0-dev')
-        dnf.check('gtk2-devel')
-        pacman.check('gtk2')
+        apt.check(['libgtk2.0-dev'])
+        dnf.check(['gtk2-devel'])
+        pacman.check(['gtk2'])
 
         if self.options.secretstore:
-            apt.check('libsecret-1-dev')
-            dnf.check('libsecret-devel')
-            pacman.check('libsecret')
+            apt.check(['libsecret-1-dev'])
+            dnf.check(['libsecret-devel'])
+            pacman.check(['libsecret'])
         if self.options.opengl:
             apt.check(['libgl1-mesa-dev', 'mesa-common-dev'])
             dnf.check(['mesa-libGL-devel', 'mesa-libGLU-devel'])
@@ -285,6 +286,11 @@ class wxWidgetsConan(ConanFile):
                         os.remove(filename)
                         os.symlink(rel, filename)
 
+    def add_libraries_from_pc(self, lib, cpp_info):
+        pc = PkgConfig(self, lib)
+        pc.fill_cpp_info(cpp_info, is_system=True)
+
+
     def package_info(self):
         version_tokens = self.version[0:self.version.find('-')].split('.')
         version_major = version_tokens[0]
@@ -329,7 +335,9 @@ class wxWidgetsConan(ConanFile):
                                         )
 
             self.cpp_info.components[name].libs = [libname]
-            self.cpp_info.components[name].requires = requires
+
+            if requires and len(requires) > 0:
+                self.cpp_info.components[name].requires = requires
 
             self.cpp_info.components[name].defines.append('wxUSE_GUI=1')
 
@@ -482,8 +490,8 @@ class wxWidgetsConan(ConanFile):
                                            'shlwapi',
                                            'oleacc'])
         else:
-            self.add_libraries_from_pc('gtk+-2.0')
-            self.add_libraries_from_pc('x11')
+            self.add_libraries_from_pc('gtk+-2.0', self.cpp_info.components['base'])
+            self.add_libraries_from_pc('x11', self.cpp_info.components['base'])
             self.cpp_info.components['base'].system_libs.extend(['dl', 'pthread', 'SM', 'uuid'])
 
         if self._is_msvc:
@@ -492,3 +500,6 @@ class wxWidgetsConan(ConanFile):
             unix_include_path = os.path.join("include", "wx{}".format(version_suffix_major_minor))
             self.cpp_info.components['base'].includedirs = [unix_include_path] + self.cpp_info.components['base'].includedirs
 
+        if len(self.cpp_info.components['base'].libdirs) == 0:
+            self.cpp_info.components['base'].libdirs = self.cpp_info.components['core'].libdirs
+            self.cpp_info.components['base'].defines = self.cpp_info.components['core'].defines
