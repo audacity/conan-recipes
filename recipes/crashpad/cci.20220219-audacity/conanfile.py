@@ -67,9 +67,9 @@ class CrashpadConan(ConanFile):
             if self.options.http_transport in ("libcurl", "socket"):
                 raise ConanInvalidConfiguration("http_transport={} is not valid when building with Visual Studio".format(self.options.http_transport))
         if self.options.http_transport == "libcurl":
-            if not self.options["libcurl"].shared:
+            if not self.options["libcurl"].get_safe('shared'):
                 # FIXME: is this true?
-                self.output.warn("crashpad needs a shared libcurl library")
+                self.output.info("crashpad needs a shared libcurl library")
 
         check_min_cppstd(self, 17)
 
@@ -171,6 +171,18 @@ class CrashpadConan(ConanFile):
             if is_msvc(self):
                 VCVars(self).generate()
 
+            if is_msvc(self):
+                replace_in_file(self, os.path.join(self.source_folder, "third_party", "zlib", "BUILD.gn"),
+                                    "libs = [ \"z\" ]",
+                                    "libs = [ {} ]".format(", ".join("\"{}.lib\"".format(l) for l in self.dependencies["zlib"].cpp_info.libs)), strict=False)
+
+            if self.settings.compiler == "gcc":
+                toolchain_path = os.path.join(self.source_folder, "third_party", "mini_chromium", "mini_chromium", "build", "config", "BUILD.gn")
+                # Remove gcc-incompatible compiler arguments
+                for comp_arg in ("-Wheader-hygiene", "-Wnewline-eof", "-Wstring-conversion", "-Wexit-time-destructors", "-fobjc-call-cxx-cdtors", "-Wextra-semi", "-Wimplicit-fallthrough"):
+                    replace_in_file(self, toolchain_path,
+                                        "\"{}\"".format(comp_arg), "\"\"", strict=False)
+
             extra_cflags = ["-D{}".format(d) for d in tc.defines]
             extra_cflags_c = tc.cflags
             extra_cflags_cc = tc.cxxflags
@@ -201,6 +213,13 @@ class CrashpadConan(ConanFile):
                 "extra_ldflags=\\\"{}\\\"".format(" ".join(extra_ldflags)),
             ]
 
+            if self.settings.os != "Windows":
+                dot_gn = os.path.join(self.source_folder, ".gn")
+                gn = load(self, dot_gn)
+                if 'python3' not in gn:
+                    gn += '\nscript_executable = "python3"\n'
+                    save(self, dot_gn, gn)
+
             with chdir(self, self.source_folder):
                 self.run("gn gen ../build --args=\"{}\"".format(" ".join(gn_args)))
                 targets = ["client", "minidump", "crashpad_handler", "snapshot"]
@@ -210,18 +229,6 @@ class CrashpadConan(ConanFile):
 
 
     def build(self):
-        if is_msvc(self):
-            replace_in_file(self, os.path.join(self.source_folder, "third_party", "zlib", "BUILD.gn"),
-                                  "libs = [ \"z\" ]",
-                                  "libs = [ {} ]".format(", ".join("\"{}.lib\"".format(l) for l in self.dependencies["zlib"].cpp_info.libs)))
-
-        if self.settings.compiler == "gcc":
-            toolchain_path = os.path.join(self, self.source_folder, "third_party", "mini_chromium", "mini_chromium", "build", "config", "BUILD.gn")
-            # Remove gcc-incompatible compiler arguments
-            for comp_arg in ("-Wheader-hygiene", "-Wnewline-eof", "-Wstring-conversion", "-Wexit-time-destructors", "-fobjc-call-cxx-cdtors", "-Wextra-semi", "-Wimplicit-fallthrough"):
-                replace_in_file(toolchain_path,
-                                      "\"{}\"".format(comp_arg), "\"\"")
-
         with chdir(self, self.build_folder):
             targets = load(self, os.path.join(self.build_folder, "targets.txt"))
             self.run(f"ninja -C . {targets}")
