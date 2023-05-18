@@ -21,7 +21,6 @@ build_order:
     - gnu-config
     - libtool
     - gperf
-    - fontconfig
     - patchelf
     - openssl
     - libuuid
@@ -66,3 +65,6 @@ build_order:
     - crashpad
     - libtiff
     - wxwidgets
+  - platforms: linux
+    packages:
+    - fontconfig
