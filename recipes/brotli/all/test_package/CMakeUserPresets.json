@@ -1,9 +1,0 @@
-{
-    "version": 4,
-    "vendor": {
-        "conan": {}
-    },
-    "include": [
-        "C:\\devel\\projects\\github\\conan-io\\conan-recipes\\recipes\\brotli\\all\\test_package\\build\\msvc-193-x86_64-17-relwithdebinfo\\generators\\CMakePresets.json"
-    ]
-}
