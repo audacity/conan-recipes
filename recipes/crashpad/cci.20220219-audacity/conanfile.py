@@ -125,7 +125,7 @@ class CrashpadConan(ConanFile):
                 compiler_defaults.define("CXX", "g++")
                 compiler_defaults.define("AR", "ar")
                 compiler_defaults.define("LD", "g++")
-            elif self.settings.compiler == "clang":
+            elif self.settings.compiler == "clang" or self.settings.compiler == "apple-clang":
                 compiler_defaults.define("CC", "clang")
                 compiler_defaults.define("CXX", "clang++")
                 compiler_defaults.define("AR", "ar")
