@@ -20,6 +20,8 @@ if(UNIX)
         PRIVATE
             src
     )
+
+    configure_file(${SRC_DIR}/config.h.in ${SRC_DIR}/config.h)
     target_compile_definitions(breakpad_client PRIVATE -DHAVE_CONFIG_H)
 endif()
 

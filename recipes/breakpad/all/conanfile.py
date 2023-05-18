@@ -36,8 +36,8 @@ class BreakpadConan(ConanFile):
         if self.needs_linux_syscall_support:
             copy(self,
                  "*.h",
-                 src=self.dependencies["linux-syscall-support"].cpp_info.includedirs,
-                 dst=os.path.join(self.source_folder, "src", "third_party", "lss"))
+                 src=self.dependencies["linux-syscall-support"].cpp_info.includedirs[0],
+                 dst=os.path.join(self.source_folder, "src", "third_party", "lss"), keep_path=False)
 
         tc = CMakeToolchain(self)
         tc.generate()
