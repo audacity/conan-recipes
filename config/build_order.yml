@@ -16,19 +16,19 @@ build_order:
     - autoconf
     - automake
     - pkgconf
-  - platforms: linux
+  - platforms: linux|darwin
     packages:
     - gnu-config
     - libtool
+    - flex
+    - bison
+  - platforms: linux
+    packages:
     - gperf
     - patchelf
     - openssl
     - libuuid
     - linux-syscall-support
-  - platforms: linux|macos
-    packages:
-    - flex
-    - bison
   - platforms: "*"
     packages:
     - zlib
