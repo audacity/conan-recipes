@@ -1,6 +1,8 @@
 sources:
   "4.5.0":
-    url: "http://download.osgeo.org/libtiff/tiff-4.5.0.tar.gz"
+    url:
+    - "http://download.osgeo.org/libtiff/tiff-4.5.0.tar.gz"
+    - "https://artifactory.audacityteam.org/artifactory/mirror/tiff-4.5.0.tar.gz"
     sha256: "c7a1d9296649233979fa3eacffef3fa024d73d05d589cb622727b5b08c423464"
   "4.4.0":
     url: "http://download.osgeo.org/libtiff/tiff-4.4.0.tar.gz"
