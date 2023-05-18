@@ -1,0 +1,14 @@
+--- build/cmake/lib/regex.cmake	2023-05-18 19:45:44.704297600 +0300
++++ build/cmake/lib/regex.new.cmake	2023-05-18 19:45:28.693792400 +0300
+@@ -17,6 +17,11 @@
+         src/regex/regfree.c
+     )
+     target_include_directories(wxregex PRIVATE ${wxSETUP_HEADER_PATH} ${wxSOURCE_DIR}/include)
++
++    if(WXOSX)
++        target_compile_definitions( wxregex PRIVATE "__WXOSX_COCOA__" )
++    endif()
++
+     set(REGEX_LIBRARIES wxregex)
+     set(REGEX_INCLUDE_DIRS ${wxSOURCE_DIR}/src/regex)
+ endif()
