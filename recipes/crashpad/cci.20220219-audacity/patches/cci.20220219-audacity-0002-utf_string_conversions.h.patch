@@ -1,0 +1,10 @@
+--- third_party/mini_chromium/mini_chromium/base/strings/utf_string_conversion_utils.h	2022-01-25 07:27:16.000000000 +0300
++++ third_party/mini_chromium/mini_chromium/base/strings/utf_string_conversion_utils.h.new	2023-05-19 17:23:22.177490286 +0300
+@@ -5,6 +5,7 @@
+ #ifndef MINI_CHROMIUM_BASE_STRINGS_UTF_STRING_CONVERSION_UTILS_H_
+ #define MINI_CHROMIUM_BASE_STRINGS_UTF_STRING_CONVERSION_UTILS_H_
+ 
++#include <cstdint>
+ #include <string>
+ 
+ namespace base {

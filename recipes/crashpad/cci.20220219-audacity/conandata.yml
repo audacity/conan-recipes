@@ -9,6 +9,8 @@ patches:
   - patch_file: patches/cci.20210507-0007-use-system-zlib.patch
   - patch_file: patches/cci.20220219-0007-static-lib-tool_support.patch
   - patch_file: patches/cci.20220219-audacity-0001-crashreporter.patch
+  - patch_file: patches/cci.20220219-audacity-0002-utf_string_conversions.h.patch
+  - patch_file: patches/cci.20220219-audacity-0003-logging.h.patch
 sources:
   cci.20220219-audacity:
     crashpad:
