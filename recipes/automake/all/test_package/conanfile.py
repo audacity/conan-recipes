@@ -3,7 +3,7 @@ import os
 from conan import ConanFile
 from conan.tools.build import can_run
 from conan.tools.env import Environment, VirtualBuildEnv
-from conan.tools.files import chdir
+from conan.tools.files import chdir, rm, rmdir
 from conan.tools.gnu import Autotools, AutotoolsToolchain
 from conan.tools.layout import basic_layout
 from conan.tools.microsoft import unix_path
@@ -93,3 +93,15 @@ class TestPackageConan(ConanFile):
             with chdir(self, self.build_folder):
                 self.run("./script_test")
                 self.run("./test_package")
+            # Cleanup the configuration ariifacts
+            artifacts = "autom4te.cache", "build-aux", "aclocal.m4", "config.h.in", "config.h.in~", "configure", "configure~", "Makefile.in"
+            for artifact in artifacts:
+                try:
+                    self.output.info(f"Removing {artifact} from {self.source_folder}")
+                    full_path = os.path.join(self.source_folder, artifact)
+                    if os.path.isfile(full_path):
+                        rm(self, artifact, self.source_folder)
+                    else:
+                        rmdir(self, full_path)
+                except Exception as e:
+                    self.output.error(f"Failed to remove {artifact}: {e}")

@@ -9,6 +9,7 @@ from conan.tools.cmake import cmake_layout, CMake, CMakeDeps, CMakeToolchain
 from conan.tools.env import Environment, VirtualBuildEnv
 from conan.tools.gnu import Autotools, AutotoolsToolchain
 from conan.tools.microsoft import unix_path
+from conan.tools.files import rm, rmdir
 
 
 # It will become the standard on Conan 2.x
@@ -90,3 +91,17 @@ class TestPackageConan(ConanFile):
         if can_run(self) and self._testing_library:
             test_executable = unix_path(self, os.path.join(self.cpp.build.bindirs[0], "test_package"))
             self.run(test_executable, env="conanrun")
+
+        # Cleanup the configuration ariifacts
+        artifacts = "autom4te.cache", "aclocal.m4", "configure", "configure~"
+        for artifact in artifacts:
+            try:
+                self.output.info(f"Removing {artifact} from {self.source_folder}")
+                full_path = os.path.join(self.source_folder, artifact)
+                if os.path.isfile(full_path):
+                    rm(self, artifact, self.source_folder)
+                else:
+                    rmdir(self, full_path)
+            except Exception as e:
+                self.output.error(f"Failed to remove {artifact}: {e}")
+

@@ -1,5 +1,5 @@
 from conan import ConanFile
-from conan.tools.files import save
+from conan.tools.files import save, rm
 from io import StringIO
 import os
 import textwrap
@@ -34,3 +34,9 @@ class TestPackageConan(ConanFile):
         output = StringIO()
         self.run(f"m4 -P {self._m4_input_path}", output)
         assert "Harry, Jr. met Sally" in output.getvalue()
+
+        # Clean up
+        rm(self, '*conanbuild*', self.source_folder)
+        rm(self, '*conanrun*', self.source_folder)
+        rm(self, 'input.m4', self.source_folder)
+
