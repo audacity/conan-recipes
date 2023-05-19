@@ -84,7 +84,3 @@ class WinflexbisonConan(ConanFile):
         self.output.info("Setting YACC environment variable: {}".format(yacc_path))
         self.buildenv_info.define_path("YACC", yacc_path)
 
-        # TODO: to remove in conan v2
-        self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))
-        self.env_info.LEX = lex_path
-        self.env_info.YACC = yacc_path

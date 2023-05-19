@@ -103,10 +103,3 @@ class Md4cConan(ConanFile):
         # to create unofficial target or pkgconfig file
         self.cpp_info.set_property("cmake_target_name", "md4c::md4c-html")
         self.cpp_info.set_property("pkg_config_name", "md4c-html")
-
-        # TODO: to remove in conan v2
-        self.cpp_info.components["_md4c"].names["cmake_find_package"] = "md4c"
-        self.cpp_info.components["_md4c"].names["cmake_find_package_multi"] = "md4c"
-        self.cpp_info.components["md4c_html"].names["cmake_find_package"] = "md4c-html"
-        self.cpp_info.components["md4c_html"].names["cmake_find_package_multi"] = "md4c-html"
-        self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))

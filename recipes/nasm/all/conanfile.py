@@ -101,5 +101,3 @@ class NASMConan(ConanFile):
         self.cpp_info.libdirs = []
         self.cpp_info.includedirs = []
 
-        # TODO: Legacy, to be removed on Conan 2.0
-        self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))

@@ -127,8 +127,6 @@ class PkgConfConan(ConanFile):
             self.cpp_info.libdirs = []
 
         bindir = os.path.join(self.package_folder, "bin")
-        self.output.info("Appending PATH env var: {}".format(bindir))
-        self.env_info.PATH.append(bindir)
 
         exesuffix = ".exe" if self.settings.os == "Windows" else ""
         pkg_config = os.path.join(bindir, "pkgconf" + exesuffix).replace("\\", "/")

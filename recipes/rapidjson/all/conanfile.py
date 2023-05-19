@@ -36,6 +36,3 @@ class RapidjsonConan(ConanFile):
         self.cpp_info.set_property("cmake_file_name", "RapidJSON")
         self.cpp_info.set_property("cmake_target_name", "rapidjson")
 
-        # TODO: to remove in conan v2 once cmake_find_package* generators removed
-        self.cpp_info.names["cmake_find_package"] = "RapidJSON"
-        self.cpp_info.names["cmake_find_package_multi"] = "RapidJSON"

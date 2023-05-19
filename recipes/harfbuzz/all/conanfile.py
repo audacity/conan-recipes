@@ -177,8 +177,6 @@ class HarfbuzzConan(ConanFile):
         rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
-        self.cpp_info.names["cmake_find_package"] = "harfbuzz"
-        self.cpp_info.names["cmake_find_package_multi"] = "harfbuzz"
         self.cpp_info.set_property("pkg_config_name", "harfbuzz")
         if self.options.with_icu:
             self.cpp_info.libs.append("harfbuzz-icu")

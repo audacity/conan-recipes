@@ -106,19 +106,3 @@ class VorbisConan(ConanFile):
         self.cpp_info.components["vorbisfile"].libs = ["vorbisfile"]
         self.cpp_info.components["vorbisfile"].requires = ["vorbismain"]
 
-        # TODO: to remove in conan v2 once cmake_find_package_* generators removed
-        self.cpp_info.names["cmake_find_package"] = "Vorbis"
-        self.cpp_info.names["cmake_find_package_multi"] = "Vorbis"
-        self.cpp_info.names["pkg_config"] = "vorbis-all-do-not-use"
-        self.cpp_info.components["vorbismain"].names["cmake_find_package"] = "vorbis"
-        self.cpp_info.components["vorbismain"].names["cmake_find_package_multi"] = "vorbis"
-        self.cpp_info.components["vorbisenc"].names["cmake_find_package"] = "vorbisenc"
-        self.cpp_info.components["vorbisenc"].names["cmake_find_package_multi"] = "vorbisenc"
-        self.cpp_info.components["vorbisfile"].names["cmake_find_package"] = "vorbisfile"
-        self.cpp_info.components["vorbisfile"].names["cmake_find_package_multi"] = "vorbisfile"
-        self.cpp_info.components["vorbisenc-alias"].names["cmake_find_package"] = "Enc"
-        self.cpp_info.components["vorbisenc-alias"].names["cmake_find_package_multi"] = "Enc"
-        self.cpp_info.components["vorbisenc-alias"].requires.append("vorbisenc")
-        self.cpp_info.components["vorbisfile-alias"].names["cmake_find_package"] = "File"
-        self.cpp_info.components["vorbisfile-alias"].names["cmake_find_package_multi"] = "File"
-        self.cpp_info.components["vorbisfile-alias"].requires.append("vorbisfile")

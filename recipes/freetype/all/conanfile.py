@@ -254,19 +254,4 @@ class FreetypeConan(ConanFile):
 
         libtool_version = load(self, self._libtool_version_txt).strip()
         self.conf_info.define("user.freetype:libtool_version", libtool_version)
-        # FIXME: need to do override the pkg_config version (pkg_config_custom_content does not work)
-        # self.cpp_info.version["pkg_config"] = pkg_config_version
 
-        # TODO: to remove in conan v2 once cmake_find_package* & pkg_config generators removed
-        self.cpp_info.filenames["cmake_find_package"] = "Freetype"
-        self.cpp_info.filenames["cmake_find_package_multi"] = "freetype"
-        self.cpp_info.names["cmake_find_package"] = "Freetype"
-        self.cpp_info.names["cmake_find_package_multi"] = "Freetype"
-        self.cpp_info.build_modules["cmake_find_package"] = [self._module_vars_rel_path]
-        self.cpp_info.build_modules["cmake_find_package_multi"] = [self._module_target_rel_path]
-        self.cpp_info.names["pkg_config"] = "freetype2"
-        freetype_config = os.path.join(self.package_folder, "bin", "freetype-config")
-        self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))
-        self.env_info.FT2_CONFIG = freetype_config
-        self._chmod_plus_x(freetype_config)
-        self.user_info.LIBTOOL_VERSION = libtool_version

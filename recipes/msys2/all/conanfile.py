@@ -188,7 +188,3 @@ class MSYS2Conan(ConanFile):
         self.conf_info.define("tools.microsoft.bash:subsystem", "msys2")
         self.conf_info.define("tools.microsoft.bash:path", os.path.join(msys_bin, "bash.exe"))
 
-        # conan v1 specific stuff
-        self.env_info.MSYS_ROOT = msys_root
-        self.env_info.MSYS_BIN = msys_bin
-        self.env_info.path.append(msys_bin)

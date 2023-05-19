@@ -123,11 +123,3 @@ class Catch2Conan(ConanFile):
             self.cpp_info.system_libs = ["log"] if self.settings.os == "Android" else []
             self.cpp_info.defines = defines
 
-        # TODO: to remove in conan v2 once legacy generators removed
-        self.cpp_info.names["cmake_find_package"] = "Catch2"
-        self.cpp_info.names["cmake_find_package_multi"] = "Catch2"
-        if self.options.with_main:
-            self.cpp_info.components["_catch2"].names["cmake_find_package"] = "Catch2"
-            self.cpp_info.components["_catch2"].names["cmake_find_package_multi"] = "Catch2"
-            self.cpp_info.components["catch2_with_main"].names["cmake_find_package"] = "Catch2WithMain"
-            self.cpp_info.components["catch2_with_main"].names["cmake_find_package_multi"] = "Catch2WithMain"

@@ -225,13 +225,3 @@ class Mpg123Conan(ConanFile):
         if self.options.module == "win32":
             self.cpp_info.components["libout123"].system_libs.append("winmm")
 
-
-        # TODO: Remove after Conan 2.x becomes the standard
-        self.cpp_info.filenames["cmake_find_package"] = "mpg123"
-        self.cpp_info.filenames["cmake_find_package_multi"] = "mpg123"
-        self.cpp_info.names["cmake_find_package"] = "MPG123"
-        self.cpp_info.names["cmake_find_package_multi"] = "MPG123"
-
-        bin_path = os.path.join(self.package_folder, "bin")
-        self.output.info("Appending PATH environment variable: {}".format(bin_path))
-        self.env_info.PATH.append(bin_path)
