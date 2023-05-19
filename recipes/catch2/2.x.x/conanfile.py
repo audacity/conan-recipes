@@ -22,6 +22,7 @@ class Catch2Conan(ConanFile):
         "with_main": [True, False],
         "with_benchmark": [True, False],
         "with_prefix": [True, False],
+        "no_std_unchaught_exceptions": [True, False],
         "default_reporter": [None, "ANY"],
     }
     default_options = {
@@ -29,6 +30,7 @@ class Catch2Conan(ConanFile):
         "with_main": False,
         "with_benchmark": False,
         "with_prefix": False,
+        "no_std_unchaught_exceptions": False,
         "default_reporter": None,
     }
 
@@ -106,6 +108,8 @@ class Catch2Conan(ConanFile):
             defines.append("CATCH_CONFIG_PREFIX_ALL")
         if self.options.default_reporter:
             defines.append(f"CATCH_CONFIG_DEFAULT_REPORTER={self._default_reporter_str}")
+        if self.options.get_safe("no_std_unchaught_exceptions", False):
+            defines.append("CATCH_CONFIG_NO_CPP17_UNCAUGHT_EXCEPTIONS")
 
         if self.options.with_main:
             self.cpp_info.components["_catch2"].set_property("cmake_target_name", "Catch2::Catch2")
