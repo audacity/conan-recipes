@@ -6,3 +6,4 @@ patches:
   "3.7.7":
     - patch_file: "patches/disable-validator.diff"
     - patch_file: "patches/moduleinfoparser.cpp.diff"
+    - patch_file: "patches/moduleinfo.h.patch"
