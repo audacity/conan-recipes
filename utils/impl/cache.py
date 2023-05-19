@@ -92,14 +92,20 @@ def clean_cache(package_name:str, package_version:str, user:str, channel:str, so
         cache_path = get_cache_path_source(package_name, package_version, user, channel)
         safe_rm_tree(cache_path)
 
+    suffixes = ('', '-relwithdebinfo', '-minsizerel', '-release', '-debug')
+
     if all or builds:
         path = conan_recipe_store.get_recipe_store(package_name).get_build_folder(package_version)
-        safe_rm_tree(path)
+
+        for suffix in suffixes:
+            build_folder = f'{path}{suffix}'
+            if os.path.isdir(build_folder):
+                safe_rm_tree(build_folder)
+            safe_rm_tree(build_folder)
 
     # Conan provides no way to cleanup test folders
-    folders = ('build', 'build-relwithdebinfo', 'build-minsizerel', 'build-release', 'build-debug')
-
-    for folder in folders:
+    for suffix in suffixes:
+        folder = f'build{suffix}'
         tests_path = os.path.join(conan_recipe_store.get_recipe_store(package_name).get_recipe_folder(package_version), 'test_package', folder)
         safe_rm_tree(tests_path)
 
