@@ -137,9 +137,3 @@ class LibsndfileConan(ConanFile):
             elif self.settings.os == "Windows":
                 self.cpp_info.components["sndfile"].system_libs.append("winmm")
 
-        # TODO: to remove in conan v2 once cmake_find_package_* generators removed
-        self.cpp_info.names["cmake_find_package"] = "SndFile"
-        self.cpp_info.names["cmake_find_package_multi"] = "SndFile"
-        self.cpp_info.components["sndfile"].set_property("cmake_target_name", "SndFile::sndfile")
-        if self.options.programs:
-            self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))

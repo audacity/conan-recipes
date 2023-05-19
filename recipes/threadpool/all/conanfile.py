@@ -45,6 +45,3 @@ class ThreadpoolConan(ConanFile):
         if self.settings.os in ["Linux", "FreeBSD"]:
             self.cpp_info.system_libs = ["pthread"]
 
-        # TODO: to remove in conan v2 (and do not port to CMakeDeps, it was a mistake)
-        self.cpp_info.names["cmake_find_package"] = "ThreadPool"
-        self.cpp_info.names["cmake_find_package_multi"] = "ThreadPool"

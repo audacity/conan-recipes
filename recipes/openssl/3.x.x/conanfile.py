@@ -130,10 +130,10 @@ class OpenSSLConan(ConanFile):
         if self.settings.os == "Emscripten":
             if not all((self.options.no_asm, self.options.no_threads, self.options.no_stdio)):
                 raise ConanInvalidConfiguration("os=Emscripten requires openssl:{no_asm,no_threads,no_stdio}=True")
-            
+
         if self.settings.os == "iOS" and self.options.shared:
             raise ConanInvalidConfiguration("OpenSSL 3 does not support building shared libraries for iOS")
-            
+
     def layout(self):
         basic_layout(self, src_folder="src")
 
@@ -401,7 +401,7 @@ class OpenSSLConan(ConanFile):
                 self.output.info(f"Activated option: {option_name}")
                 args.append(option_name.replace("_", "-"))
         return args
-    
+
     def generate(self):
         tc = AutotoolsToolchain(self)
         env = tc.environment()
@@ -438,7 +438,7 @@ class OpenSSLConan(ConanFile):
         defines = " ".join(defines)
         defines = 'defines => add("%s"),' % defines if defines else ""
         targets = "my %targets"
-        includes = "" 
+        includes = ""
         if self.settings.os == "Windows":
             includes = includes.replace("\\", "/")  # OpenSSL doesn't like backslashes
 
@@ -624,8 +624,6 @@ class OpenSSLConan(ConanFile):
         self.cpp_info.set_property("cmake_find_mode", "both")
         self.cpp_info.set_property("pkg_config_name", "openssl")
         self.cpp_info.set_property("cmake_build_modules", [self._module_file_rel_path])
-        self.cpp_info.names["cmake_find_package"] = "OpenSSL"
-        self.cpp_info.names["cmake_find_package_multi"] = "OpenSSL"
         self.cpp_info.components["ssl"].builddirs.append(self._module_subfolder)
         self.cpp_info.components["ssl"].build_modules["cmake_find_package"] = [self._module_file_rel_path]
         self.cpp_info.components["ssl"].set_property("cmake_build_modules", [self._module_file_rel_path])
@@ -662,14 +660,8 @@ class OpenSSLConan(ConanFile):
         self.cpp_info.components["crypto"].set_property("pkg_config_name", "libcrypto")
         self.cpp_info.components["ssl"].set_property("cmake_target_name", "OpenSSL::SSL")
         self.cpp_info.components["ssl"].set_property("pkg_config_name", "libssl")
-        self.cpp_info.components["crypto"].names["cmake_find_package"] = "Crypto"
-        self.cpp_info.components["crypto"].names["cmake_find_package_multi"] = "Crypto"
-        self.cpp_info.components["ssl"].names["cmake_find_package"] = "SSL"
-        self.cpp_info.components["ssl"].names["cmake_find_package_multi"] = "SSL"
 
         openssl_modules_dir = os.path.join(self.package_folder, "lib", "ossl-modules")
         self.runenv_info.define_path("OPENSSL_MODULES", openssl_modules_dir)
 
-        # For legacy 1.x downstream consumers, remove once recipe is 2.0 only:
-        self.env_info.OPENSSL_MODULES = openssl_modules_dir
 

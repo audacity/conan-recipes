@@ -173,12 +173,3 @@ class Catch2Conan(ConanFile):
             defines.append(f"CATCH_CONFIG_DEFAULT_REPORTER={self._default_reporter_str}")
         self.cpp_info.components["catch2_with_main"].defines = defines
 
-        # TODO: to remove in conan v2 once legacy generators removed
-        self.cpp_info.filenames["cmake_find_package"] = "Catch2"
-        self.cpp_info.filenames["cmake_find_package_multi"] = "Catch2"
-        self.cpp_info.names["cmake_find_package"] = "catch2"
-        self.cpp_info.names["cmake_find_package_multi"] = "catch2"
-        self.cpp_info.components["_catch2"].build_modules["cmake_find_package"] = [self._module_file_rel_path]
-        self.cpp_info.components["_catch2"].build_modules["cmake_find_package_multi"] = [self._module_file_rel_path]
-        self.cpp_info.components["catch2_with_main"].build_modules["cmake_find_package"] = [self._module_file_rel_path]
-        self.cpp_info.components["catch2_with_main"].build_modules["cmake_find_package_multi"] = [self._module_file_rel_path]

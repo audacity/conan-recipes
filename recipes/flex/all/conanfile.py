@@ -96,10 +96,3 @@ class FlexConan(ConanFile):
         # Avoid CMakeDeps messing with Conan targets
         self.cpp_info.set_property("cmake_find_mode", "none")
 
-        bindir = os.path.join(self.package_folder, "bin")
-        self.output.info("Appending PATH environment variable: {}".format(bindir))
-        self.env_info.PATH.append(bindir)
-
-        lex_path = os.path.join(bindir, "flex").replace("\\", "/")
-        self.output.info("Setting LEX environment variable: {}".format(lex_path))
-        self.env_info.LEX = lex_path

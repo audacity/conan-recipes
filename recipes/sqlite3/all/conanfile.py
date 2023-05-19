@@ -208,16 +208,3 @@ class Sqlite3Conan(ConanFile):
             if self.options.shared:
                 self.cpp_info.components["sqlite"].defines.append("SQLITE_API=__declspec(dllimport)")
 
-        # TODO: to remove in conan v2 once cmake_find_package_* generators removed
-        self.cpp_info.filenames["cmake_find_package"] = "SQLite3"
-        self.cpp_info.filenames["cmake_find_package_multi"] = "SQLite3"
-        self.cpp_info.names["cmake_find_package"] = "SQLite"
-        self.cpp_info.names["cmake_find_package_multi"] = "SQLite"
-        self.cpp_info.components["sqlite"].names["cmake_find_package"] = "SQLite3"
-        self.cpp_info.components["sqlite"].names["cmake_find_package_multi"] = "SQLite3"
-        self.cpp_info.components["sqlite"].build_modules["cmake_find_package"] = [self._module_file_rel_path]
-        self.cpp_info.components["sqlite"].build_modules["cmake_find_package"] = [self._module_file_rel_path]
-        self.cpp_info.components["sqlite"].set_property("cmake_target_name", "SQLite::SQLite3")
-        self.cpp_info.components["sqlite"].set_property("pkg_config_name", "sqlite3")
-        if self.options.build_executable:
-            self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))

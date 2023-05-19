@@ -47,8 +47,3 @@ class StrawberryPerlConan(ConanFile):
         perl_path = os.path.join(self.package_folder, "bin", "perl.exe").replace("\\", "/")
         self.conf_info.define("user.strawberryperl:perl", perl_path)
 
-        # TODO remove once conan v2 is the only support and recipes have been migrated
-        if Version(conan_version).major < 2:
-            bin_path = os.path.join(self.package_folder, "bin")
-            self.env_info.PATH.append(bin_path)
-            self.user_info.perl = perl_path
