@@ -1,0 +1,10 @@
+--- third_party/mini_chromium/mini_chromium/base/logging.h	2023-05-19 17:27:07.336798170 +0300
++++ third_party/mini_chromium/mini_chromium/base/logging.h.new	2023-05-19 17:27:00.740060613 +0300
+@@ -8,6 +8,7 @@
+ #include <assert.h>
+ #include <errno.h>
+ 
++#include <cstdint>
+ #include <limits>
+ #include <sstream>
+ #include <string>
