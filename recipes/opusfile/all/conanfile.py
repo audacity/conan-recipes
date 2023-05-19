@@ -1,11 +1,12 @@
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
-from conan.tools.apple import fix_apple_shared_install_name
+from conan.tools.apple import fix_apple_shared_install_name, is_apple_os
 from conan.tools.env import VirtualBuildEnv
 from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, replace_in_file, rm, rmdir
 from conan.tools.gnu import Autotools, AutotoolsToolchain, PkgConfigDeps
 from conan.tools.layout import basic_layout
 from conan.tools.microsoft import is_msvc, MSBuild, MSBuildDeps, MSBuildToolchain
+from conan.tools.build import cross_building
 import os
 
 required_conan_version = ">=1.54.0"
@@ -95,7 +96,14 @@ class OpusFileConan(ConanFile):
                 f"--enable-http={yes_no(self.options.http)}",
                 "--disable-examples",
             ])
+            if is_apple_os(self) and cross_building(self):
+                target = "x86_64-apple-darwin" if self.settings.arch == "x86_64" else "aarch64-apple-darwin"
+                tc.extra_cflags.append(f"-target {target}")
+                tc.extra_cxxflags.append(f"-target {target}")
+                tc.extra_ldflags.append(f"-target {target}")
+
             tc.generate()
+
             PkgConfigDeps(self).generate()
 
     def build(self):
