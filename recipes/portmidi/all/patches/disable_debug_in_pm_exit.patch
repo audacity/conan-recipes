@@ -1,0 +1,19 @@
+--- pm_win/pmwin.c	2012-04-28 08:25:35.000000000 +0400
++++ pm_win/pmwin.new.c	2023-05-18 20:27:56.216155700 +0300
+@@ -28,16 +28,6 @@
+  */
+ static void pm_exit(void) {
+     pm_term();
+-#ifdef DEBUG
+-#define STRING_MAX 80
+-    {
+-        char line[STRING_MAX];
+-        printf("Type ENTER...\n");
+-        /* note, w/o this prompting, client console application can not see one
+-           of its errors before closing. */
+-        fgets(line, STRING_MAX, stdin);
+-    }
+-#endif
+ }
+ 
+ 
