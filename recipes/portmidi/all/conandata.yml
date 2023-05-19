@@ -6,3 +6,4 @@ patches:
   "r234":
     - patch_file: "patches/build-system.patch"
     - patch_file: "patches/portmidi.h.patch"
+    - patch_file: "patches/disable_debug_in_pm_exit.patch"
