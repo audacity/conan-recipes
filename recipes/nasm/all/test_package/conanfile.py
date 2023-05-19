@@ -1,5 +1,6 @@
 from conan import ConanFile
 from conan.tools.build import can_run
+from conan.tools.files import rm
 import os
 
 
@@ -23,3 +24,8 @@ class TestPackageConan(ConanFile):
                 bin_file = os.path.join(self.build_folder, "hello_linux")
                 self.run(f"{ld} hello_linux.o -o {bin_file}")
                 self.run(bin_file)
+
+        # Clean up
+        rm(self, '*conanbuild*', self.source_folder)
+        rm(self, '*conanrun*', self.source_folder)
+        rm(self, 'hello_linux.o', self.source_folder)
