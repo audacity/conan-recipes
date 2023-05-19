@@ -75,9 +75,5 @@ class OggConan(ConanFile):
         self.cpp_info.components["ogglib"].libs = ["ogg"]
 
         # TODO: to remove in conan v2 once cmake_find_package_* generators removed
-        self.cpp_info.names["cmake_find_package"] = "Ogg"
-        self.cpp_info.names["cmake_find_package_multi"] = "Ogg"
-        self.cpp_info.components["ogglib"].names["cmake_find_package"] = "ogg"
-        self.cpp_info.components["ogglib"].names["cmake_find_package_multi"] = "ogg"
         self.cpp_info.components["ogglib"].set_property("cmake_target_name", "Ogg::ogg")
         self.cpp_info.components["ogglib"].set_property("pkg_config_name", "ogg")

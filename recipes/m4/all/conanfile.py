@@ -118,8 +118,3 @@ class M4Conan(ConanFile):
         self.runenv_info.define_path("M4", m4_bin)
         self.buildenv_info.define_path("M4", m4_bin)
 
-        # TODO: to remove in conan v2
-        bin_path = os.path.join(self.package_folder, "bin")
-        self.output.info(f"Appending PATH environment variable: {bin_path}")
-        self.env_info.PATH.append(bin_path)
-        self.env_info.M4 = m4_bin
