@@ -103,6 +103,9 @@ class GnConan(ConanFile):
                 self.run("{} build/gen.py {}".format(sys.executable, " ".join(conf_args)))
                 # Try sleeping one second to avoid time skew of the generated ninja.build file (and having to re-run build/gen.py)
                 time.sleep(1)
+
+                tools_files.replace_in_file(self, os.path.join(self.source_folder, "out", "build.ninja"), "gen.py", "gen.py --no-last-commit-position")
+
                 build_args = [
                     "-C", "out",
                     "-j{}".format(tools.build.build_jobs(self)),
