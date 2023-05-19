@@ -46,6 +46,9 @@ class ICUConan(ConanFile):
         "with_extras": False,
     }
 
+    # When crossbuilding, ICU relies on the build system ICU to be available
+    build_policy = "missing"
+
     @property
     def _settings_build(self):
         return getattr(self, "settings_build", self.settings)
