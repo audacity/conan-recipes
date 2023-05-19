@@ -234,8 +234,5 @@ class LibtoolConan(ConanFile):
         # For Conan 1.x downstream consumers, can be removed once recipe is Conan 1.x only:
         bin_path = os.path.join(self.package_folder, "bin")
         self.output.info(f"Appending PATH env: bin_path{bin_path}")
-        self.env_info.PATH.append(bin_path)
-
-        self.env_info.ACLOCAL_PATH.append(unix_path_package_info_legacy(self, libtool_aclocal_dir))
-        self.env_info.AUTOMAKE_CONAN_INCLUDES.append(unix_path_package_info_legacy(self, libtool_aclocal_dir))
+        self.buildenv_info.append_path("PATH", bin_path)
 

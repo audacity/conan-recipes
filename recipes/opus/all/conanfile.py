@@ -83,7 +83,5 @@ class OpusConan(ConanFile):
         # TODO: to remove in conan v2 once cmake_find_package_* generators removed
         self.cpp_info.names["cmake_find_package"] = "Opus"
         self.cpp_info.names["cmake_find_package_multi"] = "Opus"
-        self.cpp_info.components["libopus"].names["cmake_find_package"] = "opus"
-        self.cpp_info.components["libopus"].names["cmake_find_package_multi"] = "opus"
         self.cpp_info.components["libopus"].set_property("cmake_target_name", "Opus::opus")
         self.cpp_info.components["libopus"].set_property("pkg_config_name", "opus")

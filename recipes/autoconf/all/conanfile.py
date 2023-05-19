@@ -132,10 +132,3 @@ class AutoconfConan(ConanFile):
         autom4te_bin = os.path.join(bin_path, "autom4te")
         self.output.info(f"Defining AUTOM4TE environment variable: {autom4te_bin}")
         self.buildenv_info.define_path("AUTOM4TE", autom4te_bin)
-
-        # TODO: to remove in conan v2
-        self.env_info.PATH.append(bin_path)
-        self.env_info.AUTOCONF = "autoconf"
-        self.env_info.AUTORECONF = "autoreconf"
-        self.env_info.AUTOHEADER = "autoheader"
-        self.env_info.AUTOM4TE = "autom4te"
