@@ -18,8 +18,10 @@ sources:
 patches:
   "1.31.2":
     - patch_file: "patches/0001-msvc-export-symbols.patch"
+    - patch_file: "patches/0003-fix-mangle-include.patch"
   "1.26.4":
     - patch_file: "patches/0001-msvc-export-symbols.patch"
   "1.29.3":
     - patch_file: "patches/0001-msvc-export-symbols.patch"
     - patch_file: "patches/0002-cmake-read_api_version-fix.patch"
+    - patch_file: "patches/0003-fix-mangle-include.patch"
