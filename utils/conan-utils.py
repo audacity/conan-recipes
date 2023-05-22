@@ -1,45 +1,143 @@
 import argparse
 import os
+import yaml
+import sys
+
 from impl import conan_env
 from impl import conan
-from impl import utils
+from impl.config import directories
+from impl.profiles import ConanProfiles
+from impl.package_reference import PackageReference
+
+def add_common_build_options(parser):
+    parser.add_argument('--profile-build', type=str, help='Conan build profile', required=False)
+    parser.add_argument('--profile-host', type=str, help='Conan host profile', required=True)
+    parser.add_argument('--package', type=str, help='Package name', required=False)
+    parser.add_argument('--version', type=str, help='Package version', required=False)
+    parser.add_argument('--keep-sources', action='store_true', help='Do not clean up sources after building')
+    parser.add_argument('--build-order', type=str, help='Path to file with build order. Relative paths are resolved against config directory', required=False)
+
+def add_conan_command(subparser, name, description):
+    subparser = subparser.add_parser(name, help=description)
+    subparser.add_argument('--all', action='store_true', help='Execute command for all recipes in the directory. If not specified, only packages with config are processed', required=False)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Audacity Conan Utils')
+
+    # Common options for all commands
+    parser.add_argument('--recipes-dir', type=str, help='Path to recipes directory', required=False)
+    parser.add_argument('--config-dir', type=str, help='Path to config directory', required=False)
+    parser.add_argument('--venv-dir', type=str, help='Path to virtual environment where Conan is installed', required=False)
+    parser.add_argument('--conan-home-dir', type=str, help='Path to Conan home directory', required=False)
+    parser.add_argument('--output-dir', type=str, help='Path to output directory. Overrides venv-dir and conan-home-dir.', required=False)
+
     subparsers = parser.add_subparsers(help='sub-command help', dest='subparser_name')
 
-    parser_init_env = subparsers.add_parser('init-env', help='Initialize Conan environment')
-    parser_init_env.add_argument('--clean', action='store_true', help='Clean Conan environment')
+    #===========================================================================
+    # init-env
+    #===========================================================================
+    subparser = subparsers.add_parser('init-env', help='Initialize Conan environment')
+    subparser.add_argument('--clean', action='store_true', help='Create a clean Conan environment')
 
-    parser_print_env = subparsers.add_parser('print-env', help='Print Conan environment')
-    parser_print_env.add_argument('--path', action='store_true', help='Print path to Conan')
-    parser_print_env.add_argument('--home', action='store_true', help='Print path to Conan home directory')
-    parser_print_env.add_argument('--version', action='store_true', help='Print Conan version')
+    #===========================================================================
+    # print-env
+    #===========================================================================
+    subparser = subparsers.add_parser('print-env', help='Print Conan environment')
+    subparser.add_argument('--path', action='store_true', help='Print path to Conan')
+    subparser.add_argument('--home', action='store_true', help='Print path to Conan home directory')
+    subparser.add_argument('--version', action='store_true', help='Print Conan version')
 
-    parser_export_recipes = subparsers.add_parser('export-recipes', help='Export bundled recipes to Conan cache')
-    parser_export_recipes.add_argument('--path', type=str, help='Path to recipes directory', required=False)
-    parser_export_recipes.add_argument('--all', action='store_true', help='Export all recipes')
-
-    parser_update_sources = subparsers.add_parser('update-sources', help='Download package sources to Conan cache')
-    parser_update_sources.add_argument('--path', type=str, help='Path to recipes directory', required=False)
-    parser_update_sources.add_argument('--all', action='store_true', help='Export all recipes')
-
-    parser_build = subparsers.add_parser('build', help='Build packages')
-    parser_build.add_argument('--path', type=str, help='Path to recipes directory', required=False)
-    parser_build.add_argument('--package', type=str, help='Package name', required=False)
-    parser_build.add_argument('--version', type=str, help='Package version', required=False)
-    parser_build.add_argument('--profile-build', type=str, help='Conan build profile', required=False)
-    parser_build.add_argument('--profile-host', type=str, help='Conan host profile', required=True)
-    parser_build.add_argument('--export-recipes', action='store_true', help='Export recipes to Conan cache before building')
-
+    #===========================================================================
+    # clean
+    #===========================================================================
     subparsers.add_parser('clean', help='Cleanup Conan cache')
+
+    #===========================================================================
+    # export-recipes
+    #===========================================================================
+    add_conan_command(subparsers, 'export-recipes', 'Export bundled recipes to Conan cache')
+
+    #===========================================================================
+    # update-sources
+    #===========================================================================
+    add_conan_command(subparsers, 'update-sources', 'Download package sources to Conan cache')
+
+    #===========================================================================
+    # build
+    #===========================================================================
+    subparser = subparsers.add_parser('build', help='Build packages')
+    add_common_build_options(subparser)
+    subparser.add_argument('--export-recipes', action='store_true', help='Export recipes to Conan cache before building')
+
+    #===========================================================================
+    # install
+    #===========================================================================
+    subparser = subparsers.add_parser('install', help='''
+    Install packages, either from remote or from local recipes.
+    If --recipe is specified, --package and --version are ignored and all dependencies must be satisfied from the Conan cache.''')
+
+    add_common_build_options(subparser)
+    subparser.add_argument('--remote', action='append', help='Conan remote', required=False)
+    subparser.add_argument('--recipe', type=str, help='Path to the recipe', required=False)
+    subparser.add_argument('--allow-build', action='store_true', help='Allow building from source')
+    subparser.add_argument('--install-dir', type=str, help='Path to install directory', required=False)
 
     return parser.parse_args()
 
+def get_profiles(args):
+    return ConanProfiles(args.profile_host, args.profile_build)
 
-if __name__ == "__main__":
-    args = parse_args()
+def get_build_order_path(args):
+    if args.build_order:
+        if os.path.isabs(args.build_order):
+            return args.build_order
+        return os.path.join(directories.config_dir, args.build_order)
+    else:
+        return os.path.join(directories.config_dir, 'build_order.yml')
 
+def get_build_order(args):
+    build_order_path = get_build_order_path(args)
+    if not os.path.exists(build_order_path):
+        raise Exception('Build order file does not exist: {}'.format(build_order_path))
+
+    with open(build_order_path, 'r') as f:
+        config = yaml.safe_load(f)['build_order']
+        build_order = []
+
+        for part in config:
+            build_on = part['platforms']
+            if build_on == '*' or sys.platform.lower() in build_on:
+                build_order += part['packages']
+
+    return build_order
+
+
+def get_package_reference(args):
+    return PackageReference(args.package, args.version)
+
+def run_conan_command(args):
+    if args.subparser_name == 'build':
+        if args.package:
+            conan.build_package(get_package_reference(args), get_profiles(args), args.export_recipes, args.keep_sources)
+        else:
+            conan.build_all(get_build_order(args), get_profiles(args), args.export_recipes, args.keep_sources)
+    elif args.subparser_name == 'install':
+        if args.install_dir:
+            directories.install_dir = args.install_dir
+
+        if args.recipe:
+            conan.install_recipe(args.recipe, get_profiles(args), args.remote, args.allow_build, args.keep_sources)
+        elif args.package:
+            conan.install_package(get_package_reference(args), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
+        else:
+            conan.install_all(get_build_order(args), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
+
+    elif args.subparser_name == 'clean':
+        conan.clean()
+    else:
+        conan.execute_conan_command(args.subparser_name, args.all)
+
+def main(args):
     if args.subparser_name == 'init-env':
         conan_env.create_conan_environment(clean=args.clean)
     elif args.subparser_name == 'print-env':
@@ -49,29 +147,23 @@ if __name__ == "__main__":
             print(conan_env.get_conan_home_path())
         if args.version:
             print(conan_env.get_conan_version())
-    elif args.subparser_name == 'build':
-        host_profile = f"{utils.get_profiles_dir()}/{args.profile_host}.profile"
-
-        if not os.path.isfile(host_profile):
-            raise RuntimeError(f'Host profile {host_profile} does not exist')
-
-        if not args.profile_build:
-            args.profile_build = args.profile_host
-
-        build_profile = f"{utils.get_profiles_dir()}/{args.profile_build}.profile"
-
-        if not os.path.isfile(build_profile):
-            raise RuntimeError(f'Build profile {build_profile} does not exist')
-
-        path = args.path if args.path else utils.get_recipes_dir()
-
-        conan.build_packages(
-            path,
-            args.package, args.version,
-            host_profile, build_profile, args.export_recipes)
-    elif args.subparser_name == 'clean':
-        conan.clean()
     else:
-        conan.execute_conan_command(args.path if args.path else utils.get_recipes_dir(), args.subparser_name, args.all)
+        with conan_env.ConanEnv():
+            run_conan_command(args)
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    if args.recipes_dir:
+        directories.recipes_dir = args.recipes_dir
+    if args.config_dir:
+        directories.config_dir = args.config_dir
+    if args.venv_dir:
+        directories.venv_dir = args.venv_dir
+    if args.conan_home_dir:
+        directories.conan_home_dir = args.conan_home_dir
+    if args.output_dir:
+        directories.change_output_dir(args.output_dir)
 
 
+    main(args)

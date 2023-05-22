@@ -1,17 +1,16 @@
 import yaml
 import os
-import sys
 from functools import cache
-from impl import utils
+from impl.config import directories
 
 @cache
-class PackageConfig():
+class PackageConfigProvider():
     __stable_packages = None
     __package_configs = {}
     __build_order = None
 
     def __init__(self):
-        stable_packages_path = os.path.join(utils.get_config_dir(), 'stable_packages.yml')
+        stable_packages_path = os.path.join(directories.config_dir, 'stable_packages.yml')
         if os.path.exists(stable_packages_path):
             with open(stable_packages_path, 'r') as f:
                 config = yaml.safe_load(f)
@@ -38,10 +37,10 @@ class PackageConfig():
 
     def get_package_config(self, package_name:str):
         if not package_name in self.__package_configs:
-            package_config_path = os.path.join(utils.get_config_platform_packages_dir(), f'{package_name}.yml')
+            package_config_path = os.path.join(directories.config_platform_packages_dir, f'{package_name}.yml')
 
             if not os.path.exists(package_config_path):
-                package_config_path = os.path.join(utils.get_config_packages_dir(), f'{package_name}.yml')
+                package_config_path = os.path.join(directories.config_packages_dir, f'{package_name}.yml')
 
             if not os.path.exists(package_config_path):
                 return None
@@ -53,23 +52,4 @@ class PackageConfig():
 
         return self.__package_configs[package_name]
 
-
-    def get_build_order(self):
-        if self.__build_order:
-            return self.__build_order
-
-        build_order_path = os.path.join(utils.get_config_dir(), 'build_order.yml')
-
-        if not os.path.exists(build_order_path):
-            return None
-
-        with open(build_order_path, 'r') as f:
-            config = yaml.safe_load(f)['build_order']
-            self.__build_order = []
-
-            for part in config:
-                build_on = part['platforms']
-                if build_on == '*' or sys.platform.lower() in build_on:
-                    self.__build_order += part['packages']
-
-        return self.__build_order
+package_config_provider = PackageConfigProvider()

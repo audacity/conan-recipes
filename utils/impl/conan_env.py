@@ -2,6 +2,7 @@ import venv
 import os
 import subprocess
 from impl import utils
+from impl.config import directories
 import shutil
 
 
@@ -13,7 +14,7 @@ class ConanEnv:
         self.env_path = env_path
 
         if not self.env_path:
-            expected_path = utils.get_expected_env_location()
+            expected_path = directories.env_dir
             if os.path.exists(expected_path):
                 self.env_path = expected_path
             else:
@@ -22,22 +23,24 @@ class ConanEnv:
         self.home_path = home_path
 
         if not self.home_path:
-            expected_path = utils.get_expected_conan_home_location()
+            expected_path = directories.conan_home_dir
             if os.path.exists(expected_path):
                 self.home_path = expected_path
             else:
                 print("Using system Conan home")
 
     def __enter__(self):
-
+        print(f"Using Conan environment at {self.env_path}")
         if self.env_path and 'VIRTUAL_ENV' in os.environ:
             self.old_env_path = os.environ['VIRTUAL_ENV']
 
         if self.home_path and 'CONAN_HOME' in os.environ:
             self.old_home_path = os.environ['CONAN_HOME']
 
-        os.environ['VIRTUAL_ENV'] = self.env_path
-        os.environ['CONAN_HOME'] = self.home_path
+        if self.env_path:
+            os.environ['VIRTUAL_ENV'] = self.env_path
+        if self.home_path:
+            os.environ['CONAN_HOME'] = self.home_path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.env_path:
@@ -61,7 +64,7 @@ class ConanEnvBuilder(venv.EnvBuilder):
 
 
 def create_conan_environment(clean=False):
-    env_path = utils.get_expected_env_location()
+    env_path = directories.env_dir
 
     if os.path.exists(env_path):
         if not clean:
@@ -70,7 +73,7 @@ def create_conan_environment(clean=False):
         print(f"Removing Conan environment at {env_path}")
         shutil.rmtree(env_path)
 
-    home_path = utils.get_expected_conan_home_location()
+    home_path = directories.conan_home_dir
 
     if not os.path.exists(home_path):
         os.makedirs(home_path, exist_ok=True)
