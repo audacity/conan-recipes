@@ -24,7 +24,6 @@ class CrashpadConan(ConanFile):
     topics = ("conan", "crashpad", "crash", "error", "stacktrace", "collecting", "reporting")
     license = "Apache-2.0"
     homepage = "https://chromium.googlesource.com/crashpad/crashpad/+/master/README.md"
-    provides = "crashpad", "mini_chromium"
     settings = "os", "arch", "compiler", "build_type"
 
     options = {
