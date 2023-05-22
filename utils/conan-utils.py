@@ -1,13 +1,16 @@
 import argparse
 import os
-import yaml
 import sys
 
-from impl import conan_env
-from impl import conan
+import yaml
+from dotenv import load_dotenv
+from impl import conan, conan_env
 from impl.config import directories
-from impl.profiles import ConanProfiles
 from impl.package_reference import PackageReference
+from impl.profiles import ConanProfiles
+from impl.upload import upload_all
+
+load_dotenv()
 
 def add_common_build_options(parser):
     parser.add_argument('--profile-build', type=str, help='Conan build profile', required=False)
@@ -83,6 +86,13 @@ def parse_args():
     subparser.add_argument('--allow-build', action='store_true', help='Allow building from source')
     subparser.add_argument('--install-dir', type=str, help='Path to install directory', required=False)
 
+    #===========================================================================
+    # upload
+    #===========================================================================
+    subparser = subparsers.add_parser('upload', help='Upload packages to remote')
+    subparser.add_argument('--recipes-remote', type=str, help='Recipes remote', required=False)
+    subparser.add_argument('--recipes-binaries', type=str, help='Binaries remote', required=False)
+
     return parser.parse_args()
 
 def get_profiles(args):
@@ -154,6 +164,8 @@ def run_conan_command(args):
 
     elif args.subparser_name == 'clean':
         conan.clean()
+    elif args.subparser_name == 'upload':
+        upload_all(args.recipes_remote, args.recipes_binaries)
     else:
         conan.execute_conan_command(args.subparser_name, args.all)
 
