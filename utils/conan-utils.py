@@ -79,6 +79,7 @@ def parse_args():
     add_common_build_options(subparser)
     subparser.add_argument('--remote', action='append', help='Conan remote', required=False)
     subparser.add_argument('--recipe', type=str, help='Path to the recipe', required=False)
+    subparser.add_argument('--recipe-config', type=str, help='Path to the config file for the recipe', required=False)
     subparser.add_argument('--allow-build', action='store_true', help='Allow building from source')
     subparser.add_argument('--install-dir', type=str, help='Path to install directory', required=False)
 
@@ -94,6 +95,25 @@ def get_build_order_path(args):
         return os.path.join(directories.config_dir, args.build_order)
     else:
         return os.path.join(directories.config_dir, 'build_order.yml')
+
+def resolve_recipe_config(args):
+    if not args.recipe_config:
+        return None
+
+    if os.path.isabs(args.recipe_config):
+        return args.recipe_config
+
+    lookup_locations = args.recipe, directories.config_platform_packages_dir, directories.config_packages_dir, args.config_dir
+
+    for directory in lookup_locations:
+        recipe_config = os.path.join(directory, args.recipe_config)
+        if os.path.exists(recipe_config):
+            return recipe_config
+        recipe_config += '.yml'
+        if os.path.exists(recipe_config):
+            return recipe_config
+
+    raise Exception('Recipe config file not found: {}'.format(args.recipe_config))
 
 def get_build_order(args):
     build_order_path = get_build_order_path(args)
@@ -126,7 +146,7 @@ def run_conan_command(args):
             directories.install_dir = args.install_dir
 
         if args.recipe:
-            conan.install_recipe(args.recipe, get_profiles(args), args.remote, args.allow_build, args.keep_sources)
+            conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
         elif args.package:
             conan.install_package(get_package_reference(args), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
         else:
