@@ -2,7 +2,7 @@ import os
 import textwrap
 
 from conan import ConanFile, conan_version
-from conan.tools.files import copy, get, rmdir, save
+from conan.tools.files import copy, get, rmdir, save, rm
 from conan.tools.layout import basic_layout
 from conan.tools.scm import Version
 
@@ -44,9 +44,21 @@ class MesonConan(ConanFile):
 
         for i in range(20):
             try:
+                self.output.info("Removing test cases from {}".format(os.path.join(self.package_folder, "bin")))
                 rmdir(self, os.path.join(self.package_folder, "bin", "test cases"))
                 break
             except:
+                self.output.error("Failed to remove test cases from {}".format(os.path.join(self.package_folder, "bin")))
+                import time
+                time.sleep(0.1 * i)
+
+        for i in range(20):
+            try:
+                self.output.info("Removing .pyc files from {}".format(os.path.join(self.package_folder, "bin")))
+                rm(self, "*.pyc", base_path=os.path.join(self.package_folder, "bin"), recursive=True)
+                break
+            except:
+                self.output.error("Failed to remove .pyc files from {}".format(os.path.join(self.package_folder, "bin")))
                 import time
                 time.sleep(0.1 * i)
 
