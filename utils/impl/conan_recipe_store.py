@@ -1,38 +1,44 @@
 import os
 import yaml
-import subprocess
-from impl import conan_env
-from impl import utils
-from impl import package_config
-from impl import debug
+
+from impl.package_config_provider import package_config_provider
+from impl.package_reference import PackageReference
+from impl.config import directories
+from impl.conan_recipe import ConanRecipe
 
 class ConanRecipeStore:
     versions = None
-    __commands_map = {
-        'export-recipes': ('export_all', 'export'),
-        'update-sources': ('source_all', 'source'),
-    }
+    conan_references = {}
+    package_config = None
+    default_version = None
 
-    @property
-    def name(self):
-        return os.path.basename(self.path)
+    def __init__(self, name: str):
+        self.name = name
+        self.path = os.path.join(directories.recipes_dir, name)
 
-    def __init__(self, path: str):
-        if not os.path.exists(path):
-            raise RuntimeError(f"Path `{path}` does not exist")
+        if not os.path.exists(self.path):
+            raise RuntimeError(f"Path `{self.path}` does not exist")
 
-        self.path = path
-
-        config_path = os.path.join(path, 'config.yml')
+        config_path = os.path.join(self.path, 'config.yml')
 
         if not os.path.exists(config_path):
-            raise RuntimeError(f"Config `{path}` does not exist")
+            raise RuntimeError(f"Config `{self.path}` does not exist")
 
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
             self.versions = config['versions']
 
-    def get_recipe_folder(self, version:str):
+            for version in self.versions.keys():
+                self.conan_references[version] = PackageReference(package_name=self.name, package_version=version)
+
+        self.package_config = package_config_provider.get_package_config(self.name)
+
+        if not self.package_config:
+            raise RuntimeError(f"Package config for `{self.name}` not found")
+
+        self.default_version = self.package_config['version']
+
+    def get_recipe_folder(self, version:str) -> str:
         if not version in self.versions:
             raise RuntimeError(f"Version `{version}` not found. {', '.join(self.versions.keys())} available for {self.name}")
 
@@ -43,112 +49,28 @@ class ConanRecipeStore:
 
         return recipe_folder
 
-    def get_source_folder(self, version):
-        return os.path.join(self.get_recipe_folder(version), "src")
+    def get_recipe(self, version:str) -> ConanRecipe:
+        recipe_folder = self.get_recipe_folder(version)
+        return ConanRecipe(recipe_folder, self.conan_references[version])
 
-    def get_build_folder(self, version):
-        return os.path.join(self.get_recipe_folder(version), "build")
+    def get_default_recipe(self) -> ConanRecipe:
+        return self.get_recipe(self.default_version)
 
-    def export(self, version:str):
-        config = package_config.PackageConfig()
-
-        with conan_env.ConanEnv():
-            cmd = [
-                utils.get_conan(), 'export', self.get_recipe_folder(version),
-                '--version', version,
-                '--user', config.get_package_user(self.name, version),
-                '--channel', config.get_package_channel(self.name, version),
-                '--no-remote'
-            ]
-
-            subprocess.check_call(cmd)
-
-    def export_all(self):
+    def get_recipes(self):
         for version in self.versions.keys():
-            self.export(version)
+            yield self.get_recipe(version)
 
-    def source(self, version):
-        config = package_config.PackageConfig()
-
-        with conan_env.ConanEnv():
-            cmd = [
-                utils.get_conan(), 'source', self.get_recipe_folder(version),
-                '--version', version,
-                '--user', config.get_package_user(self.name, version),
-                '--channel', config.get_package_channel(self.name, version)
-            ]
-
-            subprocess.check_call(cmd)
-
-    def source_all(self):
-        for version in self.versions.keys():
-            self.source(version)
-
-    def execute_command(self, command, all):
+    def execute_command(self, command:str, all:bool):
         if all:
-            getattr(self, self.__commands_map[command][0])()
+            for recipe in self.get_recipes():
+                recipe.execute_command(command)
         else:
-            config = package_config.PackageConfig()
-            name = os.path.basename(self.path)
-            pkg_conf = config.get_package_config(name)
-            if pkg_conf:
-                getattr(self, self.__commands_map[command][1])(pkg_conf['version'])
-
-    def build(self, package:str, version:str, host_profile:str=None, build_profile:str=None):
-        config = package_config.PackageConfig()
-        pkg_config = config.get_package_config(package)
-
-        if not pkg_config:
-            raise RuntimeError(f"Config for package `{package}` not found")
-
-        user = config.get_package_user(package, version)
-        channel = config.get_package_channel(package, version)
-
-        is_build_tool = 'build_tool' in pkg_config and pkg_config['build_tool']
-
-        if is_build_tool:
-            if not build_profile:
-                raise RuntimeError(f"Build profile is required for build tool `{package}`")
-            host_profile = build_profile
-        elif not build_profile:
-            build_profile = host_profile
-
-        print(f"Building `{package}/{version}@{user}/{channel}`...")
-
-        with conan_env.ConanEnv():
-            cmd = [
-                utils.get_conan(), 'install',
-                '--version', version,
-                '--user', user,
-                '--channel', channel,
-                '--no-remote',
-                '-vvv',
-                self.get_recipe_folder(version)
-            ]
-
-            print(cmd)
-
-            if host_profile:
-                cmd += ['-pr:h', host_profile]
-
-            if build_profile:
-                cmd += ['-pr:b', build_profile]
-
-            if 'options' in pkg_config:
-                for opt in pkg_config['options'].split():
-                    cmd += ['-o:h', opt.strip()]
+            self.get_default_recipe().execute_command(command)
 
 
-            print(f"== Building package...", flush=True)
-            cmd[1] = 'build'
-            subprocess.check_call(cmd)
+def get_recipe_store(package_reference:PackageReference):
+    return ConanRecipeStore(package_reference.name)
 
-            print(f"== Creating Conan package...", flush=True)
-            cmd[1] = 'export-pkg'
-            subprocess.check_call(cmd)
-
-
-
-
-def get_recipe_store(package_name):
-    return ConanRecipeStore(os.path.join(utils.get_recipes_dir(), package_name))
+def get_recipe(package_reference:PackageReference):
+    recipe_store = get_recipe_store(package_reference)
+    return recipe_store.get_recipe(package_reference.version)

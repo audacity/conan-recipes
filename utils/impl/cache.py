@@ -2,63 +2,59 @@ import subprocess
 import os
 import time
 
-from impl import conan_env
 from impl import utils
 from impl import conan_recipe_store
+from impl.package_reference import PackageReference
 
 
-def get_package_reference(package_name:str, package_version:str, user:str, channel:str):
-    return f"{package_name}/{package_version}@{user}/{channel}"
+def get_cache_path(folder, package_reference:PackageReference):
+    cmd = [utils.get_conan(), 'cache', 'path', str(package_reference)]
 
-def get_cache_path(folder, package_name:str, package_version:str, user:str, channel:str):
-    with conan_env.ConanEnv():
-        cmd = [utils.get_conan(), 'cache', 'path', get_package_reference(package_name, package_version, user, channel)]
+    if folder != "export":
+        cmd += ['--folder', folder]
 
-        if folder != "export":
-            cmd += ['--folder', folder]
-
-        return subprocess.check_output(cmd).decode('utf-8').strip()
+    return subprocess.check_output(cmd).decode('utf-8').strip()
 
 
-def get_cache_path_export(package_name:str, package_version:str, user:str, channel:str):
-    return get_cache_path('export', package_name, package_version, user, channel)
+def get_cache_path_export(package_reference:PackageReference):
+    return get_cache_path('export', package_reference)
 
 
-def get_cache_path_export_source(package_name:str, package_version:str, user:str, channel:str):
-    return get_cache_path('export_source', package_name, package_version, user, channel)
+def get_cache_path_export_source(package_reference:PackageReference):
+    return get_cache_path('export_source', package_reference)
 
 
-def get_cache_path_source(package_name:str, package_version:str, user:str, channel:str):
-    cache_path = get_cache_path('source', package_name, package_version, user, channel)
+def get_cache_path_source(package_reference:PackageReference):
+    cache_path = get_cache_path('source', package_reference)
 
     if os.path.isdir(cache_path):
         return cache_path
 
-    return conan_recipe_store.get_recipe_store(package_name).get_source_folder(package_version)
+    return conan_recipe_store.get_recipe(package_reference).local_source_dir
 
 
-def clean_cache(package_name:str, package_version:str, user:str, channel:str, sources:bool=False, builds:bool=True, downloads:bool=True, temp:bool=True, all:bool=False):
-    print(f"Cleaning cache for `{package_name}/{package_version}@{user}/{channel}`...")
-    with conan_env.ConanEnv():
-        cmd = [
-            utils.get_conan(), 'cache', 'clean',
-            get_package_reference(package_name, package_version, user, channel),
-        ]
+def clean_cache(package_reference:PackageReference, sources:bool=False, builds:bool=True, downloads:bool=True, temp:bool=True, all:bool=False):
+    print(f"Cleaning cache for `{package_reference}`...")
 
-        if not all:
-            if sources:
-                cmd += ['--source']
+    cmd = [
+        utils.get_conan(), 'cache', 'clean',
+        str(package_reference),
+    ]
 
-            if builds:
-                cmd += ['--build']
+    if not all:
+        if sources:
+            cmd += ['--source']
 
-            if downloads:
-                cmd += ['--download']
+        if builds:
+            cmd += ['--build']
 
-            if temp:
-                cmd += ['--temp']
+        if downloads:
+            cmd += ['--download']
 
-        subprocess.check_call(cmd)
+        if temp:
+            cmd += ['--temp']
+
+    subprocess.check_call(cmd)
 
     def safe_rm_tree(path):
         import shutil
@@ -89,25 +85,15 @@ def clean_cache(package_name:str, package_version:str, user:str, channel:str, so
     # Sources are in downloaded to the recipe folder, builds paths are local as well,
     # we neet to clean them manually
     if all or sources:
-        cache_path = get_cache_path_source(package_name, package_version, user, channel)
+        cache_path = get_cache_path_source(package_reference)
         safe_rm_tree(cache_path)
 
-    suffixes = ('', '-relwithdebinfo', '-minsizerel', '-release', '-debug')
+    recipe = conan_recipe_store.get_recipe(package_reference)
 
     if all or builds:
-        path = conan_recipe_store.get_recipe_store(package_name).get_build_folder(package_version)
-
-        for suffix in suffixes:
-            build_folder = f'{path}{suffix}'
-            if os.path.isdir(build_folder):
-                safe_rm_tree(build_folder)
-            safe_rm_tree(build_folder)
+        for path in recipe.local_build_dirs:
+            safe_rm_tree(path)
 
     # Conan provides no way to cleanup test folders
-    for suffix in suffixes:
-        folder = f'build{suffix}'
-        tests_path = os.path.join(conan_recipe_store.get_recipe_store(package_name).get_recipe_folder(package_version), 'test_package', folder)
-        safe_rm_tree(tests_path)
-
-        tests_path = os.path.join(conan_recipe_store.get_recipe_store(package_name).get_recipe_folder(package_version), 'test_v1_package', folder)
-        safe_rm_tree(tests_path)
+    for path in recipe.local_test_build_dirs:
+        safe_rm_tree(path)
