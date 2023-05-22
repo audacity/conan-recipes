@@ -51,6 +51,7 @@ build_order:
     - opusfile
     - vorbis
     - mpg123
+    - libid3tag
     - libmp3lame
     - libsndfile
     - threadpool
