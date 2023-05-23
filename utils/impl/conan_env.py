@@ -17,8 +17,6 @@ class ConanEnv:
             expected_path = directories.env_dir
             if os.path.exists(expected_path):
                 self.env_path = expected_path
-            else:
-                print("Using system Python")
 
         self.home_path = home_path
 
@@ -26,11 +24,8 @@ class ConanEnv:
             expected_path = directories.conan_home_dir
             if os.path.exists(expected_path):
                 self.home_path = expected_path
-            else:
-                print("Using system Conan home")
 
     def __enter__(self):
-        print(f"Using Conan environment at {self.env_path}")
         if self.env_path and 'VIRTUAL_ENV' in os.environ:
             self.old_env_path = os.environ['VIRTUAL_ENV']
 
