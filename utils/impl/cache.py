@@ -1,10 +1,10 @@
 import subprocess
 import os
-import time
 
 from impl import utils
 from impl import conan_recipe_store
 from impl.package_reference import PackageReference
+from impl.files import safe_rm_tree
 
 
 def get_cache_path(folder, package_reference:PackageReference):
@@ -55,31 +55,6 @@ def clean_cache(package_reference:PackageReference, sources:bool=False, builds:b
             cmd += ['--temp']
 
     subprocess.check_call(cmd)
-
-    def safe_rm_tree(path):
-        import shutil
-
-        if not os.path.isdir(path):
-            return
-
-        def onerror(func, path, exc_info):
-            import stat
-            # Is the error an access error?
-            if not os.access(path, os.W_OK):
-                print(f"Failed to remove `{path}`. Trying to change permissions...")
-                os.chmod(path, stat.S_IWUSR)
-                func(path)
-            else:
-                raise OSError("Cannot change permissions for {}! Exception info: {}".format(path, exc_info))
-
-        for i in range(20):
-            try:
-                shutil.rmtree(path, onerror=onerror)
-                return
-            except Exception as e:
-                delay = 0.5 * float(i + 1)
-                print(f"Failed to remove `{path}`: `{e}`. Retrying in {delay} seconds...")
-                time.sleep(delay)
 
     # Running cache clean is not sufficient, as we are in "local" mode
     # Sources are in downloaded to the recipe folder, builds paths are local as well,

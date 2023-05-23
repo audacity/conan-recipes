@@ -4,26 +4,10 @@ import subprocess
 import yaml
 
 from impl import cache, utils
-from impl.conan_recipe_store import ConanRecipeStore, get_recipe
+from impl.conan_recipe_store import get_recipe, get_recipe_stores
 from impl.config import directories
-from impl.package_config_provider import package_config_provider
 from impl.package_reference import PackageReference
 from impl.profiles import ConanProfiles
-
-
-def get_recipe_stores(with_config_only:bool):
-    path = directories.recipes_dir
-
-    for recipe in os.listdir(path):
-        recipe_path = os.path.join(path, recipe)
-        if not os.path.isdir(recipe_path):
-            continue
-
-        if not with_config_only:
-            yield ConanRecipeStore(recipe)
-
-        if package_config_provider.get_package_config(recipe):
-            yield ConanRecipeStore(recipe)
 
 
 def execute_conan_command(command:str, all:bool):

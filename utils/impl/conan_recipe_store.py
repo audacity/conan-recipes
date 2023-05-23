@@ -74,3 +74,17 @@ def get_recipe_store(package_reference:PackageReference):
 def get_recipe(package_reference:PackageReference):
     recipe_store = get_recipe_store(package_reference)
     return recipe_store.get_recipe(package_reference.version)
+
+def get_recipe_stores(with_config_only:bool):
+    path = directories.recipes_dir
+
+    for recipe in os.listdir(path):
+        recipe_path = os.path.join(path, recipe)
+        if not os.path.isdir(recipe_path):
+            continue
+
+        if not with_config_only:
+            yield ConanRecipeStore(recipe)
+
+        if package_config_provider.get_package_config(recipe):
+            yield ConanRecipeStore(recipe)
