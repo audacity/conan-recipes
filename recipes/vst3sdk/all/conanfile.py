@@ -47,28 +47,27 @@ class Vst3SDKConan(ConanFile):
         cmake.build(build_type=self.safe_build_type)
 
     def package(self):
-
         copy(self,
              "*.h",
-             src=os.path.join(self.source_folder,  'vst3sdk', 'base'),
+             src=os.path.join(self.source_folder,  'base'),
              dst=os.path.join(self.package_folder, 'include', 'base'),
              keep_path=True)
 
         copy(self,
              "*.h",
-             src=os.path.join(self.source_folder,  'vst3sdk', 'pluginterfaces'),
+             src=os.path.join(self.source_folder,  'pluginterfaces'),
              dst=os.path.join(self.package_folder, 'include', 'pluginterfaces'),
              keep_path=True)
 
         copy(self,
              "*.h",
-             src=os.path.join(self.source_folder,  'vst3sdk', 'public.sdk', 'source'),
+             src=os.path.join(self.source_folder,  'public.sdk', 'source'),
              dst=os.path.join(self.package_folder, 'include', 'public.sdk', 'source'),
              keep_path=True)
 
         copy(self,
              "*.h",
-             src=os.path.join(self.source_folder,  'vst3sdk', 'public.sdk', 'source'),
+             src=os.path.join(self.source_folder,  'public.sdk', 'source'),
              dst=os.path.join(self.package_folder, 'include', 'public.sdk', 'source'),
              keep_path=True)
 
@@ -76,31 +75,31 @@ class Vst3SDKConan(ConanFile):
              "*.lib",
              src=self.build_folder,
              dst=os.path.join(self.package_folder, 'lib'),
-             keep_path=True)
+             keep_path=False)
 
         copy(self,
              "*.dll",
              src=self.build_folder,
              dst=os.path.join(self.package_folder, 'bin'),
-             keep_path=True)
+             keep_path=False)
 
         copy(self,
              "*.so",
              src=self.build_folder,
              dst=os.path.join(self.package_folder, 'lib'),
-             keep_path=True)
+             keep_path=False)
 
         copy(self,
              "*.dylib",
              src=self.build_folder,
              dst=os.path.join(self.package_folder, 'lib'),
-             keep_path=True)
+             keep_path=False)
 
         copy(self,
              "*.a",
              src=self.build_folder,
              dst=os.path.join(self.package_folder, 'lib'),
-             keep_path=True)
+             keep_path=False)
 
     def package_info(self):
         self.cpp_info.components["base"].libs.append("base")
