@@ -122,12 +122,16 @@ class ConanRecipe:
         self.__run_build_command('export-pkg', profiles)
 
     def __get_package_id(self, install_output:bytes):
-        nodes = json.loads(install_output)['graph']['nodes']
+        try:
+            nodes = json.loads(install_output)['graph']['nodes']
 
-        for node in nodes:
-            if str(self.reference) in node['ref']:
-                return node['package_id']
-        return None
+            for node in nodes:
+                if str(self.reference) in node['ref']:
+                    return node['package_id']
+
+            return None
+        except:
+            return None
 
     def __get_build_folder(self, package_id:str):
         try:
@@ -165,10 +169,11 @@ class ConanRecipe:
 
         package_id = self.__get_package_id(subprocess.check_output(cmd))
         print(F'Package ID: {package_id}')
-        build_folder = self.__get_build_folder(package_id)
-        if build_folder:
-            print(F'Build folder: {build_folder}')
-            self.installed_build_folders.append(build_folder)
+        if package_id:
+            build_folder = self.__get_build_folder(package_id)
+            if build_folder:
+                print(F'Build folder: {build_folder}')
+                self.installed_build_folders.append(build_folder)
 
     def execute_command(self, command:str):
         if command == 'export-recipes':
