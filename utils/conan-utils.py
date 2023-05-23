@@ -10,6 +10,7 @@ from impl.package_reference import PackageReference
 from impl.profiles import ConanProfiles
 from impl.update_mirror import update_mirror
 from impl.upload import upload_all
+from impl.debug import enable_debug_processors, finalize_debug_processors
 
 load_dotenv()
 
@@ -20,6 +21,7 @@ def add_common_build_options(parser):
     parser.add_argument('--version', type=str, help='Package version', required=False)
     parser.add_argument('--keep-sources', action='store_true', help='Do not clean up sources after building')
     parser.add_argument('--build-order', type=str, help='Path to file with build order. Relative paths are resolved against config directory', required=False)
+    parser.add_argument('--enable-debug-processor', action='append', help='Enable specific debug processor (symstore, sentry)', required=False)
 
 def add_conan_command(subparser, name, description):
     subparser = subparser.add_parser(name, help=description)
@@ -104,6 +106,7 @@ def parse_args():
     subparser.add_argument('--key', type=str, help='Artifactory password', required=False)
 
     subparser.add_argument('--all', action='store_true', help='Process all packages and versions', required=False)
+
 
     return parser.parse_args()
 
@@ -211,5 +214,12 @@ if __name__ == "__main__":
     if args.output_dir:
         directories.change_output_dir(args.output_dir)
 
+    enable_debug_processors(args.enable_debug_processor)
 
-    main(args)
+    try:
+        main(args)
+    except Exception as e:
+        print('Error: {}'.format(e))
+        sys.exit(1)
+    finally:
+        finalize_debug_processors()

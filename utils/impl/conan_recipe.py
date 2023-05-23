@@ -7,6 +7,7 @@ from impl.package_reference import PackageReference
 from impl.utils import get_conan
 from impl.profiles import ConanProfiles
 from impl.config import directories
+from impl.debug import handle_build_completed
 
 
 class ConanRecipe:
@@ -121,6 +122,8 @@ class ConanRecipe:
         print(f"== Creating Conan package...", flush=True)
         self.__run_build_command('export-pkg', profiles)
 
+        handle_build_completed(self.reference, self.local_source_dir, self.local_build_dirs)
+
     def __get_package_id(self, install_output:bytes):
         try:
             nodes = json.loads(install_output)['graph']['nodes']
@@ -137,6 +140,14 @@ class ConanRecipe:
         try:
             return subprocess.check_output([
                 get_conan(), 'cache', 'path', f'{self.reference}:{package_id}', '--folder=build'
+                ]).decode('utf-8').strip()
+        except subprocess.CalledProcessError:
+            return None
+
+    def __get_cache_source_folder(self, package_id:str):
+        try:
+            return subprocess.check_output([
+                get_conan(), 'cache', 'path', f'{self.reference}:{package_id}', '--folder=source'
                 ]).decode('utf-8').strip()
         except subprocess.CalledProcessError:
             return None
@@ -174,6 +185,7 @@ class ConanRecipe:
             if build_folder:
                 print(F'Build folder: {build_folder}')
                 self.installed_build_folders.append(build_folder)
+                handle_build_completed(self.reference, self.__get_cache_source_folder(package_id), build_folder)
 
     def execute_command(self, command:str):
         if command == 'export-recipes':
