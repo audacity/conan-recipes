@@ -1,13 +1,15 @@
 sources:
-  "5.4.0":
-    url: "https://github.com/dbry/WavPack/archive/refs/tags/5.4.0.tar.gz"
-    sha256: "abbe5ca3fc918fdd64ef216200a5c896243ea803a059a0662cd362d0fa827cd2"
-  "5.6.0":
-    url: "https://github.com/dbry/WavPack/archive/refs/tags/5.6.0.tar.gz"
-    sha256: "44043e8ffe415548d5723e9f4fc6bda5e1f429189491c5fb3df08b8dcf28df72"
+  5.4.0:
+    url: https://github.com/dbry/WavPack/archive/refs/tags/5.4.0.tar.gz
+    sha256: abbe5ca3fc918fdd64ef216200a5c896243ea803a059a0662cd362d0fa827cd2
+  5.6.0:
+    url:
+    - https://github.com/dbry/WavPack/archive/refs/tags/5.6.0.tar.gz
+    - https://artifactory.audacityteam.org/artifactory/mirror/wavpack/5.6.0/5.6.0.tar.gz
+    sha256: 44043e8ffe415548d5723e9f4fc6bda5e1f429189491c5fb3df08b8dcf28df72
 patches:
-  "5.4.0":
-    - patch_file: "patches/CMakeLists.txt.patch"
-    - patch_file: "patches/wavpackdll.rc.patch"
-  "5.6.0":
-    - patch_file: "patches/CMakeLists.txt.patch"
+  5.4.0:
+  - patch_file: patches/CMakeLists.txt.patch
+  - patch_file: patches/wavpackdll.rc.patch
+  5.6.0:
+  - patch_file: patches/CMakeLists.txt.patch
