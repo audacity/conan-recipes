@@ -7,14 +7,8 @@ from requests import Session, get, head
 from impl.config import directories
 from impl.conan_recipe_store import get_recipe_stores
 from impl.files import safe_rm_tree
+from impl.net import BearerAuth
 
-class BearerAuth:
-    def __init__(self, key:str):
-        self.key = key
-
-    def __call__(self, r):
-        r.headers["Authorization"] = f'Bearer {self.key}'
-        return r
 
 class SourcesElement:
     def __init__(self, key:str, url_key:str, urls:list, checksum:str):
