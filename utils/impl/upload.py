@@ -17,7 +17,7 @@ def add_remote(name:str, url:str) -> None:
             continue
         if remote['url'] != url:
             subprocess.check_call([get_conan(), 'remote', 'update', '--url', name])
-            return
+        return
 
     subprocess.check_call([get_conan(), 'remote', 'add', name, url])
 
