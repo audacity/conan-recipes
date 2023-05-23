@@ -8,6 +8,7 @@ from impl import conan, conan_env
 from impl.config import directories
 from impl.package_reference import PackageReference
 from impl.profiles import ConanProfiles
+from impl.update_mirror import update_mirror
 from impl.upload import upload_all
 
 load_dotenv()
@@ -92,6 +93,17 @@ def parse_args():
     subparser = subparsers.add_parser('upload', help='Upload packages to remote')
     subparser.add_argument('--recipes-remote', type=str, help='Recipes remote', required=False)
     subparser.add_argument('--recipes-binaries', type=str, help='Binaries remote', required=False)
+
+    #===========================================================================
+    # update-mirror
+    #===========================================================================
+    subparser = subparsers.add_parser('update-mirror', help='Update sources on the Audacity mirror')
+    subparser.add_argument('--remote', type=str, help='Mirror remote', required=False)
+    subparser.add_argument('--user', type=str, help='Artifactory user name', required=False)
+    subparser.add_argument('--password', type=str, help='Artifactory password', required=False)
+    subparser.add_argument('--key', type=str, help='Artifactory password', required=False)
+
+    subparser.add_argument('--all', action='store_true', help='Process all packages and versions', required=False)
 
     return parser.parse_args()
 
@@ -179,6 +191,8 @@ def main(args):
             print(conan_env.get_conan_home_path())
         if args.version:
             print(conan_env.get_conan_version())
+    elif args.subparser_name == 'update-mirror':
+        update_mirror(args.remote, args.user, args.password, args.key, args.all)
     else:
         with conan_env.ConanEnv():
             run_conan_command(args)
