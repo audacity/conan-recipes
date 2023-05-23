@@ -1,9 +1,11 @@
 sources:
-  "3.7.7":
-    url: "https://download.steinberg.net/sdk_downloads/vst-sdk_3.7.7_build-19_2022-12-12.zip"
-    sha256: "e995bc1de9723d5a8e35d4ddcd4dfda8ad3338bf981d86cad67b4e59a8eb726e"
+  3.7.7:
+    url:
+    - https://download.steinberg.net/sdk_downloads/vst-sdk_3.7.7_build-19_2022-12-12.zip
+    - https://artifactory.audacityteam.org/artifactory/mirror/vst3sdk/3.7.7/vst-sdk_3.7.7_build-19_2022-12-12.zip
+    sha256: e995bc1de9723d5a8e35d4ddcd4dfda8ad3338bf981d86cad67b4e59a8eb726e
 patches:
-  "3.7.7":
-    - patch_file: "patches/disable-validator.diff"
-    - patch_file: "patches/moduleinfoparser.cpp.diff"
-    - patch_file: "patches/moduleinfo.h.patch"
+  3.7.7:
+  - patch_file: patches/disable-validator.diff
+  - patch_file: patches/moduleinfoparser.cpp.diff
+  - patch_file: patches/moduleinfo.h.patch

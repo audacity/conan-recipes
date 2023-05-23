@@ -1,9 +1,11 @@
 sources:
-  "r234":
-    url: "https://artifactory.audacityteam.org/artifactory/mirror/portmedia-code-r234.zip"
-    sha256: "d737d3f10a70ad6a79fd8a6556015bacf8e8223d4ef8b79a621ec6ac1e44f1bc"
+  r234:
+    url:
+    - https://artifactory.audacityteam.org/artifactory/mirror/portmedia-code-r234.zip
+    - https://artifactory.audacityteam.org/artifactory/mirror/portmidi/r234/portmedia-code-r234.zip
+    sha256: d737d3f10a70ad6a79fd8a6556015bacf8e8223d4ef8b79a621ec6ac1e44f1bc
 patches:
-  "r234":
-    - patch_file: "patches/build-system.patch"
-    - patch_file: "patches/portmidi.h.patch"
-    - patch_file: "patches/disable_debug_in_pm_exit.patch"
+  r234:
+  - patch_file: patches/build-system.patch
+  - patch_file: patches/portmidi.h.patch
+  - patch_file: patches/disable_debug_in_pm_exit.patch

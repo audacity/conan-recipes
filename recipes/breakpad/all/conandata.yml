@@ -1,7 +1,9 @@
 patches:
-  "2023.01.27":
-    - patch_file: patches/win-hide-attachment-full-names.diff
+  2023.01.27:
+  - patch_file: patches/win-hide-attachment-full-names.diff
 sources:
-  "2023.01.27":
+  2023.01.27:
     sha256: c297d714170c28f2bb99d57a7c1a054168414577c1abc64a553a11a87f667bd5
-    url: https://artifactory.audacityteam.org/artifactory/mirror/breakpad-refs_tags_v2023.01.27.tar.gz
+    url:
+    - https://artifactory.audacityteam.org/artifactory/mirror/breakpad-refs_tags_v2023.01.27.tar.gz
+    - https://artifactory.audacityteam.org/artifactory/mirror/breakpad/2023.01.27/breakpad-refs_tags_v2023.01.27.tar.gz
