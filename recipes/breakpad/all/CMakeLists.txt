@@ -32,46 +32,105 @@ target_include_directories(breakpad_sender ${INCLUDES})
 
 target_sources(breakpad_processor
     PRIVATE
+        ${SRC_DIR}/processor/address_map.h
+        ${SRC_DIR}/processor/address_map-inl.h
+        ${SRC_DIR}/processor/basic_code_module.h
         ${SRC_DIR}/processor/basic_code_modules.cc
+        ${SRC_DIR}/processor/basic_code_modules.h
         ${SRC_DIR}/processor/basic_source_line_resolver.cc
+        ${SRC_DIR}/processor/basic_source_line_resolver_types.h
         ${SRC_DIR}/processor/call_stack.cc
         ${SRC_DIR}/processor/cfi_frame_info.cc
+        ${SRC_DIR}/processor/cfi_frame_info.h
+        ${SRC_DIR}/processor/cfi_frame_info-inl.h
+        ${SRC_DIR}/processor/contained_range_map.h
+        ${SRC_DIR}/processor/contained_range_map-inl.h
         ${SRC_DIR}/processor/convert_old_arm64_context.cc
+        ${SRC_DIR}/processor/convert_old_arm64_context.h
+        ${SRC_DIR}/processor/disassembler_objdump.cc
+        ${SRC_DIR}/processor/disassembler_objdump.h
         ${SRC_DIR}/processor/disassembler_x86.cc
+        ${SRC_DIR}/processor/disassembler_x86.h
         ${SRC_DIR}/processor/dump_context.cc
         ${SRC_DIR}/processor/dump_object.cc
         ${SRC_DIR}/processor/exploitability.cc
         ${SRC_DIR}/processor/exploitability_linux.cc
+        ${SRC_DIR}/processor/exploitability_linux.h
         ${SRC_DIR}/processor/exploitability_win.cc
+        ${SRC_DIR}/processor/exploitability_win.h
         ${SRC_DIR}/processor/fast_source_line_resolver.cc
+        ${SRC_DIR}/processor/fast_source_line_resolver_types.h
+        ${SRC_DIR}/processor/linked_ptr.h
         ${SRC_DIR}/processor/logging.cc
+        ${SRC_DIR}/processor/logging.h
+        ${SRC_DIR}/processor/map_serializers.h
+        ${SRC_DIR}/processor/map_serializers-inl.h
+        ${SRC_DIR}/processor/microdump.cc
         ${SRC_DIR}/processor/microdump_processor.cc
-        ${SRC_DIR}/processor/minidump.cc
         ${SRC_DIR}/processor/minidump_processor.cc
+        ${SRC_DIR}/processor/minidump.cc
         ${SRC_DIR}/processor/module_comparer.cc
+        ${SRC_DIR}/processor/module_comparer.h
+        ${SRC_DIR}/processor/module_factory.h
         ${SRC_DIR}/processor/module_serializer.cc
+        ${SRC_DIR}/processor/module_serializer.h
         ${SRC_DIR}/processor/pathname_stripper.cc
-        ${SRC_DIR}/processor/proc_maps_linux.cc
+        ${SRC_DIR}/processor/pathname_stripper.h
+        ${SRC_DIR}/processor/postfix_evaluator.h
+        ${SRC_DIR}/processor/postfix_evaluator-inl.h
         ${SRC_DIR}/processor/process_state.cc
+        ${SRC_DIR}/processor/proc_maps_linux.cc
+        ${SRC_DIR}/processor/proto
+        ${SRC_DIR}/processor/range_map.h
+        ${SRC_DIR}/processor/range_map-inl.h
+        ${SRC_DIR}/processor/simple_serializer.h
+        ${SRC_DIR}/processor/simple_serializer-inl.h
         ${SRC_DIR}/processor/simple_symbol_supplier.cc
+        ${SRC_DIR}/processor/simple_symbol_supplier.h
         ${SRC_DIR}/processor/source_line_resolver_base.cc
+        ${SRC_DIR}/processor/source_line_resolver_base_types.h
         ${SRC_DIR}/processor/stack_frame_cpu.cc
         ${SRC_DIR}/processor/stack_frame_symbolizer.cc
         ${SRC_DIR}/processor/stackwalk_common.cc
-        ${SRC_DIR}/processor/stackwalker.cc
+        ${SRC_DIR}/processor/stackwalk_common.h
         ${SRC_DIR}/processor/stackwalker_address_list.cc
+        ${SRC_DIR}/processor/stackwalker_address_list.h
         ${SRC_DIR}/processor/stackwalker_amd64.cc
-        ${SRC_DIR}/processor/stackwalker_arm.cc
+        ${SRC_DIR}/processor/stackwalker_amd64.h
         ${SRC_DIR}/processor/stackwalker_arm64.cc
+        ${SRC_DIR}/processor/stackwalker_arm64.h
+        ${SRC_DIR}/processor/stackwalker_arm.cc
+        ${SRC_DIR}/processor/stackwalker_arm.h
+        ${SRC_DIR}/processor/stackwalker.cc
         ${SRC_DIR}/processor/stackwalker_mips.cc
-        ${SRC_DIR}/processor/stackwalker_ppc.cc
+        ${SRC_DIR}/processor/stackwalker_mips.h
         ${SRC_DIR}/processor/stackwalker_ppc64.cc
-        ${SRC_DIR}/processor/stackwalker_selftest.cc
+        ${SRC_DIR}/processor/stackwalker_ppc64.h
+        ${SRC_DIR}/processor/stackwalker_ppc.cc
+        ${SRC_DIR}/processor/stackwalker_ppc.h
+        ${SRC_DIR}/processor/stackwalker_riscv64.cc
+        ${SRC_DIR}/processor/stackwalker_riscv64.h
+        ${SRC_DIR}/processor/stackwalker_riscv.cc
+        ${SRC_DIR}/processor/stackwalker_riscv.h
         ${SRC_DIR}/processor/stackwalker_sparc.cc
+        ${SRC_DIR}/processor/stackwalker_sparc.h
         ${SRC_DIR}/processor/stackwalker_x86.cc
+        ${SRC_DIR}/processor/stackwalker_x86.h
+        ${SRC_DIR}/processor/static_address_map.h
+        ${SRC_DIR}/processor/static_address_map-inl.h
+        ${SRC_DIR}/processor/static_contained_range_map.h
+        ${SRC_DIR}/processor/static_contained_range_map-inl.h
+        ${SRC_DIR}/processor/static_map.h
+        ${SRC_DIR}/processor/static_map-inl.h
+        ${SRC_DIR}/processor/static_map_iterator.h
+        ${SRC_DIR}/processor/static_map_iterator-inl.h
+        ${SRC_DIR}/processor/static_range_map.h
+        ${SRC_DIR}/processor/static_range_map-inl.h
         ${SRC_DIR}/processor/symbolic_constants_win.cc
-        ${SRC_DIR}/processor/synth_minidump.cc
+        ${SRC_DIR}/processor/symbolic_constants_win.h
         ${SRC_DIR}/processor/tokenize.cc
+        ${SRC_DIR}/processor/tokenize.h
+        ${SRC_DIR}/processor/windows_frame_info.h
 
         ${SRC_DIR}/third_party/libdisasm/ia32_implicit.c
         ${SRC_DIR}/third_party/libdisasm/ia32_insn.c
