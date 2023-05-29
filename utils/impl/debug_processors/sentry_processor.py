@@ -78,7 +78,16 @@ class SentryProcessor(DebugProcessor):
                 continue
 
     def __process_dsymutil(self, build_dir: str, output_dir: str):
-        pass
+        for path in Path(build_dir).rglob('*.dylib*'):
+            if path.is_symlink():
+                continue
+            output_file = os.path.join(output_dir, path.name)
+            shutil.copy2(path, os.path.join(output_dir, path.name))
+            try:
+                subprocess.check_call(['dsymutil', '-o', output_file + '.dSYM', output_file])
+            except subprocess.CalledProcessError as e:
+                print('dsymutil failed with exit code', e.returncode)
+                continue
 
     def __process_pdbs(self, build_dir: str, output_dir: str):
         for path in Path(build_dir).rglob('*.pdb'):
