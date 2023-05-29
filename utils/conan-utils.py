@@ -11,6 +11,7 @@ from impl.profiles import ConanProfiles
 from impl.update_mirror import update_mirror
 from impl.upload import upload_all
 from impl.debug import enable_debug_processors, finalize_debug_processors
+from impl.remotes import add_remote, remove_remote, list_remotes
 
 load_dotenv()
 
@@ -107,6 +108,23 @@ def parse_args():
 
     subparser.add_argument('--all', action='store_true', help='Process all packages and versions', required=False)
 
+    #===========================================================================
+    # add-remote
+    #===========================================================================
+    subparser = subparsers.add_parser('add-remote', help='Add Conan remote')
+    subparser.add_argument('--name', type=str, help='Remote name', required=True)
+    subparser.add_argument('--url', type=str, help='Remote URL', required=True)
+
+    #===========================================================================
+    # list-remotes
+    #===========================================================================
+    subparsers.add_parser('list-remotes', help='List Conan remotes')
+
+    #===========================================================================
+    # remove-remote
+    #===========================================================================
+    subparser = subparsers.add_parser('remove-remote', help='Remove Conan remote')
+    subparser.add_argument('--name', type=str, help='Remote name', required=True)
 
     return parser.parse_args()
 
@@ -181,6 +199,12 @@ def run_conan_command(args):
         conan.clean()
     elif args.subparser_name == 'upload':
         upload_all(args.recipes_remote, args.recipes_binaries)
+    elif args.subparser_name == 'add-remote':
+        add_remote(args.name, args.url)
+    elif args.subparser_name == 'list-remotes':
+        print(list_remotes())
+    elif args.subparser_name == 'remove-remote':
+        remove_remote(args.name)
     else:
         conan.execute_conan_command(args.subparser_name, args.all)
 
@@ -214,7 +238,8 @@ if __name__ == "__main__":
     if args.output_dir:
         directories.change_output_dir(args.output_dir)
 
-    enable_debug_processors(args.enable_debug_processor)
+    if hasattr(args, 'enable_debug_processor'):
+        enable_debug_processors(args.enable_debug_processor)
 
     try:
         main(args)
