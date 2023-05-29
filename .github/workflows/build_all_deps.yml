@@ -11,85 +11,171 @@ on:
         description: Audacity Branch or Tag
         required: true
         default: master
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  SENTRY_HOST: ${{ secrets.SENTRY_HOST }}
+  SENTRY_ORG_SLUG: ${{ secrets.SENTRY_ORG_SLUG }}
+  SENTRY_PROJECT_SLUG: ${{ secrets.SENTRY_PROJECT_SLUG }}
+  ARTIFACTORY_SYMBOLS_URL: ${{ secrets.ARTIFACTORY_SYMBOLS_URL }}
+  ARTIFACTORY_SYMBOLS_KEY: ${{ secrets.ARTIFACTORY_SYMBOLS_KEY }}
+  ARTIFACTORY_MIRROR_URL: ${{ secrets.ARTIFACTORY_MIRROR_URL }}
+  CONAN_RECIPES_REMOTE: ${{ secrets.CONAN_RECIPES_REMOTE }}
+  CONAN_BINARIES_REMOTE: ${{ secrets.CONAN_BINARIES_REMOTE }}
+  CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_LOGIN_USERNAME }}
+  CONAN_PASSWORD: ${{ secrets.CONAN_PASSWORD }}
 jobs:
-  build:
-    env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_HOST: ${{ secrets.SENTRY_HOST }}
-      SENTRY_ORG_SLUG: ${{ secrets.SENTRY_ORG_SLUG }}
-      SENTRY_PROJECT_SLUG: ${{ secrets.SENTRY_PROJECT_SLUG }}
-      ARTIFACTORY_SYMBOLS_URL: ${{ secrets.ARTIFACTORY_SYMBOLS_URL }}
-      ARTIFACTORY_SYMBOLS_KEY: ${{ secrets.ARTIFACTORY_SYMBOLS_KEY }}
-      CONAN_BINARIES_REMOTE: ${{ secrets.CONAN_BINARIES_REMOTE }}
-      CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_LOGIN_USERNAME }}
-      CONAN_PASSWORD: ${{ secrets.CONAN_PASSWORD }}
+  build_linux:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
         config:
-        - name: Ubuntu_20.04
-          os: audacity-ubuntu-20.04
-          arch: x64
-          generator: Unix Makefiles
-          build_type: RelWithDebInfo
-        - name: Ubuntu_20.04_Debug
-          os: audacity-ubuntu-20.04
-          arch: x64
-          generator: Unix Makefiles
-          build_type: Debug
-
-        - name: Ubuntu_22.04
-          os: audacity-ubuntu-22.04
-          arch: x64
-          generator: Unix Makefiles
-          build_type: RelWithDebInfo
-        - name: Ubuntu_22.04_Debug
-          os: audacity-ubuntu-22.04
-          arch: x64
-          generator: Unix Makefiles
-          build_type: Debug
-
-        - name: Windows_32bit_2019
-          os: audacity-windows-latest
-          arch: x32
-          generator: Visual Studio 16 2019
-          build_type: RelWithDebInfo
-        - name: Windows_64bit_2019
-          os: audacity-windows-latest
-          arch: x64
-          generator: Visual Studio 16 2019
-          build_type: RelWithDebInfo
-
-        - name: Windows_32bit_2022
-          os: audacity-windows-latest
-          arch: x32
-          generator: Visual Studio 17 2022
-          build_type: RelWithDebInfo
-        - name: Windows_64bit_2022
-          os: audacity-windows-latest
-          arch: x64
-          generator: Visual Studio 17 2022
-          build_type: RelWithDebInfo
+        # GCC 10
+        - name: Ubuntu 20.04 x86_64 GCC 10
+          os: ubuntu-20.04
+          build_type: rel
+          gcc: 10
+        - name: Ubuntu 20.04 x86_64 GCC 10 Debug
+          os: ubuntu-20.04
+          build_type: deb
+          gcc: 10
+        # GCC 11
+        - name: Ubuntu 20.04 x86_64 GCC 11
+          os: ubuntu-20.04
+          build_type: rel
+          gcc: 11
+        - name: Ubuntu 20.04 x86_64 GCC 11 Debug
+          os: ubuntu-20.04
+          build_type: deb
+          gcc: 11
+        # GCC 12
+        - name: Ubuntu 22.04 x86_64 GCC 12
+          os: ubuntu-22.04
+          build_type: rel
+          gcc: 12
+        - name: Ubuntu 22.04 x86_64 GCC 12 Debug
+          os: ubuntu-22.04
+          build_type: deb
+          gcc: 12
+         # GCC 13
+        - name: Ubuntu 22.04 x86_64 GCC 13
+          os: ubuntu-22.04
+          build_type: rel
+          gcc: 13
+        - name: Ubuntu 22.04 x86_64 GCC 13 Debug
+          os: ubuntu-22.04
+          build_type: deb
+          gcc: 13
     steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
     - name: Checkout Audacity
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: ${{ github.event.inputs.audacity_repo }}
         ref: ${{ github.event.inputs.audacity_ref }}
-    - name: Setup dependencies
-      uses: audacity/audacity-actions/dependencies@v1
-    - name: Configure
-      uses: audacity/audacity-actions/configure@v1
-      with:
-        generator: ${{ matrix.config.generator }}
-        configuration_types: Debug;Release;RelWithDebInfo;MinSizeRel
-        build_type: ${{ matrix.config.build_type }}
-        arch: ${{ matrix.config.arch }}
-        cmake_options:
-          -Daudacity_enable_experimental_qt_support=ON
-    - name: Cleanup Conan files
+        path: audacity
+    - name: Setup Dependencies
       shell: bash
       run: |
-        conan remove "*" -f
+        sudo add-apt-repository --yes --update ppa:ubuntu-toolchain-r/test
+        sudo apt update --yes
+
+        apt_packages=(
+            # For self hosted runners
+            build-essential
+            cmake
+            # For Audacity
+            libasound2-dev
+            libgtk2.0-dev
+            libjack-jackd2-dev
+            gettext
+            python3-pip
+            libgl1-mesa-dev
+            uuid-dev
+            # For Qt building
+            libx11-dev
+            libx11-xcb-dev
+            libfontenc-dev
+            libice-dev
+            libsm-dev
+            libxau-dev
+            libxaw7-dev
+            libxcomposite-dev
+            libxcursor-dev
+            libxdamage-dev
+            libxdmcp-dev
+            libxext-dev
+            libxfixes-dev
+            libxi-dev
+            libxinerama-dev
+            libxkbfile-dev
+            libxmu-dev
+            libxmuu-dev
+            libxpm-dev
+            libxrandr-dev
+            libxrender-dev
+            libxres-dev
+            libxss-dev
+            libxt-dev
+            libxtst-dev
+            libxv-dev
+            libxvmc-dev
+            libxxf86vm-dev
+            libxcb-render0-dev
+            libxcb-render-util0-dev
+            libxcb-xkb-dev
+            libxcb-icccm4-dev
+            libxcb-image0-dev
+            libxcb-keysyms1-dev
+            libxcb-randr0-dev
+            libxcb-shape0-dev
+            libxcb-sync-dev
+            libxcb-xfixes0-dev
+            libxcb-xinerama0-dev
+            libxcb-dri3-dev
+            libxcb-util0-dev
+            # xkeyboard-config
+            xkb-data
+            # It appears that CCI M4 package does not work correctly
+            m4
+        )
+
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends "${apt_packages[@]}"
+        sudo apt-get remove -y ccache
+
+        sudo apt install --yes gcc-${{ matrix.config.gcc }} g++-${{ matrix.config.gcc }}
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{ matrix.config.gcc }} 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{ matrix.config.gcc }} 100
+        sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-${{ matrix.config.gcc }} 100
+        sudo update-alternatives --set gcc /usr/bin/gcc-${{ matrix.config.gcc }}
+        sudo update-alternatives --set g++ /usr/bin/g++-${{ matrix.config.gcc }}
+        sudo update-alternatives --set gcov /usr/bin/gcov-${{ matrix.config.gcc }}
+        gcc --version
+        g++ --version
+        gcov --version
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10.8
+        cache: 'pip'
+        cache-dependency-path: utils/requirements.txt
+    - uses: BSFishy/pip-action@v1
+      with:
+        requirements: utils/requirements.txt
+    - name: Build packages
+      shell: bash
+      run: |
+        # Create a clean Conan environment
+        python3 utils/conan-utils.py init-env --clean
+        # Add the Conan remote
+        python3 utils/conan-utils.py add-remote --name conan-utils-audacity-binaries-conan2 --url ${CONAN_BINARIES_REMOTE}
+        # Export recipes, this way we ensure that the updated recipes will overwrite the old ones
+        python3 utils/conan-utils.py export-recipes
+        # Build the packages
+        python3 utils/conan-utils.py install --allow-build --profile-host host_gcc${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }}
+
+
