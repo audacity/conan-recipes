@@ -35,6 +35,7 @@ def handle_build_completed(package_reference:PackageReference, source_dir: str, 
         print(f'No build directory found for {package_reference}')
         return
 
-    print(f'Processing debug info for {package_reference} ({source_dir}, {build_dir})')
-    for processor in __debug_processors:
-        processor.process(package_reference, source_dir, build_dir)
+    if os.path.isdir(build_dir):
+        print(f'Processing debug info for {package_reference} ({source_dir}, {build_dir})')
+        for processor in __debug_processors:
+            processor.process(package_reference, source_dir, build_dir)
