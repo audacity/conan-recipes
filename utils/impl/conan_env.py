@@ -3,7 +3,7 @@ import os
 import subprocess
 from impl import utils
 from impl.config import directories
-import shutil
+from impl.files import safe_rm_tree
 
 
 class ConanEnv:
@@ -66,12 +66,15 @@ def create_conan_environment(clean=False):
             raise RuntimeError(f"Conan environment already exists at {env_path}")
 
         print(f"Removing Conan environment at {env_path}")
-        shutil.rmtree(env_path)
+        safe_rm_tree(env_path)
 
     home_path = directories.conan_home_dir
 
-    if not os.path.exists(home_path):
-        os.makedirs(home_path, exist_ok=True)
+    if os.path.exists(home_path) and clean:
+        print(f"Removing Conan home at {home_path}")
+        safe_rm_tree(home_path)
+
+    os.makedirs(home_path, exist_ok=True)
 
     print(f"Creating Conan environment at {env_path}, home at {home_path}")
     builder = ConanEnvBuilder(with_pip=True)

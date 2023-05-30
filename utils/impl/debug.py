@@ -23,8 +23,16 @@ def finalize_debug_processors():
     for processor in __debug_processors:
         processor.finalize()
 
+def discard_debug_data():
+    for processor in __debug_processors:
+        processor.discard()
+
 def handle_build_completed(package_reference:PackageReference, source_dir: str, build_dir: str):
+    print(f'Processing debug info for {package_reference} ({source_dir}, {build_dir})')
     if len(__debug_processors) == 0:
+        return
+
+    if not build_dir:
         return
 
     if type(build_dir) is list:

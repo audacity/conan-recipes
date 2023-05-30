@@ -128,7 +128,7 @@ class ConanRecipe:
         try:
             nodes = json.loads(install_output)['graph']['nodes']
 
-            for node in nodes:
+            for node in nodes.values():
                 if str(self.reference) in node['ref']:
                     return node['package_id']
 
@@ -147,7 +147,7 @@ class ConanRecipe:
     def __get_cache_source_folder(self, package_id:str):
         try:
             return subprocess.check_output([
-                get_conan(), 'cache', 'path', f'{self.reference}:{package_id}', '--folder=source'
+                get_conan(), 'cache', 'path', f'{self.reference}', '--folder=source'
                 ]).decode('utf-8').strip()
         except subprocess.CalledProcessError:
             return None
