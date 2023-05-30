@@ -59,7 +59,7 @@ class BreakpadConan(ConanFile):
             self.requires('libcurl/7.82.0@audacity/stable')
 
         if self.needs_linux_syscall_support:
-            self.requires('linux-syscall-support/cci.20200813@audacity/stable')
+            self.requires('linux-syscall-support/cci.20200813@audacity/stable', visible=False)
 
     def build(self):
         cmake = CMake(self)
