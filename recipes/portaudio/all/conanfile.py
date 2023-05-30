@@ -80,6 +80,9 @@ class ConanRecipe(ConanFile):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
         apply_conandata_patches(self)
 
+        if not os.path.exists(os.path.join(self.source_folder, "cmake_support", "FindOSS.cmake")):
+           copy(self, "FindOSS.cmake", os.path.join(self.export_sources_folder, "cmake_support"), os.path.join(self.source_folder, "cmake_support"))
+
     def generate(self):
         if self.options.get_safe('with_asio'):
             self.output.write("ASIO requires that Steinberg ASIO SDK Licensing Agreement Version 2.0.1 is signed\n")
