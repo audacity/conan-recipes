@@ -15,6 +15,7 @@ config:
     &:use_vorbis=True
     &:use_libsndfile=True
     &:use_portaudio=True
+    &:use_jack=True
     &:use_threadpool=True
     &:use_libcurl=True
     &:use_rapidjson=True
