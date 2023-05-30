@@ -36,7 +36,7 @@ class BreakpadConan(ConanFile):
         if self.needs_linux_syscall_support:
             copy(self,
                  "*.h",
-                 src=self.dependencies["linux-syscall-support"].cpp_info.includedirs[0],
+                 src=self.dependencies.build["linux-syscall-support"].cpp_info.includedirs[0],
                  dst=os.path.join(self.source_folder, "src", "third_party", "lss"), keep_path=False)
 
         tc = CMakeToolchain(self)
@@ -59,7 +59,7 @@ class BreakpadConan(ConanFile):
             self.requires('libcurl/7.82.0@audacity/stable')
 
         if self.needs_linux_syscall_support:
-            self.requires('linux-syscall-support/cci.20200813@audacity/stable', visible=False)
+            self.requires('linux-syscall-support/cci.20200813@audacity/stable', visible=False, build=True)
 
     def build(self):
         cmake = CMake(self)
