@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import traceback
 
 import yaml
 from dotenv import load_dotenv
@@ -10,19 +11,21 @@ from impl.package_reference import PackageReference
 from impl.profiles import ConanProfiles
 from impl.update_mirror import update_mirror
 from impl.upload import upload_all
-from impl.debug import enable_debug_processors, finalize_debug_processors
+from impl.debug import enable_debug_processors, finalize_debug_processors, discard_debug_data
 from impl.remotes import add_remote, remove_remote, list_remotes
 
 load_dotenv()
 
-def add_common_build_options(parser):
+def add_common_build_options(parser, allow_single_package=True):
     parser.add_argument('--profile-build', type=str, help='Conan build profile', required=False)
     parser.add_argument('--profile-host', type=str, help='Conan host profile', required=True)
-    parser.add_argument('--package', type=str, help='Package name', required=False)
-    parser.add_argument('--version', type=str, help='Package version', required=False)
     parser.add_argument('--keep-sources', action='store_true', help='Do not clean up sources after building')
     parser.add_argument('--build-order', type=str, help='Path to file with build order. Relative paths are resolved against config directory', required=False)
     parser.add_argument('--enable-debug-processor', action='append', help='Enable specific debug processor (symstore, sentry)', required=False)
+
+    if allow_single_package:
+        parser.add_argument('--package', type=str, help='Package name', required=False)
+        parser.add_argument('--version', type=str, help='Package version', required=False)
 
 def add_conan_command(subparser, name, description):
     subparser = subparser.add_parser(name, help=description)
@@ -126,6 +129,15 @@ def parse_args():
     subparser = subparsers.add_parser('remove-remote', help='Remove Conan remote')
     subparser.add_argument('--name', type=str, help='Remote name', required=True)
 
+    #===========================================================================
+    # validate-recipes
+    #===========================================================================
+    subparser = subparsers.add_parser('validate-recipe', help='Fill the cache with the build order and validates that recipe can consume all dependencies without building')
+    add_common_build_options(subparser, allow_single_package=False)
+    subparser.add_argument('--remote', action='append', help='Conan remote', required=False)
+    subparser.add_argument('--recipe', type=str, help='Path to the recipe', required=True)
+    subparser.add_argument('--recipe-config', type=str, help='Path to the config file for the recipe', required=True)
+
     return parser.parse_args()
 
 def get_profiles(args):
@@ -205,6 +217,10 @@ def run_conan_command(args):
         print(list_remotes())
     elif args.subparser_name == 'remove-remote':
         remove_remote(args.name)
+    elif args.subparser_name == 'validate-recipe':
+        conan.execute_conan_command('export-recipes', False)
+        conan.install_all(get_build_order(args), get_profiles(args), args.remote, True, False)
+        conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, False, False)
     else:
         conan.execute_conan_command(args.subparser_name, args.all)
 
@@ -244,7 +260,8 @@ if __name__ == "__main__":
     try:
         main(args)
     except Exception as e:
-        print('Error: {}'.format(e))
+        discard_debug_data()
+        traceback.print_exc()
         sys.exit(1)
     finally:
         finalize_debug_processors()

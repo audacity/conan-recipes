@@ -35,3 +35,6 @@ class DebugProcessor:
     def finalize(self):
         pass
 
+    def discard(self):
+        pass
+

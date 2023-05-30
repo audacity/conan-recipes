@@ -73,6 +73,10 @@ class SymstoreProcessor(DebugProcessor):
                 self.__upload_file(f'{entry.file_name}/{entry.file_hash}/{file}', os.path.join(entry_path, file))
         safe_rm_tree(self.symstore_dir)
 
+    def discard(self):
+        print('Discarding symstore transaction')
+        safe_rm_tree(self.symstore_dir)
+
     def __download_file(self, file:str):
         response = self.session.get(f'{self.symstore_url}/{file}', stream=True, allow_redirects=True)
         if response.status_code != 200:

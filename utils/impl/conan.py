@@ -8,6 +8,7 @@ from impl.conan_recipe_store import get_recipe, get_recipe_stores
 from impl.config import directories
 from impl.package_reference import PackageReference
 from impl.profiles import ConanProfiles
+from impl.debug import handle_build_completed
 
 
 def execute_conan_command(command:str, all:bool):
@@ -76,13 +77,11 @@ def install_recipe(recipe_path:str, config_path:str, profiles:ConanProfiles, rem
 
         cmd += [recipe_path]
         print(cmd)
-        source_dirs = []
-        build_dirs = []
 
         dependecies_graph = json.loads(subprocess.check_output(cmd))['graph']['nodes']
 
-        for node in dependecies_graph:
-            if node['id'] == 0:
+        for node in dependecies_graph.values():
+            if node['id'] == '0':
                 continue
 
             ref = node['ref']
@@ -91,15 +90,9 @@ def install_recipe(recipe_path:str, config_path:str, profiles:ConanProfiles, rem
             print(f'Collecting directories for {ref}:{package_id}')
 
             source_dir = subprocess.check_output([utils.get_conan(), 'cache', 'path', '--folder', 'source', ref]).decode('utf-8').strip()
-            if os.path.exists(source_dir):
-                source_dirs.append(source_dir)
-
             build_dir = subprocess.check_output([utils.get_conan(), 'cache', 'path', '--folder', 'build', f'{ref}:{package_id}']).decode('utf-8').strip()
-            if os.path.exists(build_dir):
-                build_dirs.append(build_dir)
 
-        print(source_dirs)
-        print(build_dirs)
+            handle_build_completed(PackageReference(package_reference=ref), source_dir, build_dir)
     finally:
         print('Cleaning cache...')
         if not keep_sources:
