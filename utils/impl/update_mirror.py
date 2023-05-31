@@ -1,13 +1,14 @@
 import os
 import yaml
 
-from hashlib import sha256, sha1, md5
-from requests import Session, get, head
+from requests import get
+from hashlib import sha256
+
+from impl.arifactory import ArtifactoryInstance
 
 from impl.config import directories
 from impl.conan_recipe_store import get_recipe_stores
 from impl.files import safe_rm_tree
-from impl.net import BearerAuth
 
 
 class SourcesElement:
@@ -85,31 +86,7 @@ def download_from_mirrors(name:str, version:str, urls:list[str], checksum:str):
 
     return None
 
-def upload_to_mirror(session:Session, url:str, filepath:str):
-    sha1_hasher = sha1()
-    sha256_hasher = sha256()
-    md5_hasher = md5()
-
-    with open(filepath, 'rb') as f:
-        while chunk := f.read(8192):
-            sha1_hasher.update(chunk)
-            sha256_hasher.update(chunk)
-            md5_hasher.update(chunk)
-
-    with open(filepath, 'rb') as f:
-        response = session.put(url, data=f, headers={
-            'Content-Type': 'application/octet-stream',
-            'X-Checksum-Sha256': sha256_hasher.hexdigest(),
-            'X-Checksum-Sha1': sha1_hasher.hexdigest(),
-            'X-Checksum-Md5': md5_hasher.hexdigest()})
-        if response.status_code != 201:
-            print(f"Failed to upload file to {url}: {response.text}")
-            return None
-        else:
-            return response.json()['downloadUri']
-
-
-def handle_single_version(name:str, conandata_path:str, version:str, remote:str, session:Session):
+def handle_single_version(name:str, conandata_path:str, version:str, remote:str, artifactory:ArtifactoryInstance):
     if not os.path.exists(conandata_path):
         print(f"Conandata `{conandata_path}` does not exist, skipping...")
         return
@@ -146,16 +123,17 @@ def handle_single_version(name:str, conandata_path:str, version:str, remote:str,
         if not path:
             print(f"Failed to download file for version {version}, skipping...")
             continue
-        mirror_url = f'{remote if remote.endswith("/") else remote + "/"}{name}/{version}/{os.path.basename(path)}'
+        mirror_url = f'{name}/{version}/{os.path.basename(path)}'
 
-        response = head(mirror_url)
-        if response.status_code != 200:
-            mirror_url = upload_to_mirror(session, mirror_url, path)
-            if not mirror_url:
-                print(f"Failed to upload file for version {version}, skipping...")
+        if not artifactory.file_exists(mirror_url):
+            try:
+                mirror_url = artifactory.upload_file(mirror_url, path)
+            except Exception as e:
+                print(f"Failed to upload file for version {version}, skipping... ({e}))")
                 continue
         else:
             print(f"File already exists in mirror, skipping upload...")
+            mirror_url = artifactory.get_file_url(mirror_url)
 
         if element.has_mirror_url(mirror_url):
             print(f"Mirror URL already exists in conandata, skipping...")
@@ -183,26 +161,16 @@ def update_mirror(remote:str, username:str, password:str, key:str, all:False):
         if not remote:
             raise Exception("No remote specified and ARTIFACTORY_MIRROR_URL is not set")
 
-    session = Session()
-
-    if not username:
-        if not key:
-            key = os.environ.get('ARTIFACTORY_API_KEY', os.environ.get('ARTIFACTORY_SYMBOLS_KEY', None))
-
-            if not key:
-                raise Exception("No username or key specified and ARTIFACTORY_API_KEY is not set")
-        session.auth = BearerAuth(key)
-    else:
-        session.auth = (username, password)
+    artifactory = ArtifactoryInstance(remote, username=username, password=password, key=key)
 
     try:
         for recipe_store in get_recipe_stores(with_config_only=not all):
             if all:
                 for version in recipe_store.versions.keys():
                     conandata_path = os.path.join(recipe_store.get_recipe_folder(version), 'conandata.yml')
-                    handle_single_version(recipe_store.name, conandata_path, version, remote, session)
+                    handle_single_version(recipe_store.name, conandata_path, version, remote, artifactory)
             else:
                 conandata_path = os.path.join(recipe_store.get_recipe_folder(recipe_store.default_version), 'conandata.yml')
-                handle_single_version(recipe_store.name, conandata_path, recipe_store.default_version, remote, session)
+                handle_single_version(recipe_store.name, conandata_path, recipe_store.default_version, remote, artifactory)
     finally:
         safe_rm_tree(directories.temp_dir)

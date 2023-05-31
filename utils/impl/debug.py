@@ -5,14 +5,14 @@ from impl.debug_processor import create_debug_processor, load_processors
 
 __debug_processors = []
 
-def enable_debug_processors(processors:list[str]):
+def enable_debug_processors(processors:list[str], skip_upload:bool):
     if not processors:
         return
 
     load_processors()
 
     for processor in processors:
-        processor = create_debug_processor(processor)
+        processor = create_debug_processor(processor, skip_upload)
         if not processor:
             print(f'Unknown debug processor {processor}')
             continue
