@@ -3,12 +3,13 @@ import os
 import subprocess
 import yaml
 
-from impl import cache, utils
+from impl import utils
 from impl.conan_recipe_store import get_recipe, get_recipe_stores
 from impl.config import directories
 from impl.package_reference import PackageReference
 from impl.profiles import ConanProfiles
 from impl.debug import handle_build_completed
+from impl import conan_cache
 
 
 def execute_conan_command(command:str, all:bool):
@@ -25,7 +26,7 @@ def build_package(package_reference:PackageReference, profiles: ConanProfiles, e
         if export_recipe:
             recipe.export()
 
-        sources_location = cache.get_cache_path_source(package_reference)
+        sources_location = conan_cache.get_cache_path_source(package_reference)
         retrieve_sources = not os.path.isdir(sources_location)
 
         if retrieve_sources:
@@ -33,7 +34,7 @@ def build_package(package_reference:PackageReference, profiles: ConanProfiles, e
 
         recipe.build(profiles)
     finally:
-        cache.clean_cache(package_reference, sources=retrieve_sources and not keep_sources)
+        conan_cache.clean_cache(package_reference, sources=retrieve_sources and not keep_sources)
 
 
 def build_all(build_order:list[str], profiles:ConanProfiles, export_recipes:bool=False, keep_sources:bool=False):
@@ -109,7 +110,7 @@ def install_package(package_reference:PackageReference, profiles:ConanProfiles, 
         recipe.export()
         recipe.install(profiles, remotes, allow_build)
     finally:
-        cache.clean_cache(package_reference, sources=not keep_sources)
+        conan_cache.clean_cache(package_reference, sources=not keep_sources)
 
 
 def install_all(build_order:list[str], profiles:ConanProfiles, remotes:list[str], allow_build:bool, keep_sources:bool):

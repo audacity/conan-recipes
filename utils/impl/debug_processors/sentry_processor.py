@@ -12,7 +12,10 @@ from impl.config import directories
 from impl.files import safe_rm_tree
 
 class SentryProcessor(DebugProcessor):
-    def activate(self):
+    def __init__(self, skip_upload:bool):
+        self.skip_upload = skip_upload
+
+    def activate(self, directory:str=None):
         try:
             subprocess.check_output(['sentry-cli', '--version'])
         except FileNotFoundError:
@@ -42,7 +45,10 @@ class SentryProcessor(DebugProcessor):
             print('SENTRY_PROJECT_SLUG not set, skipping')
             return False
 
-        self.sentry_dir = os.path.join(directories.temp_dir, 'sentry')
+        if directory:
+            self.sentry_dir = directory
+        else:
+            self.sentry_dir = os.path.join(directories.temp_dir, 'debug_processors', 'sentry')
 
         return True
 
@@ -130,7 +136,8 @@ class SentryProcessor(DebugProcessor):
             print('sentry-cli failed with exit code', e.returncode)
 
     def finalize(self):
-        input('Press enter to upload debug symbols to Sentry')
+        if self.skip_upload:
+            return
         self.__upload_to_sentry(self.sentry_dir)
         safe_rm_tree(self.sentry_dir)
 
@@ -138,4 +145,4 @@ class SentryProcessor(DebugProcessor):
         print('Discarding debug symbols for Sentry')
         safe_rm_tree(self.sentry_dir)
 
-register_debug_processor('sentry', lambda: SentryProcessor())
+register_debug_processor('sentry', lambda skip_upload: SentryProcessor(skip_upload))

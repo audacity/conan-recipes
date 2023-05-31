@@ -16,7 +16,11 @@ from impl.net import BearerAuth
 class SymstoreProcessor(DebugProcessor):
     entries = []
 
-    def activate(self):
+    def __init__(self, skip_upload:bool):
+        self.skip_upload = skip_upload
+
+
+    def activate(self, directory:str=None):
         if sys.platform != 'win32':
             return False
 
@@ -34,7 +38,11 @@ class SymstoreProcessor(DebugProcessor):
         self.session = Session()
         self.session.auth = BearerAuth(self.symstore_key)
 
-        self.symstore_dir = os.path.join(directories.temp_dir, 'debug_processors', 'symstore')
+        if directory:
+            self.symstore_dir = directory
+        else:
+            self.symstore_dir = os.path.join(directories.temp_dir, 'debug_processors', 'symstore')
+
         if not os.path.exists(self.symstore_dir):
             os.makedirs(self.symstore_dir)
 
@@ -67,6 +75,8 @@ class SymstoreProcessor(DebugProcessor):
             self.symstore.commit(transaction)
 
     def finalize(self):
+        if self.skip_upload:
+            return
         for entry in self.entries:
             entry_path = os.path.join(self.symstore_dir, entry.file_name, entry.file_hash)
             for file in os.listdir(entry_path):
@@ -94,4 +104,4 @@ class SymstoreProcessor(DebugProcessor):
                 print(f'Failed to upload {file}: {response.status_code} {response.text}')
 
 
-register_debug_processor('symstore', lambda: SymstoreProcessor())
+register_debug_processor('symstore', lambda skip_upload: SymstoreProcessor(skip_upload))

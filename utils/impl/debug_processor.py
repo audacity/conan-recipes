@@ -6,11 +6,11 @@ __processors = {}
 def register_debug_processor(processor_name:str, factory:callable):
     __processors[processor_name] = factory
 
-def create_debug_processor(processor_name:str):
+def create_debug_processor(processor_name:str, skip_upload:bool):
     if processor_name not in __processors:
         raise ValueError(f'Unknown debug processor {processor_name}')
 
-    return __processors[processor_name]()
+    return __processors[processor_name](skip_upload)
 
 @cache
 def load_processors():
