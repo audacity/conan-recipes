@@ -151,11 +151,97 @@ jobs:
       shell: bash
       run: |
         python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }}
+  build_windows:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: MSVC 2019 x86_64 Release
+          os: windows-2019
+          build_type: rel
+          compiler: msvc2019
+          arch: x86_64
+          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
+        - name: MSVC 2019 x86_64 Release
+          os: windows-2019
+          build_type: deb
+          compiler: msvc2019
+          arch: x86_64
+          install_args: ''
+        - name: MSVC 2019 x86 Release
+          os: windows-2019
+          build_type: rel
+          compiler: msvc2019
+          arch: x86
+          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
+        - name: MSVC 2019 x86 Release
+          os: windows-2019
+          build_type: deb
+          compiler: msvc2019
+          arch: x86
+          install_args: ''
+        - name: MSVC 2022 x86_64 Release
+          os: windows-2022
+          build_type: rel
+          compiler: msvc2022
+          arch: x86_64
+          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
+        - name: MSVC 2022 x86_64 Release
+          os: windows-2022
+          build_type: deb
+          compiler: msvc2022
+          arch: x86_64
+          install_args: ''
+        - name: MSVC 2022 x86 Release
+          os: windows-2022
+          build_type: rel
+          compiler: msvc2022
+          arch: x86
+          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
+        - name: MSVC 2022 x86 Release
+          os: windows-2022
+          build_type: deb
+          compiler: msvc2022
+          arch: x86
+          install_args: ''
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+    - name: Checkout Audacity
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ github.event.inputs.audacity_repo }}
+        ref: ${{ github.event.inputs.audacity_ref }}
+        path: audacity
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10.8
+        cache: 'pip'
+        cache-dependency-path: utils/requirements.txt
+    - uses: BSFishy/pip-action@v1
+      with:
+        requirements: utils/requirements.txt
+    - name: Setup Environment
+      shell: bash
+      run: |
+        python3 utils/conan-utils.py init-env --clean
+        python3 utils/conan-utils.py add-remote --name conan-utils-audacity-binaries-conan2 --url ${CONAN_BINARIES_REMOTE}
+    - name: Validate Audacity 3 Recipe
+      shell: bash
+      run: |
+        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compier }}_${{ matrix.config.arch }}_${{ matrix.config.build_type }} --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
+    - name: Upload to Cache
+      shell: bash
+      run: |
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ${{ matrix.config.compier }}_${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }}
 
   update_conan_remotes:
     name: Update Conan remotes
     runs-on: ubuntu-22.04
-    needs: [build_linux]
+    needs: [build_linux, build_windows]
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -177,7 +263,7 @@ jobs:
   cleanup_remote_cache:
     name: Cleanup Remote Cache
     runs-on: ubuntu-22.04
-    needs: [build_linux, update_conan_remotes]
+    needs: [build_linux, build_windows, update_conan_remotes]
     if: always() && !cancelled()
     steps:
     - name: Checkout Repo
