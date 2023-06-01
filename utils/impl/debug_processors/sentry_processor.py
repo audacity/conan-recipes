@@ -110,13 +110,20 @@ class SentryProcessor(DebugProcessor):
                 continue
 
             output_file = os.path.join(output_dir, path.name)
-            shutil.copy2(path, output_file)
-
-            self.__create_source_bundle(output_file)
+            try:
+                shutil.copy2(path, output_file)
+                self.__create_source_bundle(output_file)
+            except subprocess.CalledProcessError as e:
+                print('sentry-cli failed with exit code', e.returncode)
+            except Exception as e:
+                print(f'Failed to copy {path} to {output_file}: {e}')
 
         for path in Path(build_dir).rglob('*.dll'):
             output_file = os.path.join(output_dir, path.name)
-            shutil.copy2(path, output_file)
+            try:
+                shutil.copy2(path, output_file)
+            except Exception as e:
+                print(f'Failed to copy {path} to {output_file}: {e}')
 
     def process(self, package_reference:PackageReference, source_dir: str, build_dir: str):
         print('Discovering debug symbols for', package_reference)
