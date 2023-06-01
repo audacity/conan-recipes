@@ -164,7 +164,7 @@ jobs:
           compiler: msvc2019
           arch: x86_64
           install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2019 x86_64 Release
+        - name: MSVC 2019 x86_64 Debug
           os: windows-2019
           build_type: deb
           compiler: msvc2019
@@ -176,7 +176,7 @@ jobs:
           compiler: msvc2019
           arch: x86
           install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2019 x86 Release
+        - name: MSVC 2019 x86 Debug
           os: windows-2019
           build_type: deb
           compiler: msvc2019
@@ -188,7 +188,7 @@ jobs:
           compiler: msvc2022
           arch: x86_64
           install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2022 x86_64 Release
+        - name: MSVC 2022 x86_64 Debug
           os: windows-2022
           build_type: deb
           compiler: msvc2022
@@ -200,7 +200,7 @@ jobs:
           compiler: msvc2022
           arch: x86
           install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2022 x86 Release
+        - name: MSVC 2022 x86 Debug
           os: windows-2022
           build_type: deb
           compiler: msvc2022
