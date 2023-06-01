@@ -146,7 +146,7 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py validate-recipe --profile-host host_gcc${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }} --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/gcc${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }} --profile-build build/gcc${{ matrix.config.gcc }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
     - name: Upload to Cache
       shell: bash
       run: |
