@@ -232,11 +232,11 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compier }}_${{ matrix.config.arch }}_${{ matrix.config.build_type }} --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compiler }}_${{ matrix.config.arch }}_${{ matrix.config.build_type }} --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
     - name: Upload to Cache
       shell: bash
       run: |
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ${{ matrix.config.compier }}_${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }}
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ${{ matrix.config.compiler }}_${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }}
 
   update_conan_remotes:
     name: Update Conan remotes
