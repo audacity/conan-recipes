@@ -9,6 +9,7 @@ from impl.files import safe_rm_tree
 class ConanEnv:
     old_env_path = None
     old_home_path = None
+    old_pycache_path = None
 
     def __init__(self, env_path=None, home_path=None):
         self.env_path = env_path
@@ -25,6 +26,8 @@ class ConanEnv:
             if os.path.exists(expected_path):
                 self.home_path = expected_path
 
+        self.pycache_path = os.path.join(directories.temp_dir, 'pycache')
+
     def __enter__(self):
         if self.env_path and 'VIRTUAL_ENV' in os.environ:
             self.old_env_path = os.environ['VIRTUAL_ENV']
@@ -32,10 +35,15 @@ class ConanEnv:
         if self.home_path and 'CONAN_HOME' in os.environ:
             self.old_home_path = os.environ['CONAN_HOME']
 
+        if self.pycache_path and 'PYTHONPYCACHEPREFIX' in os.environ:
+            self.old_pycache_path = os.environ['PYTHONPYCACHEPREFIX']
+
         if self.env_path:
             os.environ['VIRTUAL_ENV'] = self.env_path
         if self.home_path:
             os.environ['CONAN_HOME'] = self.home_path
+        if self.pycache_path:
+            os.environ['PYTHONPYCACHEPREFIX'] = self.pycache_path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.env_path:
@@ -49,6 +57,12 @@ class ConanEnv:
                 os.environ['CONAN_HOME'] = self.old_home_path
             else:
                 del os.environ['CONAN_HOME']
+
+        if self.pycache_path:
+            if self.old_pycache_path:
+                os.environ['PYTHONPYCACHEPREFIX'] = self.old_pycache_path
+            else:
+                del os.environ['PYTHONPYCACHEPREFIX']
 
 
 class ConanEnvBuilder(venv.EnvBuilder):
