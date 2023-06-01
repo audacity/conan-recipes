@@ -6,7 +6,7 @@ from impl.arifactory import ArtifactoryInstance
 from impl.files import safe_rm_tree
 from impl.conan_env import ConanEnv
 from impl.upload import upload_all
-from impl.debug_processor import create_debug_processor
+from impl.debug_processor import create_debug_processor, load_processors
 
 def get_artifactory(remote:str, username:str, password:str, key:str):
     if not remote:
@@ -62,6 +62,8 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
     artifactory = get_artifactory(remote, username=username, password=password, key=key)
     entries = artifactory.list_files(group_id)
 
+    load_processors()
+
     for entry in entries:
         local_path = os.path.join(directories.temp_dir, entry)
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
@@ -86,9 +88,12 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
             if os.path.exists(debug_dir):
                 print(f'Processing debug symbols in {debug_dir}')
                 for entry in os.listdir(debug_dir):
-                    debug_processor = create_debug_processor(entry, False)
-                    if debug_processor.activate(os.path.join(debug_dir, entry)):
-                        debug_processor.finalize()
+                    try:
+                        debug_processor = create_debug_processor(entry, False)
+                        if debug_processor.activate(os.path.join(debug_dir, entry)):
+                            debug_processor.finalize()
+                    except Exception as e:
+                        print(f'Error processing debug symbols in {entry}: {e}')
         finally:
             directories.conan_home_dir = old_conan_home_dir
             safe_rm_tree(cache_dir)
