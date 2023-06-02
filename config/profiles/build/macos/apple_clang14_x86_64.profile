@@ -8,5 +8,4 @@ compiler.libcxx = libc++
 compiler.cppstd = 17
 build_type = Release
 [options]
-*:shared=True
 catch2/*:no_std_unchaught_exceptions=True
