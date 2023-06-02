@@ -68,8 +68,12 @@ class SymstoreProcessor(DebugProcessor):
             if entry.exists():
                 continue
             print(f'Adding {path} to symstore')
-            transaction.add_entry(entry)
-            self.entries.append(entry)
+
+            try:
+                transaction.add_entry(entry)
+                self.entries.append(entry)
+            except Exception as e:
+                print(f'Failed to add {path} to symstore: {e}')
 
         if len(transaction.entries) > 0:
             self.symstore.commit(transaction)
