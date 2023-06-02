@@ -113,9 +113,6 @@ class CrashpadConan(ConanFile):
     def _build_context(self):
         compiler_defaults = Environment()
 
-        for require, dependency in self.dependencies.items():
-            self.output.info("Dependency is direct={}: {}".format(require.direct, dependency.ref))
-
         compiler_defaults.append_path("PATH", self.dependencies.build["gn"].buildenv_info.vars(self)["PATH"])
 
         if self.settings.compiler != "msvc":
@@ -229,8 +226,9 @@ class CrashpadConan(ConanFile):
 
     def build(self):
         with chdir(self, self.source_folder):
-            gn_args = load(self, os.path.join(self.build_folder, "gn_args.txt"))
-            self.run(f'gn gen ../build --args="{gn_args}"')
+            with self._build_context():
+                gn_args = load(self, os.path.join(self.build_folder, "gn_args.txt"))
+                self.run(f'gn gen ../build --args="{gn_args}"')
         with chdir(self, self.build_folder):
             targets = load(self, os.path.join(self.build_folder, "targets.txt"))
             self.run(f"ninja -C . {targets}")
