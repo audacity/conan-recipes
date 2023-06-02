@@ -64,7 +64,12 @@ class SymstoreProcessor(DebugProcessor):
         for path in Path(build_dir).rglob('*.pdb'):
             if re.fullmatch(r'vc[0-9]+\.pdb', path.name):
                 continue
-            entry = transaction.new_entry(path, cab.compress)
+            try:
+                entry = transaction.new_entry(path, cab.compress)
+            except Exception as e:
+                print(f'Failed to create symstore entry for {path}: {e}')
+                continue
+
             if entry.exists():
                 continue
             print(f'Adding {path} to symstore')
