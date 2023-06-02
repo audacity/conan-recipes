@@ -7,5 +7,3 @@ compiler.runtime = dynamic
 compiler.runtime_type = Release
 compiler.cppstd = 17
 build_type = Release
-[options]
-*:shared=True
