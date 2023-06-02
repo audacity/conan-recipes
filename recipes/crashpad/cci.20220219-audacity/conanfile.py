@@ -220,7 +220,7 @@ class CrashpadConan(ConanFile):
                     save(self, dot_gn, gn)
 
             with chdir(self, self.source_folder):
-                self.run("gn gen ../build --args=\"{}\"".format(" ".join(gn_args)))
+                save(self, os.path.join(self.build_folder, "gn_args.txt"), " ".join(gn_args))
                 targets = ["client", "minidump", "crashpad_handler", "snapshot"]
                 if self.settings.os == "Windows":
                     targets.append("crashpad_handler_com")
@@ -228,6 +228,9 @@ class CrashpadConan(ConanFile):
 
 
     def build(self):
+        with chdir(self, self.source_folder):
+            gn_args = load(self, os.path.join(self.build_folder, "gn_args.txt"))
+            self.run(f'gn gen ../build --args="{gn_args}"')
         with chdir(self, self.build_folder):
             targets = load(self, os.path.join(self.build_folder, "targets.txt"))
             self.run(f"ninja -C . {targets}")
