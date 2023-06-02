@@ -59,6 +59,10 @@ class SymstoreProcessor(DebugProcessor):
         return True
 
     def process(self, package_reference:PackageReference, source_dir: str, build_dir: str):
+        if package_reference.is_build_tool:
+            print(f'Skipping symstore upload for build tool {package_reference}')
+            return
+
         transaction = self.symstore.new_transaction(package_reference.name, package_reference.version, None)
 
         for path in Path(build_dir).rglob('*.pdb'):
