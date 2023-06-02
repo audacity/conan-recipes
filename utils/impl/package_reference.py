@@ -28,6 +28,8 @@ class PackageReference:
                 self.reference = f'{package_name}/{package_version}@{package_user}/{package_channel}'
             else:
                 self.reference = f'{package_name}/{package_version}'
+
+            self.is_build_tool = package_config and 'build_tool' in package_config and package_config['build_tool']
         else:
             self.reference = package_reference
 

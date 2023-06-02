@@ -126,6 +126,10 @@ class SentryProcessor(DebugProcessor):
                 print(f'Failed to copy {path} to {output_file}: {e}')
 
     def process(self, package_reference:PackageReference, source_dir: str, build_dir: str):
+        if package_reference.is_build_tool:
+            print(f'Skipping debug symbols for build tool {package_reference}')
+            return
+
         print('Discovering debug symbols for', package_reference)
 
         temp_dir = os.path.join(self.sentry_dir, package_reference.name, package_reference.version)
