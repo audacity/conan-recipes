@@ -162,10 +162,10 @@ class CrashpadConan(ConanFile):
             tc = AutotoolsToolchain(self)
             tc.generate()
 
-            AutotoolsDeps(self).generate()
+            # AutotoolsDeps(self).generate()
 
-            if is_msvc(self):
-                VCVars(self).generate()
+            #if is_msvc(self):
+            #   VCVars(self).generate()
 
             if is_msvc(self):
                 replace_in_file(self, os.path.join(self.source_folder, "third_party", "zlib", "BUILD.gn"),
@@ -225,13 +225,13 @@ class CrashpadConan(ConanFile):
 
 
     def build(self):
-        with chdir(self, self.source_folder):
-            with self._build_context():
-                gn_args = load(self, os.path.join(self.build_folder, "gn_args.txt"))
-                self.run(f'gn gen ../build --args="{gn_args}"')
-        with chdir(self, self.build_folder):
-            targets = load(self, os.path.join(self.build_folder, "targets.txt"))
-            self.run(f"ninja -C . {targets}")
+        with self._build_context():
+            with chdir(self, self.source_folder):
+                    gn_args = load(self, os.path.join(self.build_folder, "gn_args.txt"))
+                    self.run(f'gn gen ../build --args="{gn_args}"')
+            with chdir(self, self.build_folder):
+                targets = load(self, os.path.join(self.build_folder, "targets.txt"))
+                self.run(f"ninja -C . {targets}")
 
         def lib_filename(name):
             prefix, suffix = ("", ".lib")  if is_msvc(self) else ("lib", ".a")
