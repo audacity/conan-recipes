@@ -1,6 +1,6 @@
 [settings]
 os = Macos
-os.version=11
+os.version=11.0
 arch = armv8
 compiler = apple-clang
 compiler.version = 13
