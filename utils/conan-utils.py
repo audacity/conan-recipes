@@ -148,6 +148,7 @@ def parse_args():
     subparser.add_argument('--remote', action='append', help='Conan remote', required=False)
     subparser.add_argument('--recipe', type=str, help='Path to the recipe', required=True)
     subparser.add_argument('--recipe-config', type=str, help='Path to the config file for the recipe', required=True)
+    subparser.add_argument('--export-recipes', action='store_true', help='Export recipes to Conan cache before building')
 
     #===========================================================================
     # store-cache
@@ -256,7 +257,8 @@ def run_conan_command(args):
     elif args.subparser_name == 'remove-remote':
         remove_remote(args.name)
     elif args.subparser_name == 'validate-recipe':
-        conan.execute_conan_command('export-recipes', False)
+        if args.export_recipes:
+            conan.execute_conan_command('export-recipes', False)
         conan.install_all(get_build_order(args), get_profiles(args), args.remote, True, False)
         conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, False, False)
     else:
