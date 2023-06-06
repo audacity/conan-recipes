@@ -93,7 +93,7 @@ class SentryProcessor(DebugProcessor):
 
     def __process_dsymutil(self, build_dir: str, output_dir: str):
         for path in Path(build_dir).rglob('*.dylib*'):
-            if path.is_symlink():
+            if path.is_symlink() or not path.is_file():
                 continue
             output_file = os.path.join(output_dir, path.name)
             shutil.copy2(path, os.path.join(output_dir, path.name))
