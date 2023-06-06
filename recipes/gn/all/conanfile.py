@@ -2,6 +2,7 @@ from conan import ConanFile, tools
 from conan.tools.cmake import cmake_layout
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.env import Environment
+from conan.tools.microsoft import VCVars
 from contextlib import contextmanager
 import conan.tools.files as tools_files
 import conan.tools.scm as tools_scm
@@ -21,7 +22,7 @@ class GnConan(ConanFile):
     license = "BSD-3-Clause"
     homepage = "https://gn.googlesource.com/"
     settings = "os", "arch", "compiler", "build_type"
-    generators = "VCVars"
+    type = "application"
 
     @property
     def _minimum_compiler_version_supporting_cxx17(self):
@@ -84,6 +85,9 @@ class GnConan(ConanFile):
         # Assume gn knows about the os
         return str(self.settings.os).lower()
 
+    def generate(self):
+        VCVars(self).generate()
+
     def build(self):
         with tools.files.chdir(self, self.source_folder):
             with self._build_context():
@@ -118,8 +122,4 @@ class GnConan(ConanFile):
         tools.files.copy(self, "gn.exe", src=os.path.join(self.source_folder, "out"), dst=os.path.join(self.package_folder,"bin"))
 
     def package_info(self):
-        bin_path = os.path.join(self.package_folder, "bin")
-        self.output.info("Appending PATH environment variable: {}".format(bin_path))
-        self.buildenv_info.append_path("PATH", bin_path)
-        self.runenv_info.append_path("PATH", bin_path)
         self.cpp_info.includedirs = []

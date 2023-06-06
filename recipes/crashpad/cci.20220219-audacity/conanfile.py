@@ -10,9 +10,9 @@ from conan.tools.env import Environment
 from conan.tools.files import (apply_conandata_patches, chdir,
                                export_conandata_patches, get, replace_in_file,
                                save, load, rename, rm, copy)
-from conan.tools.gnu import AutotoolsDeps, AutotoolsToolchain
+from conan.tools.gnu import AutotoolsToolchain
 from conan.tools.layout import basic_layout
-from conan.tools.microsoft import VCVars, is_msvc
+from conan.tools.microsoft import is_msvc
 
 required_conan_version = ">=2.0.0"
 
@@ -113,8 +113,6 @@ class CrashpadConan(ConanFile):
     def _build_context(self):
         compiler_defaults = Environment()
 
-        compiler_defaults.append_path("PATH", self.dependencies.build["gn"].buildenv_info.vars(self)["PATH"])
-
         if self.settings.compiler != "msvc":
             if self.settings.compiler == "gcc":
                 compiler_defaults.define("CC", "gcc")
@@ -160,12 +158,9 @@ class CrashpadConan(ConanFile):
     def generate(self):
         with self._build_context():
             tc = AutotoolsToolchain(self)
-            tc.generate()
-
-            # AutotoolsDeps(self).generate()
-
-            #if is_msvc(self):
-            #   VCVars(self).generate()
+            # Toolchain is only needed to retrieve the compiler and linker flags
+            # Generating breaks Windows builds, as AutotoolsToolchain call VCVars internally
+            #tc.generate()
 
             if is_msvc(self):
                 replace_in_file(self, os.path.join(self.source_folder, "third_party", "zlib", "BUILD.gn"),
@@ -241,6 +236,7 @@ class CrashpadConan(ConanFile):
                      os.path.join(self.build_folder, "obj", "client", lib_filename("client_common")))
         rename(self, os.path.join(self.build_folder, "obj", "handler", lib_filename("common")),
                      os.path.join(self.build_folder, "obj", "handler", lib_filename("handler_common")))
+
 
     def package(self):
         copy(self, "LICENSE", src=self.source_folder, dst="licenses")
