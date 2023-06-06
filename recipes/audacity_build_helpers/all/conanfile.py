@@ -298,6 +298,6 @@ class AudacityBuildHelpers(ConanFile):
     url = "https://github.com/audacity/conan-recipes"
     license = "MIT"
     description = "Build helpers for Audacity"
-    exports = "*.py"
-    settings = "os"
+    exports = "*"
+    package_type = "python-require"
 
