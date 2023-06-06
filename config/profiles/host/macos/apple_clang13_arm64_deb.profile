@@ -1,9 +1,11 @@
 [settings]
 os = Macos
-os.version=11
+os.version=10.13
 arch = armv8
 compiler = apple-clang
-compiler.version = 14
+compiler.version = 13
 compiler.libcxx = libc++
 compiler.cppstd = 17
-build_type = Release
+build_type = Debug
+[options]
+*:shared=True
