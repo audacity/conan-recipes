@@ -26,6 +26,10 @@ class ConanRecipe:
         return 'build_tool' in self.config and self.config['build_tool']
 
     @property
+    def is_python_require(self):
+        return 'python_require' in self.config and self.config['python_require']
+
+    @property
     def local_source_dir(self):
         return os.path.join(self.recipe_dir, 'src')
 
@@ -112,6 +116,10 @@ class ConanRecipe:
 
 
     def build(self, profiles:ConanProfiles):
+        if self.is_python_require:
+            print(f"Skipping build for python_require package `{self.reference}`")
+            return
+
         print(f"Building `{self.reference}`...")
 
         self.install_dependecies(profiles)
