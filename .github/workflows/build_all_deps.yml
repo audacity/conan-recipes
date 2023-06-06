@@ -35,47 +35,25 @@ jobs:
         # GCC 10
         - name: Ubuntu 20.04 x86_64 GCC 10
           os: ubuntu-20.04
-          build_type: rel
           gcc: 10
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: Ubuntu 20.04 x86_64 GCC 10 Debug
-          os: ubuntu-20.04
-          build_type: deb
-          gcc: 10
-          install_args: ''
+          release_args: --enable-debug-processor sentry --skip-debug-data-upload
         # GCC 11
         - name: Ubuntu 20.04 x86_64 GCC 11
           os: ubuntu-20.04
-          build_type: rel
           gcc: 11
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: Ubuntu 20.04 x86_64 GCC 11 Debug
-          os: ubuntu-20.04
-          build_type: deb
-          gcc: 11
-          install_args: ''
+          release_args: --enable-debug-processor sentry --skip-debug-data-upload
         # GCC 12
         - name: Ubuntu 22.04 x86_64 GCC 12
           os: ubuntu-22.04
           build_type: rel
           gcc: 12
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: Ubuntu 22.04 x86_64 GCC 12 Debug
-          os: ubuntu-22.04
-          build_type: deb
-          gcc: 12
-          install_args: ''
+          release_args: --enable-debug-processor sentry --skip-debug-data-upload
          # GCC 13
         - name: Ubuntu 22.04 x86_64 GCC 13
           os: ubuntu-22.04
           build_type: rel
           gcc: 13
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: Ubuntu 22.04 x86_64 GCC 13 Debug
-          os: ubuntu-22.04
-          build_type: deb
-          gcc: 13
-          install_args: ''
+          release_args: --enable-debug-processor sentry --skip-debug-data-upload
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -146,11 +124,12 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py validate-recipe --profile-host host/linux/gcc${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }} --profile-build build/linux/gcc${{ matrix.config.gcc }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/linux/gcc${{ matrix.config.gcc }}_x86_64_rel --profile-build build/linux/gcc${{ matrix.config.gcc }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/linux/gcc${{ matrix.config.gcc }}_x86_64_deb --profile-build build/linux/gcc${{ matrix.config.gcc }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py
     - name: Upload to Cache
       shell: bash
       run: |
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }}_x86_64_${{ matrix.config.build_type }}
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }}
   build_windows:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -158,54 +137,14 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: MSVC 2019 x86_64 Release
+        - name: MSVC 2019 x86_64
           os: windows-2019
-          build_type: rel
           compiler: msvc2019
-          arch: x86_64
-          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2019 x86_64 Debug
-          os: windows-2019
-          build_type: deb
-          compiler: msvc2019
-          arch: x86_64
-          install_args: ''
-        - name: MSVC 2019 x86 Release
-          os: windows-2019
-          build_type: rel
-          compiler: msvc2019
-          arch: x86
-          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2019 x86 Debug
-          os: windows-2019
-          build_type: deb
-          compiler: msvc2019
-          arch: x86
-          install_args: ''
-        - name: MSVC 2022 x86_64 Release
+          release_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
+        - name: MSVC 2022 x86_64
           os: windows-2022
-          build_type: rel
           compiler: msvc2022
-          arch: x86_64
-          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2022 x86_64 Debug
-          os: windows-2022
-          build_type: deb
-          compiler: msvc2022
-          arch: x86_64
-          install_args: ''
-        - name: MSVC 2022 x86 Release
-          os: windows-2022
-          build_type: rel
-          compiler: msvc2022
-          arch: x86
-          install_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-        - name: MSVC 2022 x86 Debug
-          os: windows-2022
-          build_type: deb
-          compiler: msvc2022
-          arch: x86
-          install_args: ''
+          release_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -232,11 +171,14 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compiler }}_${{ matrix.config.arch }}_${{ matrix.config.build_type }} --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compiler }}_x86_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_deb --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py
+        python3 utils/conan-utils.py validate-recipe --profile-host host/windows/${{ matrix.config.compiler }}_x86_deb --profile-build build/windows/${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py
     - name: Upload to Cache
       shell: bash
       run: |
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ${{ matrix.config.compiler }}_${{ matrix.config.arch }}_${{ matrix.config.build_type }}
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id windows_${{ matrix.config.compiler }}
 
   build_macos:
     name: ${{ matrix.config.name }}
@@ -245,62 +187,16 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: XCode 14.2 x86_64 Release
+        - name: XCode 14.2
           os: macos-12
-          build_type: rel
           compiler: 14
           xcode_version: 14.2
-          arch: x86_64
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: XCode 14.2 x86_64 Debug
+          release_args: --enable-debug-processor sentry --skip-debug-data-upload
+        - name: XCode 13.4.1
           os: macos-12
-          build_type: deb
-          compiler: 14
-          xcode_version: 14.2
-          arch: x86_64
-          install_args: ''
-        - name: XCode 14.2 arm64 Release
-          os: macos-12
-          build_type: rel
-          compiler: 14
-          xcode_version: 14.2
-          arch: arm64
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: XCode 14.2 arm64 Debug
-          os: macos-12
-          build_type: deb
-          compiler: 14
-          xcode_version: 14.2
-          arch: arm64
-          install_args: ''
-        - name: XCode 13.4.1 x86_64 Release
-          os: macos-12
-          build_type: rel
           compiler: 13
           xcode_version: 13.4.1
-          arch: x86_64
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: XCode 13.4.1 x86_64 Debug
-          os: macos-12
-          build_type: deb
-          compiler: 13
-          xcode_version: 13.4.1
-          arch: x86_64
-          install_args: ''
-        - name: XCode 13.4.1 arm64 Release
-          os: macos-12
-          build_type: rel
-          compiler: 13
-          xcode_version: 13.4.1
-          arch: arm64
-          install_args: --enable-debug-processor sentry --skip-debug-data-upload
-        - name: XCode 13.4.1 arm64 Debug
-          os: macos-12
-          build_type: deb
-          compiler: 13
-          xcode_version: 13.4.1
-          arch: arm64
-          install_args: ''
+          release_args: --enable-debug-processor sentry --skip-debug-data-upload
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -331,11 +227,14 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py validate-recipe --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_${{ matrix.config.arch }}_${{ matrix.config.build_type }} --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.install_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x68_64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_arm64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        python3 utils/conan-utils.py validate-recipe --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x68_64_deb --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py
+        python3 utils/conan-utils.py validate-recipe --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_arm64_deb --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --recipe-config audacity3 --recipe audacity/conan/conanfile.py
     - name: Upload to Cache
       shell: bash
       run: |
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id apple_clang${{ matrix.config.compiler }}_${{ matrix.config.arch }}_${{ matrix.config.build_type }}
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id macos_apple_clang${{ matrix.config.compiler }}
 
   update_conan_remotes:
     name: Update Conan remotes
