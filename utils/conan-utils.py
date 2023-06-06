@@ -200,6 +200,8 @@ def resolve_recipe_config(args):
     lookup_locations = args.recipe, directories.config_platform_packages_dir, directories.config_packages_dir, args.config_dir
 
     for directory in lookup_locations:
+        if not directory or not os.path.isdir(directory):
+            continue
         recipe_config = os.path.join(directory, args.recipe_config)
         if os.path.exists(recipe_config):
             return recipe_config
