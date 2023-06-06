@@ -340,7 +340,7 @@ jobs:
   update_conan_remotes:
     name: Update Conan remotes
     runs-on: ubuntu-22.04
-    needs: [build_linux, build_windows]
+    needs: [build_linux, build_windows, build_macos]
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -362,7 +362,7 @@ jobs:
   cleanup_remote_cache:
     name: Cleanup Remote Cache
     runs-on: ubuntu-22.04
-    needs: [build_linux, build_windows, update_conan_remotes]
+    needs: [build_linux, build_windows, build_macos, update_conan_remotes]
     if: always() && !cancelled()
     steps:
     - name: Checkout Repo
