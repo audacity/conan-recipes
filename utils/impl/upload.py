@@ -1,13 +1,12 @@
 import os
-import subprocess
-from impl.utils import get_conan
 from impl.remotes import add_remote, remove_remote
+from impl.conan_recipe_store import get_recipe_stores
 
 recipes_remote_name = "conan-utils-audacity-recipes-conan2"
 binaries_remote_name = "conan-utils-audacity-binaries-conan2"
 
 
-def upload_all(recipes_remote:str, binaries_remote:str) -> None:
+def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool) -> None:
     if not recipes_remote:
         recipes_remote = os.environ.get('CONAN_RECIPES_REMOTE', "https://artifactory.audacityteam.org/artifactory/api/conan/audacity-recipes-conan2")
     if not binaries_remote:
@@ -17,8 +16,12 @@ def upload_all(recipes_remote:str, binaries_remote:str) -> None:
     binaries_added = add_remote(binaries_remote_name, binaries_remote)
 
     try:
-        subprocess.check_call([get_conan(), 'upload', '--only-recipe', '--check', '--confirm', '-r', recipes_remote_name, '*'])
-        subprocess.check_call([get_conan(), 'upload', '--check', '--confirm', '-r', binaries_remote_name, '*'])
+        for recipe_store in get_recipe_stores(True):
+            recipe = recipe_store.get_default_recipe()
+
+            if not recipe.is_build_tool or upload_build_tools:
+                recipe.upload(recipes_remote_name, False)
+                recipe.upload(binaries_remote_name, True)
     finally:
         if recipes_added:
             remove_remote(recipes_remote_name)

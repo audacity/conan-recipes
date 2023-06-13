@@ -200,3 +200,9 @@ class ConanRecipe:
             self.export()
         elif command == 'update-sources':
             self.source()
+
+    def upload(self, remote_name:str, with_binaries:bool):
+        args = [get_conan(), 'upload', '--check', '--confirm', '-r', remote_name, str(self.reference)]
+        if not with_binaries:
+            args += ['--only-recipe']
+        subprocess.check_call(args)

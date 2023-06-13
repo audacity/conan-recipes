@@ -111,6 +111,7 @@ def parse_args():
     subparser = subparsers.add_parser('upload', help='Upload packages to remote')
     subparser.add_argument('--recipes-remote', type=str, help='Recipes remote', required=False)
     subparser.add_argument('--binaries-remote', type=str, help='Binaries remote', required=False)
+    subparser.add_argument('--upload-build-tools', action='store_true', help='Upload build tools')
 
     #===========================================================================
     # update-mirror
@@ -251,7 +252,7 @@ def run_conan_command(args):
     elif args.subparser_name == 'clean':
         conan.clean()
     elif args.subparser_name == 'upload':
-        upload_all(args.recipes_remote, args.binaries_remote)
+        upload_all(args.recipes_remote, args.binaries_remote, args.upload_build_tools)
     elif args.subparser_name == 'add-remote':
         add_remote(args.name, args.url)
     elif args.subparser_name == 'list-remotes':
