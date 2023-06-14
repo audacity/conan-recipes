@@ -1,12 +1,13 @@
 import os
 from impl.remotes import add_remote, remove_remote
-from impl.conan_recipe_store import get_recipe_stores
+from impl.conan_recipe_store import get_recipe
+from impl.package_reference import PackageReference
 
 recipes_remote_name = "conan-utils-audacity-recipes-conan2"
 binaries_remote_name = "conan-utils-audacity-binaries-conan2"
 
 
-def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool) -> None:
+def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool, build_order:list[str]) -> None:
     if not recipes_remote:
         recipes_remote = os.environ.get('CONAN_RECIPES_REMOTE', "https://artifactory.audacityteam.org/artifactory/api/conan/audacity-recipes-conan2")
     if not binaries_remote:
@@ -16,12 +17,16 @@ def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool)
     binaries_added = add_remote(binaries_remote_name, binaries_remote)
 
     try:
-        for recipe_store in get_recipe_stores(True):
-            recipe = recipe_store.get_default_recipe()
+        for package_name in build_order:
+            package_reference = PackageReference(package_name=package_name)
+            recipe = get_recipe(package_reference)
 
             if not recipe.is_build_tool or upload_build_tools:
+                print(f'Uploading {package_reference}')
                 recipe.upload(recipes_remote_name, False)
                 recipe.upload(binaries_remote_name, True)
+            else:
+                print(f'Skipping {package_reference}: a build tool')
     finally:
         if recipes_added:
             remove_remote(recipes_remote_name)

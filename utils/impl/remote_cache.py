@@ -1,12 +1,15 @@
 import os
 import tarfile
 
+import yaml
+
 from impl.config import directories
 from impl.arifactory import ArtifactoryInstance
 from impl.files import safe_rm_tree
 from impl.conan_env import ConanEnv
 from impl.upload import upload_all
 from impl.debug_processor import create_debug_processor, load_processors
+from impl.build_order import get_build_order
 
 def get_artifactory(remote:str, username:str, password:str, key:str):
     if not remote:
@@ -19,7 +22,7 @@ def get_artifactory(remote:str, username:str, password:str, key:str):
 def get_cache_file_name(cache_id:str, compression:str='xz'):
     return f'{cache_id}.tar.{compression}' if compression != 'none' else f'{cache_id}.tar'
 
-def upload_cache(remote:str, username:str, password:str, key:str, group_id:str, cache_id:str, compression:str='xz'):
+def upload_cache(remote:str, username:str, password:str, key:str, group_id:str, cache_id:str, compression:str='xz', metadata_file:str=None):
     cache_file_name = get_cache_file_name(cache_id, compression=compression)
     temp_cache_path = os.path.join(directories.temp_dir, f'{cache_file_name}')
 
@@ -35,6 +38,10 @@ def upload_cache(remote:str, username:str, password:str, key:str, group_id:str, 
         if os.path.exists(debug_symbols_dir):
             print(f'Adding {debug_symbols_dir} to {temp_cache_path}')
             tar.add(debug_symbols_dir, arcname='debug_processors')
+        if metadata_file:
+            if not os.path.exists(metadata_file):
+                raise Exception(f'Metadata file {metadata_file} does not exist')
+            tar.add(metadata_file, arcname='metadata.yml')
 
     try:
         print(f'Uploading {temp_cache_path} to {remote}')
@@ -81,7 +88,19 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
             directories.conan_home_dir = os.path.join(cache_dir, 'conan')
 
             with ConanEnv():
-                upload_all(recipes_remote, binaries_remote)
+                metadate_file_path = os.path.join(cache_dir, 'metadata.yml')
+
+                upload_build_tools = False
+                build_order = None
+
+                if os.path.exists(metadate_file_path):
+                    with open(metadate_file_path, 'r') as f:
+                        metadata = yaml.safe_load(f)
+                    if metadata:
+                        upload_build_tools = metadata.get('upload_build_tools', upload_build_tools)
+                        build_order = metadata.get('build_order', build_order)
+
+                upload_all(recipes_remote, binaries_remote, upload_build_tools, get_build_order(build_order))
 
             debug_dir = os.path.join(cache_dir, 'debug_processors')
 
