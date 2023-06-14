@@ -117,10 +117,6 @@ jobs:
     - uses: BSFishy/pip-action@v1
       with:
         requirements: utils/requirements.txt
-    - uses: DamianReeves/write-file-action@master
-      with:
-        path: ${{ github.workspace }}/metadata.yml
-        contents: ${{ matrix.config.metadata }}
     - name: Setup Environment
       shell: bash
       run: |
@@ -135,6 +131,7 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
+        echo "${{ matrix.config.metadata }}" > "${{ github.workspace }}/metadata.yml"
         python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }} --metada-file ${{ github.workspace }}/metadata.yml
   build_windows:
     name: ${{ matrix.config.name }}
@@ -170,10 +167,6 @@ jobs:
     - uses: BSFishy/pip-action@v1
       with:
         requirements: utils/requirements.txt
-    - uses: DamianReeves/write-file-action@master
-      with:
-        path: ${{ github.workspace }}/metadata.yml
-        contents: ${{ matrix.config.metadata }}
     - name: Setup Environment
       shell: bash
       run: |
@@ -190,6 +183,7 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
+        echo "${{ matrix.config.metadata }}" > "${{ github.workspace }}/metadata.yml"
         python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id windows_${{ matrix.config.compiler }} --metada-file ${{ github.workspace }}/metadata.yml
 
   build_macos:
@@ -232,10 +226,6 @@ jobs:
     - uses: BSFishy/pip-action@v1
       with:
         requirements: utils/requirements.txt
-    - uses: DamianReeves/write-file-action@master
-      with:
-        path: ${{ github.workspace }}/metadata.yml
-        contents: ${{ matrix.config.metadata }}
     - name: Setup Environment
       shell: bash
       run: |
@@ -252,6 +242,7 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
+        echo "${{ matrix.config.metadata }}" > "${{ github.workspace }}/metadata.yml"
         python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id macos_apple_clang${{ matrix.config.compiler }} --metada-file ${{ github.workspace }}/metadata.yml
 
   update_conan_remotes:
