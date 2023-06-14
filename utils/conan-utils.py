@@ -14,16 +14,20 @@ from impl.upload import upload_all
 from impl.debug import enable_debug_processors, finalize_debug_processors, discard_debug_data
 from impl.remotes import add_remote, remove_remote, list_remotes
 from impl.remote_cache import upload_cache, delete_cache, list_cache, process_cache
+from impl.build_order import get_build_order
 
 load_dotenv()
+
+def add_build_order_option(parser):
+    parser.add_argument('--build-order', type=str, help='Path to file with build order. Relative paths are resolved against config directory', required=False)
 
 def add_common_build_options(parser, allow_single_package=True):
     parser.add_argument('--profile-build', type=str, help='Conan build profile', required=False)
     parser.add_argument('--profile-host', type=str, help='Conan host profile', required=True)
     parser.add_argument('--keep-sources', action='store_true', help='Do not clean up sources after building')
-    parser.add_argument('--build-order', type=str, help='Path to file with build order. Relative paths are resolved against config directory', required=False)
     parser.add_argument('--enable-debug-processor', action='append', help='Enable specific debug processor (symstore, sentry)', required=False)
     parser.add_argument('--skip-debug-data-upload', action='store_true', help='Do not upload or discard debug data. Useful with store-cache command')
+    add_build_order_option(parser)
 
     if allow_single_package:
         parser.add_argument('--package', type=str, help='Package name', required=False)
@@ -112,6 +116,7 @@ def parse_args():
     subparser.add_argument('--recipes-remote', type=str, help='Recipes remote', required=False)
     subparser.add_argument('--binaries-remote', type=str, help='Binaries remote', required=False)
     subparser.add_argument('--upload-build-tools', action='store_true', help='Upload build tools')
+    add_build_order_option(subparser)
 
     #===========================================================================
     # update-mirror
@@ -156,6 +161,7 @@ def parse_args():
     #===========================================================================
     subparser = subparsers.add_parser('store-cache', help='Store Conan cache to Artifactory')
     add_cache_options(subparser, True, True)
+    subparser.add_argument('--metadata-file', type=str, help='Path to the metadata file', required=False)
 
     #===========================================================================
     # delete-cache
@@ -183,14 +189,6 @@ def parse_args():
 def get_profiles(args):
     return ConanProfiles(args.profile_host, args.profile_build)
 
-def get_build_order_path(args):
-    if args.build_order:
-        if os.path.isabs(args.build_order):
-            return args.build_order
-        return os.path.join(directories.config_dir, args.build_order)
-    else:
-        return os.path.join(directories.config_dir, 'build_order.yml')
-
 def resolve_recipe_config(args):
     if not args.recipe_config:
         return None
@@ -212,23 +210,6 @@ def resolve_recipe_config(args):
 
     raise Exception('Recipe config file not found: {}'.format(args.recipe_config))
 
-def get_build_order(args):
-    build_order_path = get_build_order_path(args)
-    if not os.path.exists(build_order_path):
-        raise Exception('Build order file does not exist: {}'.format(build_order_path))
-
-    with open(build_order_path, 'r') as f:
-        config = yaml.safe_load(f)['build_order']
-        build_order = []
-
-        for part in config:
-            build_on = part['platforms']
-            if build_on == '*' or sys.platform.lower() in build_on:
-                build_order += part['packages']
-
-    return build_order
-
-
 def get_package_reference(args):
     return PackageReference(args.package, args.version)
 
@@ -237,7 +218,7 @@ def run_conan_command(args):
         if args.package:
             conan.build_package(get_package_reference(args), get_profiles(args), args.export_recipes, args.keep_sources)
         else:
-            conan.build_all(get_build_order(args), get_profiles(args), args.export_recipes, args.keep_sources)
+            conan.build_all(get_build_order(args.build_order), get_profiles(args), args.export_recipes, args.keep_sources)
     elif args.subparser_name == 'install':
         if args.install_dir:
             directories.install_dir = args.install_dir
@@ -247,12 +228,12 @@ def run_conan_command(args):
         elif args.package:
             conan.install_package(get_package_reference(args), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
         else:
-            conan.install_all(get_build_order(args), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
+            conan.install_all(get_build_order(args.build_order), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
 
     elif args.subparser_name == 'clean':
         conan.clean()
     elif args.subparser_name == 'upload':
-        upload_all(args.recipes_remote, args.binaries_remote, args.upload_build_tools)
+        upload_all(args.recipes_remote, args.binaries_remote, args.upload_build_tools, get_build_order(args.build_order))
     elif args.subparser_name == 'add-remote':
         add_remote(args.name, args.url)
     elif args.subparser_name == 'list-remotes':
@@ -262,7 +243,7 @@ def run_conan_command(args):
     elif args.subparser_name == 'validate-recipe':
         if args.export_recipes:
             conan.execute_conan_command('export-recipes', False)
-        conan.install_all(get_build_order(args), get_profiles(args), args.remote, True, False)
+        conan.install_all(get_build_order(args.build_order), get_profiles(args), args.remote, True, False)
         conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, False, False)
     else:
         conan.execute_conan_command(args.subparser_name, args.all)
@@ -287,7 +268,8 @@ def main(args):
             key=args.key,
             group_id=args.group_id,
             cache_id=args.cache_id,
-            compression=args.compression)
+            compression=args.compression,
+            metadata_file=args.metadata_file)
     elif args.subparser_name == 'delete-cache':
         delete_cache(
             remote=args.remote,
