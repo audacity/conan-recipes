@@ -131,8 +131,9 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
-        echo "${{ matrix.config.metadata }}" > "${{ github.workspace }}/metadata.yml"
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }} --metadata-file ${{ github.workspace }}/metadata.yml
+        echo "${{ matrix.config.metadata }}" > metadata.yml
+        ls -la
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }} --metadata-file metadata.yml
   build_windows:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -183,8 +184,9 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
-        echo "${{ matrix.config.metadata }}" > "${{ github.workspace }}/metadata.yml"
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id windows_${{ matrix.config.compiler }} --metadata-file ${{ github.workspace }}/metadata.yml
+        echo "${{ matrix.config.metadata }}" > metadata.yml
+        ls -la
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id windows_${{ matrix.config.compiler }} --metadata-file metadata.yml
 
   build_macos:
     name: ${{ matrix.config.name }}
@@ -242,8 +244,9 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
-        echo "${{ matrix.config.metadata }}" > "${{ github.workspace }}/metadata.yml"
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id macos_apple_clang${{ matrix.config.compiler }} --metadata-file ${{ github.workspace }}/metadata.yml
+        echo "${{ matrix.config.metadata }}" > metadata.yml
+        ls -la
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id macos_apple_clang${{ matrix.config.compiler }} --metadata-file metadata.yml
 
   update_conan_remotes:
     name: Update Conan remotes
