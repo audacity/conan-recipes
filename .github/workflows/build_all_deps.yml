@@ -37,6 +37,7 @@ jobs:
           os: ubuntu-20.04
           gcc: 10
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
+          metadata: "upload_build_tools: true"
         # GCC 11
         - name: Ubuntu 20.04 x86_64 GCC 11
           os: ubuntu-20.04
@@ -116,6 +117,10 @@ jobs:
     - uses: BSFishy/pip-action@v1
       with:
         requirements: utils/requirements.txt
+    - uses: DamianReeves/write-file-action@master
+      with:
+        path: ${{ github.workspace }}/metadata.yml
+        contents: ${{ matrix.config.metadata }}
     - name: Setup Environment
       shell: bash
       run: |
@@ -130,7 +135,7 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }}
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id ubuntu_gcc${{ matrix.config.gcc }} --metada-file ${{ github.workspace }}/metadata.yml
   build_windows:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -146,6 +151,7 @@ jobs:
           os: windows-2022
           compiler: msvc2022
           release_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
+          metadata: "upload_build_tools: true"
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -164,6 +170,10 @@ jobs:
     - uses: BSFishy/pip-action@v1
       with:
         requirements: utils/requirements.txt
+    - uses: DamianReeves/write-file-action@master
+      with:
+        path: ${{ github.workspace }}/metadata.yml
+        contents: ${{ matrix.config.metadata }}
     - name: Setup Environment
       shell: bash
       run: |
@@ -180,7 +190,7 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id windows_${{ matrix.config.compiler }}
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id windows_${{ matrix.config.compiler }} --metada-file ${{ github.workspace }}/metadata.yml
 
   build_macos:
     name: ${{ matrix.config.name }}
@@ -199,6 +209,7 @@ jobs:
           compiler: 13
           xcode_version: 13.4.1
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
+          metadata: "upload_build_tools: true"
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -221,6 +232,10 @@ jobs:
     - uses: BSFishy/pip-action@v1
       with:
         requirements: utils/requirements.txt
+    - uses: DamianReeves/write-file-action@master
+      with:
+        path: ${{ github.workspace }}/metadata.yml
+        contents: ${{ matrix.config.metadata }}
     - name: Setup Environment
       shell: bash
       run: |
@@ -237,7 +252,7 @@ jobs:
     - name: Upload to Cache
       shell: bash
       run: |
-        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id macos_apple_clang${{ matrix.config.compiler }}
+        python3 utils/conan-utils.py store-cache --group-id ${{ github.run_id }}-${{ github.run_attempt }} --cache-id macos_apple_clang${{ matrix.config.compiler }} --metada-file ${{ github.workspace }}/metadata.yml
 
   update_conan_remotes:
     name: Update Conan remotes
