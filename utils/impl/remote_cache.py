@@ -78,7 +78,7 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
         print(f'Downloading {entry} to {local_path}', flush=True)
         artifactory.get_file(entry, local_path)
         old_conan_home_dir = os.path.join(directories.conan_home_dir)
-        cache_dir = os.path.join(directories.temp_dir, 'remote_cache', group_id)
+        cache_dir = os.path.join(directories.temp_dir, 'remote_cache', group_id, entry)
 
         try:
             with tarfile.open(local_path, 'r') as tar:

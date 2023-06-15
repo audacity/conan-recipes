@@ -22,11 +22,11 @@ def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool,
             recipe = get_recipe(package_reference)
 
             if not recipe.is_build_tool or upload_build_tools:
-                print(f'Uploading {package_reference}')
+                print(f'Uploading {package_reference}', flush=True)
                 recipe.upload(recipes_remote_name, False)
                 recipe.upload(binaries_remote_name, True)
             else:
-                print(f'Skipping {package_reference}: a build tool')
+                print(f'Skipping {package_reference}: a build tool', flush=True)
     finally:
         if recipes_added:
             remove_remote(recipes_remote_name)
