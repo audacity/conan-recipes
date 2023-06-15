@@ -92,6 +92,7 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
 
                 upload_build_tools = False
                 build_order = None
+                platform = None
 
                 if os.path.exists(metadate_file_path):
                     with open(metadate_file_path, 'r') as f:
@@ -99,8 +100,9 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
                     if metadata:
                         upload_build_tools = metadata.get('upload_build_tools', upload_build_tools)
                         build_order = metadata.get('build_order', build_order)
+                        platform = metadata.get('platform', platform)
 
-                upload_all(recipes_remote, binaries_remote, upload_build_tools, get_build_order(build_order))
+                upload_all(recipes_remote, binaries_remote, upload_build_tools, get_build_order(build_order, platform))
 
             debug_dir = os.path.join(cache_dir, 'debug_processors')
 

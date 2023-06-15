@@ -37,24 +37,29 @@ jobs:
           os: ubuntu-20.04
           gcc: 10
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
-          metadata: "upload_build_tools: true"
+          metadata: |
+            upload_build_tools: true
+            platform: linux
         # GCC 11
         - name: Ubuntu 20.04 x86_64 GCC 11
           os: ubuntu-20.04
           gcc: 11
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
+          metadata: "platform: linux"
         # GCC 12
         - name: Ubuntu 22.04 x86_64 GCC 12
           os: ubuntu-22.04
           build_type: rel
           gcc: 12
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
+          metadata: "platform: linux"
          # GCC 13
         - name: Ubuntu 22.04 x86_64 GCC 13
           os: ubuntu-22.04
           build_type: rel
           gcc: 13
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
+          metadata: "platform: linux"
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -145,11 +150,14 @@ jobs:
           os: windows-2019
           compiler: msvc2019
           release_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
+          metadata: "platform: win32"
         - name: MSVC 2022 x86_64
           os: windows-2022
           compiler: msvc2022
           release_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
-          metadata: "upload_build_tools: true"
+          metadata: |
+            upload_build_tools: true
+            platform: win32
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -200,12 +208,15 @@ jobs:
           compiler: 14
           xcode_version: 14.2
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
+          metadata: "platform: darwin"
         - name: XCode 13.4.1
           os: macos-12
           compiler: 13
           xcode_version: 13.4.1
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
-          metadata: "upload_build_tools: true"
+          metadata: |
+            upload_build_tools: true
+            platform: darwin
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3

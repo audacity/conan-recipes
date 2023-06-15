@@ -13,7 +13,10 @@ def get_build_order_path(build_order_name:str):
         return os.path.join(directories.config_dir, 'build_order.yml')
 
 
-def get_build_order(build_order_name:str):
+def get_build_order(build_order_name:str, platform:str=None):
+    if not platform:
+        platform = sys.platform.lower()
+
     build_order_path = get_build_order_path(build_order_name)
     if not os.path.exists(build_order_path):
         raise Exception('Build order file does not exist: {}'.format(build_order_path))
@@ -24,7 +27,7 @@ def get_build_order(build_order_name:str):
 
         for part in config:
             build_on = part['platforms']
-            if build_on == '*' or sys.platform.lower() in build_on:
+            if build_on == '*' or platform in build_on:
                 build_order += part['packages']
 
     return build_order
