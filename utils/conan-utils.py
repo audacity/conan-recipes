@@ -56,6 +56,7 @@ def parse_args():
     parser.add_argument('--venv-dir', type=str, help='Path to virtual environment where Conan is installed', required=False)
     parser.add_argument('--conan-home-dir', type=str, help='Path to Conan home directory', required=False)
     parser.add_argument('--output-dir', type=str, help='Path to output directory. Overrides venv-dir and conan-home-dir.', required=False)
+    parser.add_argument('--build-dir', type=str, help='Path to build directory.', required=False)
 
     subparsers = parser.add_subparsers(help='sub-command help', dest='subparser_name')
 
@@ -325,6 +326,8 @@ if __name__ == "__main__":
         directories.conan_home_dir = args.conan_home_dir
     if args.output_dir:
         directories.change_output_dir(args.output_dir)
+    if args.build_dir:
+        directories.build_dir = args.build_dir
 
     if hasattr(args, 'enable_debug_processor'):
         skip_upload = hasattr(args, 'skip_debug_data_upload') and args.skip_debug_data_upload

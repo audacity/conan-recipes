@@ -11,6 +11,8 @@ class Directories():
     conan_home_dir = os.path.join(os.getcwd(), '.conan_utils', 'conan')
     temp_dir = os.path.join(os.getcwd(), '.conan_utils', 'temp')
 
+    build_dir = os.path.join(temp_dir, 'build')
+
     config_dir = os.path.join(root_dir, 'config')
     recipes_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..', 'recipes'))
 
@@ -33,5 +35,6 @@ class Directories():
         self.env_dir = os.path.join(output_dir, 'venv')
         self.conan_home_dir = os.path.join(output_dir, 'conan')
         self.temp_dir = os.path.join(output_dir, 'temp')
+        self.build_dir = os.path.join(self.temp_dir, 'build')
 
 directories = Directories()
