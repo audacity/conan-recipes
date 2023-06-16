@@ -13,7 +13,7 @@ from impl.update_mirror import update_mirror
 from impl.upload import upload_all
 from impl.debug import enable_debug_processors, finalize_debug_processors, discard_debug_data
 from impl.remotes import add_remote, remove_remote, list_remotes
-from impl.remote_cache import upload_cache, delete_cache, list_cache, process_cache
+from impl.remote_cache import upload_cache, delete_cache, list_cache, process_conan_cache, process_debug_cache
 from impl.build_order import get_build_order
 
 load_dotenv()
@@ -176,12 +176,18 @@ def parse_args():
     add_cache_options(subparser, False, False)
 
     #===========================================================================
-    # process-cache
+    # process-conan-cache
     #===========================================================================
-    subparser = subparsers.add_parser('process-cache', help='Process remote Conan cache')
+    subparser = subparsers.add_parser('process-conan-cache', help='Process remote Conan cache')
     add_cache_options(subparser, False, False)
     subparser.add_argument('--recipes-remote', type=str, help='Recipes remote', required=False)
     subparser.add_argument('--binaries-remote', type=str, help='Binaries remote', required=False)
+
+    #===========================================================================
+    # process-debug-cache
+    #===========================================================================
+    subparser = subparsers.add_parser('process-debug-cache', help='Process remote Conan cache')
+    add_cache_options(subparser, False, False)
 
 
     return parser.parse_args()
@@ -286,8 +292,8 @@ def main(args):
             password=args.password,
             key=args.key,
             group_id=args.group_id))
-    elif args.subparser_name == 'process-cache':
-        process_cache(
+    elif args.subparser_name == 'process-conan-cache':
+        process_conan_cache(
             remote=args.remote,
             username=args.user,
             password=args.password,
@@ -295,6 +301,13 @@ def main(args):
             group_id=args.group_id,
             recipes_remote=args.recipes_remote,
             binaries_remote=args.binaries_remote)
+    elif args.subparser_name == 'process-debug-cache':
+        process_debug_cache(
+            remote=args.remote,
+            username=args.user,
+            password=args.password,
+            key=args.key,
+            group_id=args.group_id)
     else:
         with conan_env.ConanEnv():
             run_conan_command(args)
