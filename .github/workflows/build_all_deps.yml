@@ -282,7 +282,7 @@ jobs:
         python3 utils/conan-utils.py list-cache --group-id ${{ github.run_id }}
         python3 utils/conan-utils.py process-conan-cache --group-id ${{ github.run_id }}
   upload_debug_symbols:
-    name: Upload {{ matrix.config.name }} debug symbols
+    name: Upload ${{ matrix.config.name }} debug symbols
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
