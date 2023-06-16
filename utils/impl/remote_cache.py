@@ -1,5 +1,9 @@
 import os
+import sys
+import sqlite3
 import tarfile
+
+from pathlib import Path
 
 import yaml
 
@@ -64,6 +68,17 @@ def list_cache(remote:str, username:str, password:str, key:str, group_id:str):
     artifactory = get_artifactory(remote, username=username, password=password, key=key)
     return artifactory.list_files(group_id)
 
+def __fix_win_cache_for_upload(conan_home_dir:str):
+    print(f'Fixing win cache for upload', flush=True)
+    db_path = os.path.join(conan_home_dir, 'p', 'cache.sqlite3')
+
+    con = sqlite3.connect(db_path)
+
+    try:
+        con.execute('UPDATE packages SET path = REPLACE(path, \'\\\', \'/\')')
+        con.commit()
+    finally:
+        con.close()
 
 def process_cache(remote:str, username:str, password:str, key:str, group_id:str, recipes_remote:str, binaries_remote:str):
     artifactory = get_artifactory(remote, username=username, password=password, key=key)
@@ -78,7 +93,7 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
         print(f'Downloading {entry} to {local_path}', flush=True)
         artifactory.get_file(entry, local_path)
         old_conan_home_dir = os.path.join(directories.conan_home_dir)
-        cache_dir = os.path.join(directories.temp_dir, 'remote_cache', group_id, entry)
+        cache_dir = os.path.join(directories.temp_dir, 'remote_cache', group_id, Path(entry).stem)
 
         try:
             with tarfile.open(local_path, 'r') as tar:
@@ -102,6 +117,9 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
                         build_order = metadata.get('build_order', build_order)
                         platform = metadata.get('platform', platform)
 
+                if platform == 'win32' and sys.platform.lower() != 'win32':
+                    __fix_win_cache_for_upload(directories.conan_home_dir)
+
                 upload_all(recipes_remote, binaries_remote, upload_build_tools, get_build_order(build_order, platform))
 
             debug_dir = os.path.join(cache_dir, 'debug_processors')
@@ -110,8 +128,10 @@ def process_cache(remote:str, username:str, password:str, key:str, group_id:str,
                 print(f'Processing debug symbols in {debug_dir}')
                 for entry in os.listdir(debug_dir):
                     try:
+                        print(f'Activating debug processor {entry}...', flush=True)
                         debug_processor = create_debug_processor(entry, False)
                         if debug_processor.activate(os.path.join(debug_dir, entry)):
+                            print(f'Processing using debug processor {entry}...', flush=True)
                             debug_processor.finalize()
                     except Exception as e:
                         print(f'Error processing debug symbols in {entry}: {e}')
