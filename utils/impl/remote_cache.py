@@ -141,6 +141,10 @@ class __Metadata:
         build_order = metadata.get('build_order', build_order)
         platform = metadata.get('platform', platform)
 
+    @property
+    def platform_is_win32(self):
+        return self.platform and self.platform == 'win32'
+
 def process_conan_cache(remote:str, username:str, password:str, key:str, group_id:str, recipes_remote:str, binaries_remote:str):
     def process(cache_dir:str):
         try:
@@ -149,7 +153,7 @@ def process_conan_cache(remote:str, username:str, password:str, key:str, group_i
             with ConanEnv():
                 metadata = __Metadata(cache_dir)
 
-                if metadata.platform == 'win32' and sys.platform.lower() != 'win32':
+                if metadata.platform_is_win32 and sys.platform.lower() != 'win32':
                     __fix_win_cache_for_upload(directories.conan_home_dir)
 
                 upload_all(
