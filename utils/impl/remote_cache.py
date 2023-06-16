@@ -121,11 +121,11 @@ def __process_cache(artifactory:ArtifactoryInstance, path_prefix:str, entry_hand
             os.unlink(local_path)
 
 class __Metadata:
-    def __init__(self, cache_dir):
-        upload_build_tools = False
-        build_order = None
-        platform = None
+    upload_build_tools = False
+    build_order = None
+    platform = None
 
+    def __init__(self, cache_dir):
         metadate_file_path = os.path.join(cache_dir, 'metadata.yml')
 
         if not os.path.exists(metadate_file_path):
@@ -137,9 +137,9 @@ class __Metadata:
         if not metadata:
             return
 
-        upload_build_tools = metadata.get('upload_build_tools', upload_build_tools)
-        build_order = metadata.get('build_order', build_order)
-        platform = metadata.get('platform', platform)
+        self.upload_build_tools = metadata.get('upload_build_tools', self.upload_build_tools)
+        self.build_order = metadata.get('build_order', self.build_order)
+        self.platform = metadata.get('platform', self.platform)
 
     @property
     def platform_is_win32(self):
