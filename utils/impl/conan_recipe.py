@@ -40,6 +40,7 @@ class ConanRecipe:
     @property
     def local_build_dirs(self):
         return [
+            directories.build_dir,
             os.path.join(self.recipe_dir, 'build'),
             os.path.join(self.recipe_dir, 'build-debug'),
             os.path.join(self.recipe_dir, 'build-release'),
@@ -88,6 +89,7 @@ class ConanRecipe:
             '-vvv',
             '-pr:h', profiles.get_profile(self.is_build_tool),
             '-pr:b', profiles.build_profile,
+            '-of', directories.build_dir,
         ]
 
         if 'options' in self.config:
@@ -120,11 +122,8 @@ class ConanRecipe:
             print(f"Skipping build for python_require package `{self.reference}`")
             return
 
-        print(f"Building `{self.reference}`...")
+        print(f"Building `{self.reference}`...", flush=True)
 
-        self.install_dependecies(profiles)
-
-        print(f"== Building package...", flush=True)
         self.__run_build_command('build', profiles)
 
         print(f"== Creating Conan package...", flush=True)
@@ -170,6 +169,7 @@ class ConanRecipe:
             '-vvv',
             '-pr:h', profiles.host_profile,
             '-pr:b', profiles.build_profile,
+            '-of', directories.build_dir,
             '--format', 'json'
         ]
 
