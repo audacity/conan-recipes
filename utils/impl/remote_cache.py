@@ -121,7 +121,7 @@ def __process_cache(artifactory:ArtifactoryInstance, path_prefix:str, entry_hand
             os.unlink(local_path)
 
 class __Metadata:
-    def __init__(cache_dir):
+    def __init__(self, cache_dir):
         upload_build_tools = False
         build_order = None
         platform = None
