@@ -62,7 +62,7 @@ class SentryProcessor(DebugProcessor):
                     '--org', self.sentry_org,
                     '--project', self.sentry_project,
                     '--include-sources',
-                    '--log-level=info',
+                    '--log-level=debug',
                 ])
                 break
             except subprocess.CalledProcessError as e:
