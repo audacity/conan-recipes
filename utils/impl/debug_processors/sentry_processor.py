@@ -52,31 +52,31 @@ class SentryProcessor(DebugProcessor):
 
         return True
 
-    def __run_with_debug_log(self, args):
+    def __run_with_debug_log(self, args, retries=1):
         env = os.environ.copy()
         env['RUST_LOG'] = 'debug'
-        subprocess.check_call(args, env=env)
-
-    def __upload_to_sentry(self, path: str):
-        for i in range(5):
+        for i in range(retries):
             try:
-                self.__run_with_debug_log([
-                    'sentry-cli',
-                    '--auth-token', self.sentry_auth_token,
-                    '--url', self.sentry_host,
-                    'debug-files', 'upload',
-                    '--org', self.sentry_org,
-                    '--project', self.sentry_project,
-                    '--include-sources',
-                    '--log-level', 'debug',
-                    path,
-                ])
-                break
+                return subprocess.check_call(args, env=env)
             except subprocess.CalledProcessError as e:
-                print('sentry-cli failed with exit code', e.returncode)
-                print('retrying...')
+                print('sentry-cli failed with exit code {e.returncode}', flush=True)
                 import time
                 time.sleep(5 * (i + 1))
+
+
+    def __upload_to_sentry(self, path: str):
+            self.__run_with_debug_log([
+                'sentry-cli',
+                '--auth-token', self.sentry_auth_token,
+                '--url', self.sentry_host,
+                'debug-files', 'upload',
+                '--org', self.sentry_org,
+                '--project', self.sentry_project,
+                '--no-zips',
+                '--log-level', 'debug',
+                path,
+            ], 5)
+
 
     def __create_source_bundle(self, debug_file:str):
         try:
