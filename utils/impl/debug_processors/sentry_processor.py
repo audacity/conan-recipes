@@ -52,17 +52,24 @@ class SentryProcessor(DebugProcessor):
 
         return True
 
+    def __run_with_debug_log(self, args):
+        env = os.environ.copy()
+        env['RUST_LOG'] = 'debug'
+        subprocess.check_call(args, env=env)
+
     def __upload_to_sentry(self, path: str):
-        for i in range(3):
+        for i in range(5):
             try:
-                subprocess.check_call([
-                    'sentry-cli', '--auth-token', self.sentry_auth_token,
+                self.__run_with_debug_log([
+                    'sentry-cli',
+                    '--auth-token', self.sentry_auth_token,
                     '--url', self.sentry_host,
-                    'upload-dif', path,
+                    'debug-files', 'upload',
                     '--org', self.sentry_org,
                     '--project', self.sentry_project,
                     '--include-sources',
-                    '--log-level=debug',
+                    '--log-level', 'debug',
+                    path,
                 ])
                 break
             except subprocess.CalledProcessError as e:
@@ -73,7 +80,11 @@ class SentryProcessor(DebugProcessor):
 
     def __create_source_bundle(self, debug_file:str):
         try:
-            subprocess.check_call(['sentry-cli', 'debug-files', 'bundle-sources', debug_file])
+            self.__run_with_debug_log([
+                'sentry-cli',
+                'debug-files', 'bundle-sources',
+                '--log-level', 'debug',
+                debug_file])
         except subprocess.CalledProcessError as e:
             print('`sentry-cli debug-files bundle-sources` failed with exit code', e.returncode)
 
