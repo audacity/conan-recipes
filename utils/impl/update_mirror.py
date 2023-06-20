@@ -4,7 +4,7 @@ import yaml
 from requests import get
 from hashlib import sha256
 
-from impl.arifactory import ArtifactoryInstance
+from impl.artifactory import ArtifactoryInstance
 
 from impl.config import directories
 from impl.conan_recipe_store import get_recipe_stores

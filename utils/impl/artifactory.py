@@ -68,6 +68,11 @@ class ArtifactoryInstance:
 
         hasher = sha256()
 
+        try:
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        finally:
+            pass
+
         with open(local_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 hasher.update(chunk)

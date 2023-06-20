@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 from impl.config import directories
-from impl.arifactory import ArtifactoryInstance
+from impl.artifactory import ArtifactoryInstance
 from impl.files import safe_rm_tree
 from impl.conan_env import ConanEnv
 from impl.upload import upload_all

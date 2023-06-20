@@ -3,7 +3,6 @@ import sys
 import re
 
 from pathlib import Path
-from requests import Session
 
 from symstore import Store, cab
 
@@ -11,7 +10,7 @@ from impl.debug_processor import DebugProcessor, register_debug_processor
 from impl.package_reference import PackageReference
 from impl.config import directories
 from impl.files import safe_rm_tree
-from impl.net import BearerAuth
+from impl.artifactory import ArtifactoryInstance
 
 class SymstoreProcessor(DebugProcessor):
     entries = []
@@ -24,19 +23,16 @@ class SymstoreProcessor(DebugProcessor):
         if sys.platform != 'win32':
             return False
 
-        self.symstore_url = os.environ.get('ARTIFACTORY_SYMBOLS_URL', None)
-        self.symstore_key = os.environ.get('ARTIFACTORY_SYMBOLS_KEY', os.environ.get('ARTIFACTORY_API_KEY', None))
+        symstore_url = os.environ.get('ARTIFACTORY_SYMBOLS_URL', None)
+        symstore_key = os.environ.get('ARTIFACTORY_SYMBOLS_KEY', os.environ.get('ARTIFACTORY_API_KEY', None))
 
-        if not self.symstore_url:
+        if not symstore_url:
             print('SymstoreProcessor not activated: ARTIFACTORY_SYMBOLS_URL is not set')
             return False
 
-        if not self.symstore_key:
+        if not symstore_key:
             print('SymstoreProcessor not activated: ARTIFACTORY_SYMBOLS_KEY or ARTIFACTORY_API_KEY is not set')
             return False
-
-        self.session = Session()
-        self.session.auth = BearerAuth(self.symstore_key)
 
         if directory:
             self.symstore_dir = directory
@@ -49,6 +45,8 @@ class SymstoreProcessor(DebugProcessor):
         _000admin = os.path.join(self.symstore_dir, '000Admin')
         if not os.path.exists(_000admin):
             os.makedirs(_000admin)
+
+        self.artifactory = ArtifactoryInstance(url=symstore_url, key=symstore_key)
 
         for file in ('000Admin/lastid.txt', '000Admin/history.txt', '000Admin/server.txt'):
             self.__download_file(file)
@@ -90,10 +88,17 @@ class SymstoreProcessor(DebugProcessor):
     def finalize(self):
         if self.skip_upload:
             return
-        for entry in self.entries:
-            entry_path = os.path.join(self.symstore_dir, entry.file_name, entry.file_hash)
-            for file in os.listdir(entry_path):
-                self.__upload_file(f'{entry.file_name}/{entry.file_hash}/{file}', os.path.join(entry_path, file))
+
+        print(self.symstore.transactions.items())
+
+        for dir in os.listdir(self.symstore_dir):
+            if dir == '000Admin':
+                continue
+            for root, dirnames, filenames in os.walk(os.path.join(self.symstore_dir, dir)):
+                relative_root = os.path.relpath(root, self.symstore_dir).replace('\\', '/')
+                for filename in filenames:
+                    self.__upload_file(f'{relative_root}/{filename}', os.path.join(root, filename))
+
         safe_rm_tree(self.symstore_dir)
 
     def discard(self):
@@ -101,20 +106,14 @@ class SymstoreProcessor(DebugProcessor):
         safe_rm_tree(self.symstore_dir)
 
     def __download_file(self, file:str):
-        response = self.session.get(f'{self.symstore_url}/{file}', stream=True, allow_redirects=True)
-        if response.status_code != 200:
-            return None
-
-        with open(os.path.join(self.symstore_dir, file), 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+        self.artifactory.get_file(file, os.path.join(self.symstore_dir, file))
 
     def __upload_file(self, file:str, path:str):
-        print(f'Uploading {file} to remote symstore')
-        with open(path, 'rb') as f:
-            response = self.session.put(f'{self.symstore_url}/{file}', data=f, headers={'Content-Type': 'application/octet-stream'})
-            if response.status_code != 201:
-                print(f'Failed to upload {file}: {response.status_code} {response.text}')
+        try:
+            print(f'Uploading {file} to remote symstore')
+            url = self.artifactory.upload_file(file, path)
+        except Exception as e:
+            print(f'Failed to upload {file} to remote symstore: {e}')
 
 
 register_debug_processor('symstore', lambda skip_upload: SymstoreProcessor(skip_upload))
