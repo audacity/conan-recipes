@@ -335,4 +335,4 @@ jobs:
       shell: bash
       run: |
         python3 utils/conan-utils.py init-env --clean
-        #python3 utils/conan-utils.py delete-cache --group-id ${{ github.run_id }}
+        python3 utils/conan-utils.py delete-cache --group-id ${{ github.run_id }}
