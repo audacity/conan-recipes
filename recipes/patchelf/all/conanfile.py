@@ -64,6 +64,7 @@ class PatchElfConan(ConanFile):
 
     def package_id(self):
         del self.info.settings.compiler
+        del self.info.settings.build_type
 
     def package_info(self):
         self.cpp_info.includedirs = []
