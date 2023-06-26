@@ -382,8 +382,9 @@ class wxWidgetsConan(ConanFile):
                 libdir = '%s%s%s' % (compiler_prefix, arch_suffix, lib_suffix)
                 libdir = os.path.join('lib', libdir)
 
-                self.cpp_info.components[name].bindirs.append(libdir)
-                self.cpp_info.components[name].libdirs.append(libdir)
+                self.cpp_info.components[name].bindirs = ['bin', libdir]
+                self.cpp_info.components[name].libdirs = ['lib', libdir]
+                self.cpp_info.components[name].includedirs = ['include', f"include/wx{version_suffix_major_minor}"]
             else:
                 self.cpp_info.components[name].defines.append('__WXGTK__')
 
@@ -496,9 +497,6 @@ class wxWidgetsConan(ConanFile):
 
         if self._is_msvc:
             self.cpp_info.components['base'].includedirs.append(os.path.join('include', 'msvc'))
-        elif self.settings.os != 'Windows':
-            unix_include_path = os.path.join("include", "wx{}".format(version_suffix_major_minor))
-            self.cpp_info.components['base'].includedirs = [unix_include_path] + self.cpp_info.components['base'].includedirs
 
         if len(self.cpp_info.components['base'].libdirs) == 0:
             self.cpp_info.components['base'].libdirs = self.cpp_info.components['core'].libdirs
