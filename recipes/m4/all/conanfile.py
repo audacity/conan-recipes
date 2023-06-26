@@ -35,6 +35,7 @@ class M4Conan(ConanFile):
 
     def package_id(self):
         del self.info.settings.compiler
+        del self.info.settings.build_type
 
     def build_requirements(self):
         if self._settings_build.os == "Windows":
