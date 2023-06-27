@@ -4,6 +4,7 @@ from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
 from conan.tools.system.package_manager import Apt, Dnf, PacMan
 from conan.tools.files import get, export_conandata_patches, apply_conandata_patches, copy
 from conan.tools.gnu import PkgConfig
+
 import os
 
 required_conan_version = ">=2.0.0"
@@ -288,21 +289,61 @@ class wxWidgetsConan(ConanFile):
 
     def add_libraries_from_pc(self, lib, cpp_info):
         pc = PkgConfig(self, lib)
-        pc.fill_cpp_info(cpp_info, is_system=True)
 
+        cpp_info.system_libs += pc.libs
+        cpp_info.libdirs += pc.libdirs
+        cpp_info.sharedlinkflags += pc.linkflags
+        cpp_info.exelinkflags += pc.linkflags
+        cpp_info.defines += pc.defines
+        cpp_info.includedirs += pc.includedirs
+        cpp_info.cflags += pc.cflags
+        cpp_info.cxxflags += pc.cflags
+
+    @property
+    def __defines(self):
+        defines = [ 'wxUSE_GUI=1' ]
+
+        if self.settings.build_type == 'Debug':
+            defines.append('__WXDEBUG__')
+
+        if self.options.shared:
+            defines.append('WXUSINGDLL')
+
+        if self.settings.os == 'Macos':
+            defines.extend(['__WXMAC__', '__WXOSX__', '__WXOSX_COCOA__'])
+        elif self.settings.os == 'Windows':
+            defines.extend([
+                '__WXMSW__',
+                'wxNO_NET_LIB', 'wxNO_XML_LIB', 'wxNO_REGEX_LIB', 'wxNO_ZLIB_LIB', 'wxNO_JPEG_LIB', 'wxNO_PNG_LIB',
+                'wxNO_TIFF_LIB', 'wxNO_ADV_LIB', 'wxNO_HTML_LIB', 'wxNO_GL_LIB', 'wxNO_QA_LIB', 'wxNO_XRC_LIB',
+                'wxNO_AUI_LIB', 'wxNO_PROPGRID_LIB', 'wxNO_RIBBON_LIB', 'wxNO_RICHTEXT_LIB',
+                'wxNO_MEDIA_LIB', 'wxNO_STC_LIB', 'wxNO_WEBVIEW_LIB'])
+        else:
+            defines.append('__WXGTK__')
+
+        return defines
+
+    @property
+    def __version(self):
+        return tuple(map(int, self.version[0:self.version.find('-')].split('.')))
+
+    @property
+    def __includedirs(self):
+        if self._is_msvc:
+            return ['include', 'include/msvc']
+        else:
+            return ['include', f'include/wx-{self.__version[0]}.{self.__version[1]}']
 
     def package_info(self):
-        version_tokens = self.version[0:self.version.find('-')].split('.')
-        version_major = version_tokens[0]
-        version_minor = version_tokens[1]
-        version_suffix_major_minor = '-%s.%s' % (version_major, version_minor)
+        version_major = self.__version[0]
+        version_minor = self.__version[1]
+        version_suffix_major_minor = f'-{version_major}.{version_minor}'
         unicode = 'u' if self.options.unicode else ''
 
         # wx no longer uses a debug suffix for non-windows platforms from 3.1.3 onwards
         use_debug_suffix = False
         if self.settings.build_type == 'Debug':
-            version_list = [int(part) for part in version_tokens]
-            use_debug_suffix = (self.settings.os == 'Windows' or version_list < [3, 1, 3])
+            use_debug_suffix = (self.settings.os == 'Windows' or self.__version < (3, 1, 3))
 
         debug = 'd' if use_debug_suffix else ''
 
@@ -314,7 +355,7 @@ class wxWidgetsConan(ConanFile):
         elif self.settings.os == 'Windows':
             prefix = 'wx'
             toolkit = 'msw'
-            version = '%s%s' % (version_major, version_minor)
+            version = f'{version_major}{version_minor}'
             suffix = ''
         else:
             prefix = 'wx_'
@@ -339,54 +380,23 @@ class wxWidgetsConan(ConanFile):
             if requires and len(requires) > 0:
                 self.cpp_info.components[name].requires = requires
 
-            self.cpp_info.components[name].defines.append('wxUSE_GUI=1')
+            self.cpp_info.components[name].defines = self.__defines
+            self.cpp_info.components[name].includedirs = self.__includedirs
 
-            if self.settings.build_type == 'Debug':
-                self.cpp_info.components[name].defines.append('__WXDEBUG__')
-
-            if self.options.shared:
-                self.cpp_info.components[name].defines.append('WXUSINGDLL')
-
-            if self.settings.os == 'Macos':
-                self.cpp_info.components[name].defines.extend(['__WXMAC__', '__WXOSX__', '__WXOSX_COCOA__'])
-            elif self.settings.os == 'Windows':
-                self.cpp_info.components[name].defines.extend([
-                                '__WXMSW__',
-                                'wxNO_NET_LIB',
-                                'wxNO_XML_LIB',
-                                'wxNO_REGEX_LIB',
-                                'wxNO_ZLIB_LIB',
-                                'wxNO_JPEG_LIB',
-                                'wxNO_PNG_LIB',
-                                'wxNO_TIFF_LIB',
-                                'wxNO_ADV_LIB',
-                                'wxNO_HTML_LIB',
-                                'wxNO_GL_LIB',
-                                'wxNO_QA_LIB',
-                                'wxNO_XRC_LIB',
-                                'wxNO_AUI_LIB',
-                                'wxNO_PROPGRID_LIB',
-                                'wxNO_RIBBON_LIB',
-                                'wxNO_RICHTEXT_LIB',
-                                'wxNO_MEDIA_LIB',
-                                'wxNO_STC_LIB',
-                                'wxNO_WEBVIEW_LIB'])
+            if self.settings.os == 'Windows':
                 # see cmake/init.cmake
-                compiler_prefix = {'Visual Studio': 'vc',
-                                'msvc': 'vc',
-                                'gcc': 'gcc',
-                                'clang': 'clang'}.get(str(self.settings.compiler))
+                compiler_prefix = {
+                    'msvc': 'vc',
+                    'gcc': 'gcc',
+                    'clang': 'clang'}.get(str(self.settings.compiler))
 
                 arch_suffix = '_x64' if self.settings.arch == 'x86_64' else ''
                 lib_suffix = '_dll' if self.options.shared else '_lib'
                 libdir = '%s%s%s' % (compiler_prefix, arch_suffix, lib_suffix)
-                libdir = os.path.join('lib', libdir)
+                libdir = f'lib/{libdir}'
 
                 self.cpp_info.components[name].bindirs = ['bin', libdir]
                 self.cpp_info.components[name].libdirs = ['lib', libdir]
-                self.cpp_info.components[name].includedirs = ['include', f"include/wx{version_suffix_major_minor}"]
-            else:
-                self.cpp_info.components[name].defines.append('__WXGTK__')
 
         if not self.options.shared:
             regexLibPattern = 'wxregex{unicode}{debug}' if self.settings.os == "Windows" else 'wxregex{unicode}{debug}{suffix}'
@@ -449,55 +459,21 @@ class wxWidgetsConan(ConanFile):
 
         if self.settings.os == 'Macos':
             self.cpp_info.components['base'].frameworks.extend([
-                              'Carbon',
-                              'Cocoa',
-                              'AudioToolbox',
-                              'OpenGL',
-                              'AVKit',
-                              'AVFoundation',
-                              'Foundation',
-                              'IOKit',
-                              'ApplicationServices',
-                              'CoreText',
-                              'CoreGraphics',
-                              'CoreServices',
-                              'CoreMedia',
-                              'Security',
-                              'ImageIO',
-                              'System'])
+                'Carbon', 'Cocoa', 'AudioToolbox', 'OpenGL', 'AVKit', 'AVFoundation',
+                'Foundation', 'IOKit', 'ApplicationServices', 'CoreText', 'CoreGraphics',
+                'CoreServices', 'CoreMedia', 'Security', 'ImageIO', 'System',])
 
             if self.options.webview:
                  self.cpp_info.components['base'].frameworks.append('WebKit')
         elif self.settings.os == 'Windows':
-            self.cpp_info.components['base'].system_libs.extend(['kernel32',
-                                       'user32',
-                                       'gdi32',
-                                       'comdlg32',
-                                       'winspool',
-                                       'shell32',
-                                       'comctl32',
-                                       'ole32',
-                                       'oleaut32',
-                                       'uuid',
-                                       'wininet',
-                                       'rpcrt4',
-                                       'winmm',
-                                       'advapi32',
-                                       'wsock32'])
+            self.cpp_info.components['base'].system_libs.extend([
+                'kernel32', 'user32', 'gdi32', 'comdlg32', 'winspool', 'shell32', 'comctl32',
+                'ole32', 'oleaut32', 'uuid', 'wininet', 'rpcrt4', 'winmm', 'advapi32', 'wsock32',])
             # Link a few libraries that are needed when using gcc on windows
             if self.settings.compiler == 'gcc':
-                self.cpp_info.components['base'].system_libs.extend(['uxtheme',
-                                           'version',
-                                           'shlwapi',
-                                           'oleacc'])
+                self.cpp_info.components['base'].system_libs.extend([
+                    'uxtheme', 'version', 'shlwapi', 'oleacc'])
         else:
             self.add_libraries_from_pc('gtk+-2.0', self.cpp_info.components['base'])
             self.add_libraries_from_pc('x11', self.cpp_info.components['base'])
             self.cpp_info.components['base'].system_libs.extend(['dl', 'pthread', 'SM', 'uuid'])
-
-        if self._is_msvc:
-            self.cpp_info.components['base'].includedirs.append(os.path.join('include', 'msvc'))
-
-        if len(self.cpp_info.components['base'].libdirs) == 0:
-            self.cpp_info.components['base'].libdirs = self.cpp_info.components['core'].libdirs
-            self.cpp_info.components['base'].defines = self.cpp_info.components['core'].defines
