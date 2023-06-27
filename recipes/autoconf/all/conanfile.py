@@ -36,7 +36,9 @@ class AutoconfConan(ConanFile):
         self.folders.generators = 'build/conan'
 
     def package_id(self):
-        self.info.clear()
+        del self.info.settings.arch
+        del self.info.settings.compiler
+        del self.info.settings.build_type
 
     def requirements(self):
         self.requires("m4/1.4.19@audacity/stable") # Needed at runtime by downstream clients as well
