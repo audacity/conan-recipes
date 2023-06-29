@@ -116,3 +116,69 @@ def install_package(package_reference:PackageReference, profiles:ConanProfiles, 
 def install_all(build_order:list[str], profiles:ConanProfiles, remotes:list[str], allow_build:bool, keep_sources:bool):
     for package_name in build_order:
         install_package(PackageReference(package_name=package_name), profiles, remotes, allow_build, keep_sources)
+
+
+def print_build_order(recipe_path:str, config_path:str, profiles:ConanProfiles, remotes:list[str]):
+    cmd = [
+        utils.get_conan(), 'graph', 'info',
+        '-pr:h', profiles.host_profile,
+        '-pr:b', profiles.build_profile,
+        '--build="*"',
+        '--format', 'json',
+    ]
+
+    if remotes and len(remotes) > 0:
+        for remote in remotes:
+            cmd += ['-r', remote]
+    else:
+        cmd += ['--no-remote']
+
+    if config_path:
+        print(f'Loading options from {config_path}')
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)['config']
+            print(config)
+            if 'options' in config:
+                for opt in config['options'].split():
+                    cmd += ['-o:h', opt.strip()]
+
+    cmd += [recipe_path]
+    print(cmd)
+
+    dependecies_graph = json.loads(subprocess.check_output(cmd))['graph']['nodes']
+
+    build_node_ids = []
+    dep_node_ids = []
+
+    def __update_node_ids(node_ids:list[str], node_id:str):
+        if node_id in node_ids:
+            node_ids.remove(node_id)
+        node_ids.append(node_id)
+
+
+    for node in dependecies_graph.values():
+        for depenency_id, dependecy in node['dependencies'].items():
+            if dependecy['build'] == 'True':
+                __update_node_ids(build_node_ids, depenency_id)
+            else:
+                __update_node_ids(dep_node_ids, depenency_id)
+
+    build_node_ids.reverse()
+    dep_node_ids.reverse()
+
+    processed_deps = set()
+
+    deps = []
+
+    def __fill_deps(node_ids:list[str]):
+        for node_id in node_ids:
+            dep_node = dependecies_graph[node_id]
+            if dep_node['ref'] in processed_deps:
+                continue
+            processed_deps.add(dep_node['ref'])
+            deps.append(f'{dep_node["name"]}/{dep_node["version"]}')
+
+    __fill_deps(build_node_ids)
+    __fill_deps(dep_node_ids)
+
+    return '\n'.join(deps)
