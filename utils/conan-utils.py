@@ -3,7 +3,6 @@ import os
 import sys
 import traceback
 
-import yaml
 from dotenv import load_dotenv
 from impl import conan, conan_env
 from impl.config import directories
@@ -21,9 +20,17 @@ load_dotenv()
 def add_build_order_option(parser):
     parser.add_argument('--build-order', type=str, help='Path to file with build order. Relative paths are resolved against config directory', required=False)
 
-def add_common_build_options(parser, allow_single_package=True):
+def add_recipe_options(parser):
+    parser.add_argument('--recipe', type=str, help='Path to the recipe', required=True)
+    parser.add_argument('--recipe-config', type=str, help='Path to the config file for the recipe', required=True)
+
+def add_profile_options(parser):
     parser.add_argument('--profile-build', type=str, help='Conan build profile', required=False)
     parser.add_argument('--profile-host', type=str, help='Conan host profile', required=True)
+
+def add_common_build_options(parser, allow_single_package=True):
+    add_profile_options(parser)
+
     parser.add_argument('--keep-sources', action='store_true', help='Do not clean up sources after building')
     parser.add_argument('--enable-debug-processor', action='append', help='Enable specific debug processor (symstore, sentry)', required=False)
     parser.add_argument('--skip-debug-data-upload', action='store_true', help='Do not upload or discard debug data. Useful with store-cache command')
@@ -152,10 +159,15 @@ def parse_args():
     #===========================================================================
     subparser = subparsers.add_parser('validate-recipe', help='Fill the cache with the build order and validates that recipe can consume all dependencies without building')
     add_common_build_options(subparser, allow_single_package=False)
+    add_recipe_options(subparser)
     subparser.add_argument('--remote', action='append', help='Conan remote', required=False)
-    subparser.add_argument('--recipe', type=str, help='Path to the recipe', required=True)
-    subparser.add_argument('--recipe-config', type=str, help='Path to the config file for the recipe', required=True)
     subparser.add_argument('--export-recipes', action='store_true', help='Export recipes to Conan cache before building')
+
+    # build-order
+    subparser = subparsers.add_parser('build-order', help='Print the build order for a recipe')
+    add_recipe_options(subparser)
+    add_profile_options(subparser)
+    subparser.add_argument('--remote', action='append', help='Conan remote', required=False)
 
     #===========================================================================
     # store-cache
@@ -252,6 +264,8 @@ def run_conan_command(args):
             conan.execute_conan_command('export-recipes', False)
         conan.install_all(get_build_order(args.build_order), get_profiles(args), args.remote, True, False)
         conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, False, False)
+    elif args.subparser_name == 'build-order':
+        print(conan.print_build_order(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote))
     else:
         conan.execute_conan_command(args.subparser_name, args.all)
 
