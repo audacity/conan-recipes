@@ -1,10 +1,36 @@
-from dataclasses import dataclass
-import shutil
-from conan import ConanFile, tools
 import os
 import re
+import shutil
 import subprocess
+from dataclasses import dataclass
+from functools import cache
 
+from conan import ConanFile
+from conan.tools.env import VirtualBuildEnv
+
+
+@cache
+def get_dumpbin():
+    vswhere_path = os.path.join(os.environ["ProgramFiles(x86)"], "Microsoft Visual Studio", "Installer", "vswhere.exe")
+    dumpbins = subprocess.check_output([vswhere_path, "-latest", "-find", "**/dumpbin.exe"]).decode("utf-8").splitlines()
+
+    for dumpbin in dumpbins:
+        if '\\Hostx64' in dumpbin and '\\x64' in dumpbin:
+            return dumpbin
+
+    for dumpbin in dumpbins:
+        if '\\Hostx86' in dumpbin and '\\x64' in dumpbin:
+            return dumpbin
+
+    for dumpbin in dumpbins:
+        if '\\Hostx64' in dumpbin and '\\x86' in dumpbin:
+            return dumpbin
+
+    for dumpbin in dumpbins:
+        if '\\Hostx86' in dumpbin and '\\x86' in dumpbin:
+            return dumpbin
+
+    raise Exception("Could not find dumpbin.exe")
 
 # This functions returns a list of all executables in the package folder
 # It can potentially give false postives, treating scripts as executables
@@ -49,7 +75,7 @@ class WindowsDependencyProcessor:
 
     def __run_dumpbin(self, binary, looukp_directories):
         try:
-            output = subprocess.check_output(["dumpbin.exe", '/dependents', binary]).decode('utf-8')
+            output = subprocess.check_output([get_dumpbin(), '/dependents', binary]).decode('utf-8')
 
             if output is None:
                 return []
@@ -82,9 +108,8 @@ class WindowsDependencyProcessor:
                 self.__recursive_collect(dependency.path, lookup_directories)
 
     def __collect_all(self, conanfile, executables, looukp_directories):
-        with tools.vcvars(conanfile):
-            for executable in executables:
-                self.__recursive_collect(executable, looukp_directories)
+        for executable in executables:
+            self.__recursive_collect(executable, looukp_directories)
 
         return self.__dependencies.values()
 
