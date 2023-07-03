@@ -21,3 +21,6 @@ deactivate_conanbuild*
 deactivate_conanrun*
 
 autom4te.cache/
+
+recipes/qt-tools/all/src/
+recipes/qt/6.x.x/src/
