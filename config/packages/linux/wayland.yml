@@ -1,0 +1,4 @@
+config:
+  version: "1.22.0"
+  allow-build-missing: yes
+  use-both-profiles: yes
