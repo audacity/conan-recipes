@@ -2,7 +2,7 @@ import os
 
 from conan import ConanFile
 from conan.tools.env import VirtualBuildEnv
-from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, replace_in_file, rmdir
+from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, replace_in_file, rmdir, rename
 from conan.tools.gnu import Autotools, AutotoolsToolchain
 from conan.tools.layout import basic_layout
 from conan.tools.scm import Version
@@ -106,7 +106,7 @@ class AutomakeConan(ConanFile):
                 fullpath = os.path.join(binpath, filename)
                 if not os.path.isfile(fullpath):
                     continue
-                os.rename(fullpath, fullpath + ".exe")
+                rename(self, fullpath, fullpath + ".exe")
 
     @property
     def _automake_libdir(self):
