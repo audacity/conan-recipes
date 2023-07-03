@@ -80,14 +80,14 @@ class ConanRecipe:
         subprocess.check_call([get_conan(), '--version'])
         subprocess.check_call(cmd)
 
-    def __run_build_command(self, cmd:str, profiles:ConanProfiles, remotes:list[str] = None, additional_options:list[str] = None, include_recipe=True):
+    def __run_build_command(self, cmd:str, profiles:ConanProfiles, remotes:list[str] = None, additional_options:list[str] = None, include_recipe=True, force_build_profile=False):
         cmd = [
             get_conan(), cmd,
             '--version', self.reference.version,
             '--user', self.reference.user,
             '--channel', self.reference.channel,
             '-vvv',
-            '-pr:h', profiles.get_profile(self.is_build_tool),
+            '-pr:h', profiles.get_profile(self.is_build_tool or force_build_profile),
             '-pr:b', profiles.build_profile,
             '-of', directories.build_dir,
         ]
@@ -111,20 +111,24 @@ class ConanRecipe:
         print(cmd)
         subprocess.check_call(cmd)
 
-    def install_dependecies(self, profiles:ConanProfiles, remotes:list[str] = None, build_missing:bool = False):
-        print(f"Installing dependencies for `{self.reference}`...", flush=True)
-        additional_options = ['--build', 'missing'] if build_missing else None
-        self.__run_build_command('install', profiles, remotes, additional_options)
-
 
     def build(self, profiles:ConanProfiles):
         if self.is_python_require:
             print(f"Skipping build for python_require package `{self.reference}`")
             return
 
-        print(f"Building `{self.reference}`...", flush=True)
+        build_missing = 'allow-build-missing' in self.config and self.config['allow-build-missing']
+        additional_options=['--build', 'missing'] if build_missing else None
 
-        self.__run_build_command('build', profiles)
+        if not self.is_build_tool and 'use-both-profiles' in self.config and self.config['use-both-profiles']:
+            print(f"Building `{self.reference}` with build profile...", flush=True)
+            self.__run_build_command('build', profiles, additional_options=additional_options, force_build_profile=True)
+
+            print(f"== Creating Conan package with build profile...", flush=True)
+            self.__run_build_command('export-pkg', profiles, force_build_profile=True)
+
+        print(f"Building `{self.reference}`...", flush=True)
+        self.__run_build_command('build', profiles, additional_options=additional_options)
 
         print(f"== Creating Conan package...", flush=True)
         self.__run_build_command('export-pkg', profiles)
