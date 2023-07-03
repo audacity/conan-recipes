@@ -13,7 +13,7 @@ class TestPackageConan(ConanFile):
 
     def test(self):
         output = StringIO()
-        self.run("cmake --version", output)
+        self.run("cmake --version", output, env="conanbuild")
         output_str = str(output.getvalue())
         self.output.info("Installed version: {}".format(output_str))
         tokens = re.split('[@#]', self.tested_reference_str)
