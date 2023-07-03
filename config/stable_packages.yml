@@ -9,7 +9,7 @@ packages:
   catch2: '*'
   cmake: '*'
   crashpad: '*'
-  double_conversion: '*'
+  double-conversion: '*'
   expat: '*'
   flac: '*'
   flex: '*'
