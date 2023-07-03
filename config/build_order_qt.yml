@@ -30,6 +30,14 @@ build_order:
     - openssl
     - libuuid
     - linux-syscall-support
+    - xorg
+    - libiconv
+    - libxml2
+    - libffi
+    - wayland
+    - wayland-protocols
+    - xkeyboard-config
+    - xkbcommon
   - platforms: "*"
     packages:
     - zlib
