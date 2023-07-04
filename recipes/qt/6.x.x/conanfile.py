@@ -281,14 +281,14 @@ class QtConan(ConanFile):
             self.requires("sqlite3/3.39.2@audacity/stable")
             self.options["sqlite3"].enable_column_metadata = True
         if self.options.gui and self.settings.os in ["Linux", "FreeBSD"]:
-            self.requires("xorg/system")
-            self.requires("xkbcommon/1.4.1")
+            self.requires("xorg/system@audacity/stable")
+            self.requires("xkbcommon/1.5.0@audacity/stable")
         if self.settings.os != "Windows" and self.options.get_safe("opengl", "no") != "no":
             self.requires("opengl/system")
         if self.options.with_zstd:
             self.requires("zstd/1.5.5@audacity/stable")
         if self.options.qtwayland:
-            self.requires("wayland/1.21.0")
+            self.requires("wayland/1.21.0@audacity/stable")
         if self.options.with_brotli:
             self.requires("brotli/1.0.9@audacity/stable")
         if self.options.get_safe("qtwebengine") and self.settings.os == "Linux":
@@ -301,7 +301,7 @@ class QtConan(ConanFile):
         if self.options.with_dbus:
             self.requires("dbus/1.12.20")
         if self.options.get_safe("with_md4c", False):
-            self.requires("md4c/0.4.8")
+            self.requires("md4c/0.4.8@audacity/stable")
 
     def build_requirements(self):
         self.build_requires("cmake/[>=3.22.0]@audacity/stable")
@@ -358,6 +358,10 @@ class QtConan(ConanFile):
             replace_in_file(self, os.path.join(self.source_folder, "qtbase", "configure.cmake"),
                 "set_property(TARGET ZLIB::ZLIB PROPERTY IMPORTED_GLOBAL TRUE)",
                 "")
+
+        if Version(self.version) <= "6.4.0":
+            # use official variable name https://cmake.org/cmake/help/latest/module/FindFontconfig.html
+            replace_in_file(self, os.path.join(self.source_folder, "qtbase", "src", "gui", "configure.cmake"), "FONTCONFIG_FOUND", "Fontconfig_FOUND")
 
     def _xplatform(self):
         if self.settings.os == "Linux":
@@ -612,9 +616,13 @@ class QtConan(ConanFile):
                 " IMPORTED)\n",
                 " IMPORTED GLOBAL)\n", strict=False)
 
-        cmake = CMake(self)
-        cmake.configure()
-        cmake.build()
+        try:
+            cmake = CMake(self)
+            cmake.configure()
+            cmake.build()
+        except:
+            input("Error")
+            raise
 
     @property
     def _cmake_executables_file(self):
