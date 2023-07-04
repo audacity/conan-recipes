@@ -702,10 +702,23 @@ class QtConan(ConanFile):
                     find_program(QT_CMAKE_EXECUTABLE_{0}
                         NAMES {0}
                         HINTS
-                            ${{CMAKE_CURRENT_LIST_DIR}}/../../..
                             ${{QT_HOST_PATH}}
-                        PATH_SUFFIXES bin libexec lib
-                        NO_DEFAULT_PATH)
+                        PATH_SUFFIXES bin libexec
+                        NO_DEFAULT_PATH
+                    )
+
+                    find_program(QT_CMAKE_EXECUTABLE_{0}
+                        NAMES {0}
+                        HINTS
+                            ${{CMAKE_CURRENT_LIST_DIR}}/../../..
+                        PATH_SUFFIXES bin libexec
+                        NO_DEFAULT_PATH
+                    )
+
+                    find_program(QT_CMAKE_EXECUTABLE_{0}
+                        NAMES {0}
+                        PATH_SUFFIXES libexec
+                    )
 
                     mark_as_advanced(QT_CMAKE_EXECUTABLE_{0})
 
