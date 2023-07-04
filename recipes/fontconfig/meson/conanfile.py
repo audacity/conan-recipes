@@ -64,6 +64,7 @@ class FontconfigConan(ConanFile):
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        apply_conandata_patches(self)
 
     def generate(self):
         env = VirtualBuildEnv(self)
@@ -81,14 +82,14 @@ class FontconfigConan(ConanFile):
         })
         tc.generate()
 
-    def _patch_files(self):
-        apply_conandata_patches(self)
-        replace_in_file(self, os.path.join(self.source_folder, "meson.build"),
-                        "freetype_req = '>= 21.0.15'",
-                        f"freetype_req = '{Version(self.dependencies['freetype'].ref.version)}'")
+        try:
+            replace_in_file(self, os.path.join(self.source_folder, "meson.build"),
+                "freetype_req = '>= 21.0.15'",
+                f"freetype_req = '{Version(self.dependencies['freetype'].ref.version)}'")
+        except:
+            pass
 
     def build(self):
-        self._patch_files()
         meson = Meson(self)
         meson.configure()
         meson.build()
