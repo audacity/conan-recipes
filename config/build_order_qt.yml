@@ -75,6 +75,7 @@ build_order:
     - crashpad
     - libtiff
     - wxwidgets
+    - libwebp
     - qt-tools
     - qt
     - kddockwidgets
