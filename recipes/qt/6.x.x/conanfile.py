@@ -647,6 +647,10 @@ class QtConan(ConanFile):
     def remove_files_by_mask(self, folder, mask):
         rm(self, pattern=mask, folder=folder, recursive=True)
 
+    @property
+    def __qt_quick_enabled(self):
+        return self.options.gui and (Version(self.version) < "6.2.0" or self.options.qtshadertools)
+
     def package(self):
         cmake = CMake(self)
         cmake.install()
@@ -764,6 +768,9 @@ class QtConan(ConanFile):
 
         if self.options.qtdeclarative:
             _create_private_module("Qml", ["CorePrivate", "Qml"])
+
+            if self.__qt_quick_enabled:
+                _create_private_module("Quick", ["CorePrivate", "GuiPrivate", "QmlPrivate", "Quick"])
 
         if self.settings.os in ["Windows", "iOS"]:
             contents = textwrap.dedent("""\
@@ -896,8 +903,8 @@ class QtConan(ConanFile):
             _create_module("Gui", gui_reqs)
 
             build_modules.append(self._cmake_qt6_private_file("Gui"))
-            self.cpp_info.components["qtGui"].build_modules["cmake_find_package"].append(self._cmake_qt6_private_file("Gui"))
-            self.cpp_info.components["qtGui"].build_modules["cmake_find_package_multi"].append(self._cmake_qt6_private_file("Gui"))
+            if self.__qt_quick_enabled:
+                build_modules.append(self._cmake_qt6_private_file("Quick"))
 
             if self.settings.os == "Windows":
                 _create_plugin("QWindowsIntegrationPlugin", "qwindows", "platforms", ["Core", "Gui"])
@@ -946,8 +953,6 @@ class QtConan(ConanFile):
         if self.options.widgets:
             _create_module("Widgets", ["Gui"])
             build_modules.append(self._cmake_qt6_private_file("Widgets"))
-            self.cpp_info.components["qtWidgets"].build_modules["cmake_find_package"].append(self._cmake_qt6_private_file("Widgets"))
-            self.cpp_info.components["qtWidgets"].build_modules["cmake_find_package_multi"].append(self._cmake_qt6_private_file("Widgets"))
         if self.options.gui and self.options.widgets:
             _create_module("PrintSupport", ["Gui", "Widgets"])
         if self.options.get_safe("opengl", "no") != "no" and self.options.gui:
@@ -963,13 +968,11 @@ class QtConan(ConanFile):
             _create_module("Core5Compat")
 
         # since https://github.com/qt/qtdeclarative/commit/4fb84137f1c0a49d64b8bef66fef8a4384cc2a68
-        qt_quick_enabled = self.options.gui and (Version(self.version) < "6.2.0" or self.options.qtshadertools)
+        qt_quick_enabled = self.__qt_quick_enabled
 
         if self.options.qtdeclarative:
             _create_module("Qml", ["Network"])
             build_modules.append(self._cmake_qt6_private_file("Qml"))
-            self.cpp_info.components["qtQml"].build_modules["cmake_find_package"].append(self._cmake_qt6_private_file("Qml"))
-            self.cpp_info.components["qtQml"].build_modules["cmake_find_package_multi"].append(self._cmake_qt6_private_file("Qml"))
             _create_module("QmlModels", ["Qml"])
             self.cpp_info.components["qtQmlImportScanner"].set_property("cmake_target_name", "Qt6::QmlImportScanner")
             self.cpp_info.components["qtQmlImportScanner"].names["cmake_find_package"] = "QmlImportScanner" # this is an alias for Qml and there to integrate with existing consumers
@@ -1200,15 +1203,9 @@ class QtConan(ConanFile):
 
         self.cpp_info.components["qtCore"].builddirs.append(os.path.join("res","archdatadir","bin"))
         build_modules.append(self._cmake_executables_file)
-        self.cpp_info.components["qtCore"].build_modules["cmake_find_package"].append(self._cmake_executables_file)
-        self.cpp_info.components["qtCore"].build_modules["cmake_find_package_multi"].append(self._cmake_executables_file)
         build_modules.append(self._cmake_qt6_private_file("Core"))
-        self.cpp_info.components["qtCore"].build_modules["cmake_find_package"].append(self._cmake_qt6_private_file("Core"))
-        self.cpp_info.components["qtCore"].build_modules["cmake_find_package_multi"].append(self._cmake_qt6_private_file("Core"))
         if self.settings.os in ["Windows", "iOS"]:
             build_modules.append(self._cmake_entry_point_file)
-            self.cpp_info.components["qtCore"].build_modules["cmake_find_package"].append(self._cmake_entry_point_file)
-            self.cpp_info.components["qtCore"].build_modules["cmake_find_package_multi"].append(self._cmake_entry_point_file)
 
         for m in sorted(os.listdir(os.path.join("lib", "cmake"))):
             module = os.path.join("lib", "cmake", m, "%sMacros.cmake" % m)
@@ -1217,13 +1214,9 @@ class QtConan(ConanFile):
                 component_name = "qtCore"
             if os.path.isfile(module):
                 build_modules.append(module)
-                self.cpp_info.components[component_name].build_modules["cmake_find_package"].append(module)
-                self.cpp_info.components[component_name].build_modules["cmake_find_package_multi"].append(module)
 
             helper_modules = glob.glob(os.path.join(self.package_folder, "lib", "cmake", m, "QtPublic*Helpers.cmake"))
             build_modules.extend(helper_modules)
-            self.cpp_info.components[component_name].build_modules["cmake_find_package"].extend(helper_modules)
-            self.cpp_info.components[component_name].build_modules["cmake_find_package_multi"].extend(helper_modules)
             self.cpp_info.components[component_name].builddirs.append(os.path.join("lib", "cmake", m))
 
             #version_module = os.path.join("lib", "cmake", m, "%sConfigVersion.cmake" % m)
