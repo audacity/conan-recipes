@@ -16,3 +16,8 @@ config:
     &:qtimageformats=True
     &:qtlanguageserver=True
     &:qtshadertools=True
+    libtiff/*:lzma=False
+    libtiff/*:jpeg=libjpeg-turbo
+    libtiff/*:jbig=False
+    libtiff/*:libdeflate=False
+    libtiff/*:webp=False

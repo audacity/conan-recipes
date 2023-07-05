@@ -82,6 +82,8 @@ class QtConan(ConanFile):
         "with_harfbuzz": [True, False],
         "with_libjpeg": ["libjpeg", "libjpeg-turbo", False],
         "with_libpng": [True, False],
+        "with_libwebp": [True, False],
+        "with_libtiff": [True, False],
         "with_sqlite3": [True, False],
         "with_zstd": [True, False],
         "with_brotli": [True, False],
@@ -114,6 +116,8 @@ class QtConan(ConanFile):
         "with_harfbuzz": True,
         "with_libjpeg": False,
         "with_libpng": True,
+        "with_libwebp": True,
+        "with_libtiff": True,
         "with_sqlite3": True,
         "with_zstd": False,
         "with_brotli": True,
@@ -199,6 +203,8 @@ class QtConan(ConanFile):
             del self.options.with_harfbuzz
             del self.options.with_libjpeg
             del self.options.with_libpng
+            del self.options.with_libwebp
+            del self.options.with_libtiff
             del self.options.with_md4c
 
         if self.settings.os in ("FreeBSD", "Linux"):
@@ -277,6 +283,10 @@ class QtConan(ConanFile):
             self.requires("libjpeg-turbo/2.1.5@audacity/stable")
         if self.options.get_safe("with_libpng", False):
             self.requires("libpng/1.6.39@audacity/stable")
+        if self.options.get_safe("with_libwebp", False):
+            self.requires("libwebp/1.3.0@audacity/stable")
+        if self.options.get_safe("with_libtiff", False):
+            self.requires("libtiff/4.5.0@audacity/stable")
         if self.options.with_sqlite3:
             self.requires("sqlite3/3.39.2@audacity/stable")
             self.options["sqlite3"].enable_column_metadata = True
@@ -532,6 +542,8 @@ class QtConan(ConanFile):
                               ("with_harfbuzz", "harfbuzz"),
                               ("with_libjpeg", "jpeg"),
                               ("with_libpng", "png"),
+                              ("with_libwebp", "webp"),
+                              ("with_libtiff", "tiff"),
                               ("with_sqlite3", "sqlite"),
                               ("with_pcre2", "pcre2"),]:
             if self.options.get_safe(opt, False):
@@ -546,6 +558,8 @@ class QtConan(ConanFile):
                               ("with_harfbuzz", "harfbuzz"),
                               ("with_libjpeg", "libjpeg"),
                               ("with_libpng", "libpng"),
+                              ("with_libwebp", "webp"),
+                              ("with_libtiff", "tiff"),
                               ("with_md4c", "libmd4c"),
                               ("with_pcre2", "pcre"),]:
             if self.options.get_safe(opt, False):
@@ -890,6 +904,10 @@ class QtConan(ConanFile):
                 gui_reqs.append("freetype::freetype")
             if self.options.with_libpng:
                 gui_reqs.append("libpng::libpng")
+            if self.options.with_libwebp:
+                gui_reqs.append("libwebp::libwebp")
+            if self.options.with_libtiff:
+                gui_reqs.append("libtiff::libtiff")
             if self.options.get_safe("with_fontconfig", False):
                 gui_reqs.append("fontconfig::fontconfig")
             if self.settings.os in ["Linux", "FreeBSD"]:
