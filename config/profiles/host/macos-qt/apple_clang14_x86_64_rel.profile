@@ -1,0 +1,12 @@
+[settings]
+os = Macos
+os.version=10.13
+arch = x86_64
+compiler = apple-clang
+compiler.version = 14
+compiler.libcxx = libc++
+compiler.cppstd = 17
+build_type = RelWithDebInfo
+[options]
+*:shared=True
+catch2/*:no_std_unchaught_exceptions=True
