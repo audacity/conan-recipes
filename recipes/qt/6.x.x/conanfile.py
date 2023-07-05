@@ -325,7 +325,7 @@ class QtConan(ConanFile):
             self.build_requires("wayland/1.21.0")
 
         if cross_building(self, skip_x64_x86=True):
-            self.build_requires("qt-tools/6.3.1@audacity/testing")
+            self.build_requires("qt-tools/6.3.1@audacity/stable")
 
         if self.settings.os not in ["Windows", "Macos"]:
             self.build_requires("patchelf/0.13@audacity/stable")
