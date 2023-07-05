@@ -72,3 +72,4 @@ packages:
   wayland: '*'
   wayland-protocols: '*'
   libffi: '*'
+  libwebp: '*'
