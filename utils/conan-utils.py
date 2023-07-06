@@ -342,7 +342,7 @@ if __name__ == "__main__":
     if args.output_dir:
         directories.change_output_dir(args.output_dir)
     if args.build_dir:
-        directories.build_dir = args.build_dir
+        directories.build_dir = os.path.realpath(args.build_dir)
 
     if hasattr(args, 'enable_debug_processor'):
         skip_upload = hasattr(args, 'skip_debug_data_upload') and args.skip_debug_data_upload
