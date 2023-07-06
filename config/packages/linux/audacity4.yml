@@ -25,8 +25,8 @@ config:
     &:use_breakpad=True
     &:use_crashpad=True
     &:use_libcurl=True
-    &:use_webp = True
-    &:use_libtiff = True
-    &:use_qt = True
-    &:use_kddockwidgets = True
+    &:use_webp=True
+    &:use_libtiff=True
+    &:use_qt=True
+    &:use_kddockwidgets=True
     libid3tag/*:shared=False
