@@ -164,7 +164,7 @@ def update_mirror(remote:str, username:str, password:str, key:str, all:False):
     artifactory = ArtifactoryInstance(remote, username=username, password=password, key=key)
 
     try:
-        for recipe_store in get_recipe_stores(with_config_only=not all):
+        for recipe_store in get_recipe_stores(None, with_config_only=not all):
             if all:
                 for version in recipe_store.versions.keys():
                     conandata_path = os.path.join(recipe_store.get_recipe_folder(version), 'conandata.yml')

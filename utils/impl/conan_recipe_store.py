@@ -75,10 +75,19 @@ def get_recipe(package_reference:PackageReference):
     recipe_store = get_recipe_store(package_reference)
     return recipe_store.get_recipe(package_reference.version)
 
-def get_recipe_stores(with_config_only:bool):
+def get_recipe_stores(build_order:list[str], with_config_only:bool):
+    visited = set()
+
+    for package_name in build_order or []:
+        visited.add(package_name)
+        yield ConanRecipeStore(package_name)
+
     path = directories.recipes_dir
 
     for recipe in os.listdir(path):
+        if recipe in visited:
+            continue
+
         recipe_path = os.path.join(path, recipe)
         if not os.path.isdir(recipe_path):
             continue

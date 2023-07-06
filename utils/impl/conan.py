@@ -12,8 +12,8 @@ from impl.debug import handle_build_completed
 from impl import conan_cache
 
 
-def execute_conan_command(command:str, all:bool):
-    for recipe_store in get_recipe_stores(not all):
+def execute_conan_command(command:str, all:bool, build_order:list[str]):
+    for recipe_store in get_recipe_stores(build_order, not all):
         recipe_store.execute_command(command, all)
 
 
