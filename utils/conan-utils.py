@@ -43,6 +43,7 @@ def add_common_build_options(parser, allow_single_package=True):
 def add_conan_command(subparser, name, description):
     subparser = subparser.add_parser(name, help=description)
     subparser.add_argument('--all', action='store_true', help='Execute command for all recipes in the directory. If not specified, only packages with config are processed', required=False)
+    add_build_order_option(subparser)
 
 def add_cache_options(parser, cache_id_required:bool, cache_id_present:bool):
     parser.add_argument('--group-id', type=str, help='Group ID', required=True)
@@ -261,13 +262,13 @@ def run_conan_command(args):
         remove_remote(args.name)
     elif args.subparser_name == 'validate-recipe':
         if args.export_recipes:
-            conan.execute_conan_command('export-recipes', False)
+            conan.execute_conan_command('export-recipes', False, get_build_order(args.build_order))
         conan.install_all(get_build_order(args.build_order), get_profiles(args), args.remote, True, False)
         conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, False, False)
     elif args.subparser_name == 'build-order':
         print(conan.print_build_order(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote))
     else:
-        conan.execute_conan_command(args.subparser_name, args.all)
+        conan.execute_conan_command(args.subparser_name, args.all, get_build_order(args.build_order))
 
 def main(args):
     if args.subparser_name == 'init-env':

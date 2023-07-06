@@ -145,7 +145,7 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py export-recipes
+        python3 utils/conan-utils.py export-recipes --build-order ${{ github.event.inputs.build_order }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/linux/gcc${{ matrix.config.gcc }}_x86_64_rel --profile-build build/linux/gcc${{ matrix.config.gcc }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/linux/gcc${{ matrix.config.gcc }}_x86_64_deb --profile-build build/linux/gcc${{ matrix.config.gcc }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py
     - name: Upload to Cache
@@ -201,7 +201,7 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py export-recipes
+        python3 utils/conan-utils.py export-recipes --build-order ${{ github.event.inputs.build_order }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_deb --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.debug_args }}
@@ -264,7 +264,7 @@ jobs:
     - name: Validate Audacity 3 Recipe
       shell: bash
       run: |
-        python3 utils/conan-utils.py export-recipes
+        python3 utils/conan-utils.py export-recipes --build-order ${{ github.event.inputs.build_order }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x86_64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_arm64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
         python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x86_64_deb --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py
