@@ -1,11 +1,11 @@
 sources:
-  "6.3.1":
+  6.3.1:
     url:
-      - "https://download.qt.io/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz"
-      - "https://artifactory.audacityteam.org/artifactory/mirror/qt-everywhere-src-6.3.1.tar.xz"
-      - "https://qt-mirror.dannhauer.de/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz"
-      - "https://www.funet.fi/pub/mirrors/download.qt-project.org/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz"
-      - "https://ftp.fau.de/qtproject/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz"
-      - "https://mirrors.ustc.edu.cn/qtproject/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz"
-    sha256: "51114e789485fdb6b35d112dfd7c7abb38326325ac51221b6341564a1c3cc726"
-
+    - https://download.qt.io/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz
+    - https://artifactory.audacityteam.org/artifactory/mirror/qt-everywhere-src-6.3.1.tar.xz
+    - https://qt-mirror.dannhauer.de/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz
+    - https://www.funet.fi/pub/mirrors/download.qt-project.org/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz
+    - https://ftp.fau.de/qtproject/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz
+    - https://mirrors.ustc.edu.cn/qtproject/archive/qt/6.3/6.3.1/single/qt-everywhere-src-6.3.1.tar.xz
+    - https://artifactory.audacityteam.org/artifactory/mirror/qt-tools/6.3.1/qt-everywhere-src-6.3.1.tar.xz
+    sha256: 51114e789485fdb6b35d112dfd7c7abb38326325ac51221b6341564a1c3cc726
