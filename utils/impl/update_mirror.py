@@ -109,7 +109,11 @@ def handle_single_version(name:str, conandata_path:str, version:str, remote:str,
 
     version_sources = conandata['sources'][version]
 
-    elements = get_sources_element(version_sources)
+    try:
+        elements = get_sources_element(version_sources)
+    except Exception as e:
+        print(f"Unexpected conandata fromat: {e}")
+        return
 
     if len(elements) == 0:
         print(f"Conandata does not contain sources for version {version}, skipping...")
