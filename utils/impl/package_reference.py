@@ -7,11 +7,11 @@ class PackageReference:
             if not package_name:
                 raise ValueError('package_name and package_version must be specified if package_reference is not specified')
 
-            package_config = package_config_provider.get_package_config(package_name)
+            self.package_config = package_config_provider.get_package_config(package_name)
             if not package_version:
-                if not package_config:
+                if not self.package_config:
                     raise ValueError('package_version must be specified if package_reference is not specified and package_config is not found')
-                package_version = package_config['version']
+                package_version = self.package_config['version']
 
             if not package_user:
                 package_user = package_config_provider.get_package_user(package_name, package_version)
@@ -28,8 +28,6 @@ class PackageReference:
                 self.reference = f'{package_name}/{package_version}@{package_user}/{package_channel}'
             else:
                 self.reference = f'{package_name}/{package_version}'
-
-            self.is_build_tool = package_config and 'build_tool' in package_config and package_config['build_tool']
         else:
             self.reference = package_reference
 
@@ -40,6 +38,12 @@ class PackageReference:
                 self.name, self.version = package_reference.split('/')
                 self.user = None
                 self.channel = None
+
+            self.package_config = package_config_provider.get_package_config(self.name)
+
+    @property
+    def is_build_tool(self):
+        return getattr(self, 'package_config', None) and 'build_tool' in self.package_config and self.package_config['build_tool']
 
     def __str__(self):
         return self.reference
