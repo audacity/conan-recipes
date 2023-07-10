@@ -165,12 +165,16 @@ class LinuxDependencyProcessor:
                 self.__dependencies[dependency.name] = dependency
                 self.__recursive_collect(dependency.path)
 
+    def __run_patchelf(self, args):
+        print(f"Running patchelf with args: {args}")
+        subprocess.run(["patchelf"] + args)
+
     def fixup(self, conanfile, executables, lookup_directories):
         self.__lookup_directories = [os.path.join(conanfile.package_folder, "lib")] + lookup_directories
 
         for executable in executables:
             self.__recursive_collect(executable)
-            subprocess.run(["patchelf", "--set-rpath", "$ORIGIN/../lib", executable])
+            self.__run_patchelf(["--set-rpath", "$ORIGIN/../lib", executable])
 
         for dependency in self.__dependencies.values():
             target_path = os.path.join(conanfile.package_folder, "lib", dependency.name)
@@ -178,7 +182,7 @@ class LinuxDependencyProcessor:
             if not dependency.path.startswith(conanfile.package_folder):
                 shutil.copy2(dependency.path, target_path)
 
-            subprocess.check_call(["patchelf", "--set-rpath", "$ORIGIN", target_path])
+            self.__run_patchelf(["--set-rpath", "$ORIGIN", target_path])
 
 class MacDependencyProcessor:
     __dependencies = {}
