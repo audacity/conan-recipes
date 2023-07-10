@@ -76,7 +76,7 @@ build_order:
     - libtiff
     - wxwidgets
     - libwebp
-    - qt-tools
+    #- qt-tools
     - qt
     - kddockwidgets
   - platforms: linux
