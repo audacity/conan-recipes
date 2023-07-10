@@ -90,10 +90,14 @@ def install_recipe(recipe_path:str, config_path:str, profiles:ConanProfiles, rem
 
             print(f'Collecting directories for {ref}:{package_id}')
 
-            source_dir = subprocess.check_output([utils.get_conan(), 'cache', 'path', '--folder', 'source', ref]).decode('utf-8').strip()
-            build_dir = subprocess.check_output([utils.get_conan(), 'cache', 'path', '--folder', 'build', f'{ref}:{package_id}']).decode('utf-8').strip()
+            try:
+                source_dir = subprocess.check_output([utils.get_conan(), 'cache', 'path', '--folder', 'source', ref]).decode('utf-8').strip()
+                build_dir = subprocess.check_output([utils.get_conan(), 'cache', 'path', '--folder', 'build', f'{ref}:{package_id}']).decode('utf-8').strip()
 
-            handle_build_completed(PackageReference(package_reference=ref), source_dir, build_dir)
+                handle_build_completed(PackageReference(package_reference=ref), source_dir, build_dir)
+            except Exception as e:
+                print(f'Failed to collect directories for {ref}:{package_id}: {e}')
+
     finally:
         print('Cleaning cache...')
         if not keep_sources:
