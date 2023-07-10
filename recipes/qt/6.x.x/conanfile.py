@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 
 import configparser
-import functools
 import glob
 import os
 import textwrap
+import subprocess
 
 from conan import ConanFile
 from conan.tools.build import cross_building, check_min_cppstd
@@ -665,9 +665,46 @@ class QtConan(ConanFile):
     def __qt_quick_enabled(self):
         return self.options.gui and (Version(self.version) < "6.2.0" or self.options.qtshadertools)
 
+    def __strip_elf(self):
+        self.output.info("Stripping ELF files")
+        files = []
+
+        bindir = os.path.join(self.package_folder, "bin")
+        for root, _, filenames in os.walk(bindir):
+            for filename in filenames:
+                filepath = os.path.join(root, filename)
+                if os.path.islink(filepath) or not os.access(filepath, os.X_OK):
+                    continue
+                self.output.info(f"\tFound executable file: {filepath}")
+                files.append(filepath)
+
+        so_dir = os.path.join(self.package_folder, "lib")
+        libs = glob.glob(os.path.join(so_dir, "*.so*"))
+
+        for lib in libs:
+            if os.path.islink(lib):
+                continue
+            self.output.info(f"\tFound library file: {lib}")
+            files.append(lib)
+
+        for file in files:
+            # Never strip ICU, it breaks it
+            if "icu" in file:
+                continue
+            try:
+                self.output.info(f"\tStripping {file}...")
+                subprocess.check_call(["objcopy", "--strip-debug", "--strip-unneeded", file])
+            except:
+                self.output.error(f"Could not strip {file}")
+
+    def __strip_binaries(self):
+        if self.settings.os in ["Linux", "FreeBSD"]:
+            self.__strip_elf()
+
     def package(self):
         cmake = CMake(self)
         cmake.install()
+        self.__strip_binaries()
 
         save(self, os.path.join(self.package_folder, "bin", "qt.conf"), qt.content_template("..", "res", self.settings.os))
         copy(self, "*LICENSE*", src="qt6/", dst="licenses")
