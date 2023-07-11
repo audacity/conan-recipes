@@ -227,7 +227,7 @@ class QtConan(ConanFile):
             check_min_cppstd(self, 17)
         minimum_version = self._minimum_compilers_version.get(str(self.settings.compiler), False)
         if not minimum_version:
-            self.output.warn("C++17 support required. Your compiler is unknown. Assuming it supports C++17.")
+            self.output.error("C++17 support required. Your compiler is unknown. Assuming it supports C++17.")
         elif Version(self.settings.compiler.version) < minimum_version:
             raise ConanInvalidConfiguration("C++17 support required, which your compiler does not support.")
 
@@ -589,7 +589,7 @@ class QtConan(ConanFile):
             if xplatform_val:
                 tc.variables["QT_QMAKE_TARGET_MKSPEC"] = xplatform_val
             else:
-                self.output.warn("host not supported: %s %s %s %s" %
+                self.output.error("host not supported: %s %s %s %s" %
                                  (self.settings.os, self.settings.compiler,
                                   self.settings.compiler.version, self.settings.arch))
         if self.options.cross_compile:
@@ -666,7 +666,7 @@ class QtConan(ConanFile):
         return self.options.gui and (Version(self.version) < "6.2.0" or self.options.qtshadertools)
 
     def __strip_elf(self):
-        self.output.info("Stripping ELF files")
+        self.output.subtitle("Stripping ELF files")
         files = []
 
         bindir = os.path.join(self.package_folder, "bin")
@@ -678,14 +678,10 @@ class QtConan(ConanFile):
                 self.output.info(f"\tFound executable file: {filepath}")
                 files.append(filepath)
 
-        so_dir = os.path.join(self.package_folder, "lib")
-        libs = glob.glob(os.path.join(so_dir, "*.so*"))
+        libs = glob.glob(os.path.join(os.path.join(self.package_folder, "lib"), "*.so*")) \
+             + glob.glob(os.path.join(os.path.join(self.package_folder, "res"), "*.so"))
 
-        for lib in libs:
-            if os.path.islink(lib):
-                continue
-            self.output.info(f"\tFound library file: {lib}")
-            files.append(lib)
+        files += filter(lambda x: not os.path.islink(x), libs)
 
         for file in files:
             # Never strip ICU, it breaks it
@@ -701,10 +697,32 @@ class QtConan(ConanFile):
         if self.settings.os in ["Linux", "FreeBSD"]:
             self.__strip_elf()
 
+    def __fix_elf_plugin_rpaths(self):
+        patchelf = os.path.join(self._get_patchelf_path(), 'patchelf')
+        libdir = os.path.join(self.package_folder, "lib")
+
+        libs = glob.glob(os.path.join(os.path.join(self.package_folder, "res"), '**', '*.so*'), recursive=True)
+        libs = filter(lambda x: not os.path.islink(x), libs)
+
+        self.output.subtitle("Fixing rpaths of plugins")
+
+        for lib in libs:
+            rpath = f'$ORIGIN/{os.path.relpath(libdir, os.path.dirname(lib))}'
+            self.output.info(f"Setting rpath of {lib} to {rpath}")
+            try:
+                subprocess.check_call([patchelf, "--set-rpath", rpath, lib])
+            except:
+                self.output.error(f"Could not set rpath of {lib}")
+
+    def __fix_plugin_rpaths(self):
+        if self.settings.os in ["Linux", "FreeBSD"]:
+            self.__fix_elf_plugin_rpaths()
+
     def package(self):
         cmake = CMake(self)
         cmake.install()
         self.__strip_binaries()
+        self.__fix_plugin_rpaths()
 
         save(self, os.path.join(self.package_folder, "bin", "qt.conf"), qt.content_template("..", "res", self.settings.os))
         copy(self, "*LICENSE*", src="qt6/", dst="licenses")
