@@ -76,9 +76,13 @@ build_order:
     - libtiff
     - wxwidgets
     - libwebp
-    - qt-tools
-    - qt
-    - kddockwidgets
   - platforms: linux
     packages:
     - fontconfig
+  - platforms: darwin
+    packages:
+    - qt-tools
+  - platforms: "*"
+    packages:
+    - qt
+    - kddockwidgets
