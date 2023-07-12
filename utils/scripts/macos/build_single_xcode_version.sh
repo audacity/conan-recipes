@@ -19,7 +19,7 @@ xcode_version=$(xcodebuild -version | grep Xcode | cut -d' ' -f2 | cut -d'.' -f1
 build_profile="apple_clang${xcode_version}_${build_arch}"
 build_dir="${scriptLocation}/${build_profile}"
 
-conan_utils=$(realpath ${scriptLocation}/../../conan-utils.py)
+conan_utils=$(readlink ${scriptLocation}/../../conan-utils.py)
 
 mkdir -p ${build_dir}
 pushd ${build_dir}
