@@ -665,8 +665,7 @@ class QtConan(ConanFile):
     def __qt_quick_enabled(self):
         return self.options.gui and (Version(self.version) < "6.2.0" or self.options.qtshadertools)
 
-    def __strip_elf(self):
-        self.output.subtitle("Stripping ELF files")
+    def __collect_strippable_unix_files(self, mask):
         files = []
 
         bindir = os.path.join(self.package_folder, "bin")
@@ -675,13 +674,17 @@ class QtConan(ConanFile):
                 filepath = os.path.join(root, filename)
                 if os.path.islink(filepath) or not os.access(filepath, os.X_OK):
                     continue
-                self.output.info(f"\tFound executable file: {filepath}")
                 files.append(filepath)
 
-        libs = glob.glob(os.path.join(os.path.join(self.package_folder, "lib"), "*.so*")) \
-             + glob.glob(os.path.join(os.path.join(self.package_folder, "res"), "*.so"))
+        libs = glob.glob(os.path.join(os.path.join(self.package_folder, "lib"), mask)) \
+             + glob.glob(os.path.join(os.path.join(self.package_folder, "res"), mask))
 
-        files += filter(lambda x: not os.path.islink(x), libs)
+        return files + list(filter(lambda x: not os.path.islink(x), libs))
+
+    def __strip_elf(self):
+        self.output.subtitle("Stripping ELF files")
+
+        files = self.__collect_strippable_unix_files("*.so*")
 
         for file in files:
             # Never strip ICU, it breaks it
@@ -691,11 +694,24 @@ class QtConan(ConanFile):
                 self.output.info(f"\tStripping {file}...")
                 subprocess.check_call(["objcopy", "--strip-debug", "--strip-unneeded", file])
             except:
-                self.output.error(f"Could not strip {file}")
+                self.output.warning(f"Could not strip {file}")
+
+    def __strip_macho_binaries(self):
+        self.output.subtitle("Stripping mach-o files")
+        files = self.__collect_strippable_unix_files("*.dylib*")
+
+        for file in files:
+            try:
+                self.output.info(f"\tStripping {file}...")
+                subprocess.check_call(["strip" "-S", "-x", file])
+            except:
+                self.output.warning(f"Could not strip {file}")
 
     def __strip_binaries(self):
         if self.settings.os in ["Linux", "FreeBSD"]:
             self.__strip_elf()
+        elif self.settings.os == "Macos":
+            self.__strip_macho_binaries()
 
     def __fix_elf_plugin_rpaths(self):
         patchelf = os.path.join(self._get_patchelf_path(), 'patchelf')
@@ -712,7 +728,7 @@ class QtConan(ConanFile):
             try:
                 subprocess.check_call([patchelf, "--set-rpath", rpath, lib])
             except:
-                self.output.error(f"Could not set rpath of {lib}")
+                self.output.warning(f"Could not set rpath of {lib}")
 
     def __fix_plugin_rpaths(self):
         if self.settings.os in ["Linux", "FreeBSD"]:
