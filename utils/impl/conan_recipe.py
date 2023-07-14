@@ -112,7 +112,7 @@ class ConanRecipe:
         subprocess.check_call(cmd)
 
 
-    def build(self, profiles:ConanProfiles):
+    def build(self, profiles:ConanProfiles, remotes:list[str] = None):
         if self.is_python_require:
             print(f"Skipping build for python_require package `{self.reference}`")
             return
@@ -122,13 +122,13 @@ class ConanRecipe:
 
         if not self.is_build_tool and 'use-both-profiles' in self.config and self.config['use-both-profiles']:
             print(f"Building `{self.reference}` with build profile...", flush=True)
-            self.__run_build_command('build', profiles, additional_options=additional_options, force_build_profile=True)
+            self.__run_build_command('build', profiles, additional_options=additional_options, force_build_profile=True, remotes=remotes)
 
             print(f"== Creating Conan package with build profile...", flush=True)
-            self.__run_build_command('export-pkg', profiles, force_build_profile=True)
+            self.__run_build_command('export-pkg', profiles, force_build_profile=True, remotes=remotes)
 
         print(f"Building `{self.reference}`...", flush=True)
-        self.__run_build_command('build', profiles, additional_options=additional_options)
+        self.__run_build_command('build', profiles, additional_options=additional_options, remotes=remotes)
 
         print(f"== Creating Conan package...", flush=True)
         self.__run_build_command('export-pkg', profiles)
