@@ -17,7 +17,7 @@ def execute_conan_command(command:str, all:bool, build_order:list[str]):
         recipe_store.execute_command(command, all)
 
 
-def build_package(package_reference:PackageReference, profiles: ConanProfiles, export_recipe:bool=False, keep_sources:bool=False):
+def build_package(package_reference:PackageReference, profiles: ConanProfiles, remotes:list[str] = None, export_recipe:bool=False, keep_sources:bool=False):
     recipe = get_recipe(package_reference)
 
     retrieve_sources = False
@@ -32,14 +32,14 @@ def build_package(package_reference:PackageReference, profiles: ConanProfiles, e
         if retrieve_sources:
             recipe.source()
 
-        recipe.build(profiles)
+        recipe.build(profiles, remotes)
     finally:
         conan_cache.clean_cache(package_reference, sources=retrieve_sources and not keep_sources)
 
 
-def build_all(build_order:list[str], profiles:ConanProfiles, export_recipes:bool=False, keep_sources:bool=False):
+def build_all(build_order:list[str], profiles:ConanProfiles, remotes:list[str] = None, export_recipes:bool=False, keep_sources:bool=False):
     for package_name in build_order:
-        build_package(PackageReference(package_name=package_name), profiles, export_recipes, keep_sources)
+        build_package(PackageReference(package_name=package_name), profiles, export_recipes, keep_sources, remotes)
 
 
 def clean():
@@ -193,7 +193,7 @@ def install_or_build(package_reference:PackageReference, profiles:ConanProfiles,
 
     try:
         recipe.install(profiles, remotes, False)
-    except subprocess.CalledProcessError as e:
+    except:
         if not allow_build:
             raise
         

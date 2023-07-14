@@ -104,6 +104,7 @@ def parse_args():
     subparser = subparsers.add_parser('build', help='Build packages')
     add_common_build_options(subparser)
     subparser.add_argument('--export-recipes', action='store_true', help='Export recipes to Conan cache before building')
+    subparser.add_argument('--remote', action='append', help='Conan remote', required=False)
 
     #===========================================================================
     # install
@@ -237,9 +238,9 @@ def get_package_reference(args):
 def run_conan_command(args):
     if args.subparser_name == 'build':
         if args.package:
-            conan.build_package(get_package_reference(args), get_profiles(args), args.export_recipes, args.keep_sources)
+            conan.build_package(get_package_reference(args), get_profiles(args), args.remote, args.export_recipes, args.keep_sources)
         else:
-            conan.build_all(get_build_order(args.build_order), get_profiles(args), args.export_recipes, args.keep_sources)
+            conan.build_all(get_build_order(args.build_order), get_profiles(args), args.remote, args.export_recipes, args.keep_sources)
     elif args.subparser_name == 'install':
         if args.install_dir:
             directories.install_dir = args.install_dir
