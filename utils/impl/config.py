@@ -1,6 +1,7 @@
 import os
 import sys
 from functools import cache
+import pathlib
 
 @cache
 class Directories():
@@ -36,5 +37,18 @@ class Directories():
         self.conan_home_dir = os.path.join(output_dir, 'conan')
         self.temp_dir = os.path.join(output_dir, 'temp')
         self.build_dir = os.path.join(self.temp_dir, 'build')
+
+    def force_short_paths(self):
+        drive = pathlib.Path(Directories.output_dir).drive + '\\'
+
+        if not drive:
+            return
+
+        self.output_dir = os.path.join(drive, 't')
+        self.env_dir = os.path.join(self.output_dir, 'v')
+        self.conan_home_dir = os.path.join(self.output_dir, 'c')
+        self.temp_dir = os.path.join(self.output_dir, 't')
+        self.build_dir = os.path.join(self.temp_dir, 'b')
+        self.install_dir = os.path.join(self.temp_dir, 'i')
 
 directories = Directories()

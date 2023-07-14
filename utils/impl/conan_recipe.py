@@ -173,7 +173,6 @@ class ConanRecipe:
             '-vvv',
             '-pr:h', profiles.host_profile,
             '-pr:b', profiles.build_profile,
-            '-of', directories.build_dir,
             '--format', 'json'
         ]
 

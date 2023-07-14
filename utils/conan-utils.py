@@ -65,6 +65,7 @@ def parse_args():
     parser.add_argument('--conan-home-dir', type=str, help='Path to Conan home directory', required=False)
     parser.add_argument('--output-dir', type=str, help='Path to output directory. Overrides venv-dir and conan-home-dir.', required=False)
     parser.add_argument('--build-dir', type=str, help='Path to build directory.', required=False)
+    parser.add_argument('--short-paths', action='store_true', help='Use short paths for Conan cache (Windows only)')
 
     subparsers = parser.add_subparsers(help='sub-command help', dest='subparser_name')
 
@@ -242,6 +243,8 @@ def run_conan_command(args):
     elif args.subparser_name == 'install':
         if args.install_dir:
             directories.install_dir = args.install_dir
+        else:
+            directories.install_dir = directories.build_dir
 
         if args.recipe:
             conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, args.allow_build, args.keep_sources)
@@ -263,7 +266,10 @@ def run_conan_command(args):
     elif args.subparser_name == 'validate-recipe':
         if args.export_recipes:
             conan.execute_conan_command('export-recipes', False, get_build_order(args.build_order))
-        conan.install_all(get_build_order(args.build_order), get_profiles(args), args.remote, True, False)
+
+        directories.install_dir = directories.build_dir
+
+        conan.install_or_build_all(get_build_order(args.build_order), get_profiles(args), args.remote, True, False)
         conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, False, False)
     elif args.subparser_name == 'build-order':
         print(conan.print_build_order(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote))
@@ -343,6 +349,8 @@ if __name__ == "__main__":
         directories.change_output_dir(args.output_dir)
     if args.build_dir:
         directories.build_dir = os.path.realpath(args.build_dir)
+    if args.short_paths and sys.platform.lower() == 'win32':
+        directories.force_short_paths()
 
     if hasattr(args, 'enable_debug_processor'):
         skip_upload = hasattr(args, 'skip_debug_data_upload') and args.skip_debug_data_upload
