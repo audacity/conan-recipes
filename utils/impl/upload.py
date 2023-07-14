@@ -16,6 +16,8 @@ def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool,
     recipes_added = add_remote(recipes_remote_name, recipes_remote)
     binaries_added = add_remote(binaries_remote_name, binaries_remote)
 
+    failed_packages = []
+
     try:
         for package_name in build_order:
             package_reference = PackageReference(package_name=package_name)
@@ -23,8 +25,12 @@ def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool,
 
             if not recipe.is_build_tool or upload_build_tools:
                 print(f'Uploading {package_reference}', flush=True)
-                recipe.upload(recipes_remote_name, False)
-                recipe.upload(binaries_remote_name, True)
+                try:
+                    recipe.upload(recipes_remote_name, False)
+                    recipe.upload(binaries_remote_name, True)
+                except Exception as e:
+                    print(f'Failed to upload {package_reference}: {e}', flush=True)
+                    failed_packages.append(package_reference)
             else:
                 print(f'Skipping {package_reference}: a build tool', flush=True)
     finally:
@@ -32,4 +38,10 @@ def upload_all(recipes_remote:str, binaries_remote:str, upload_build_tools:bool,
             remove_remote(recipes_remote_name)
         if binaries_added:
             remove_remote(binaries_remote_name)
+
+        if len(failed_packages) > 0:
+            print('Failed to upload the following packages:', flush=True)
+            for package_reference in failed_packages:
+                print(f'  {package_reference}', flush=True)
+            raise Exception('Failed to upload some packages')
 

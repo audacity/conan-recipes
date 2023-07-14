@@ -186,3 +186,22 @@ def print_build_order(recipe_path:str, config_path:str, profiles:ConanProfiles, 
     __fill_deps(dep_node_ids)
 
     return '\n'.join(deps)
+
+
+def install_or_build(package_reference:PackageReference, profiles:ConanProfiles, remotes:list[str], allow_build:bool, keep_sources:bool):
+    recipe = get_recipe(package_reference)
+
+    try:
+        recipe.install(profiles, remotes, False)
+    except subprocess.CalledProcessError as e:
+        if not allow_build:
+            raise
+
+        build_package(package_reference, profiles, False, keep_sources)
+    finally:
+        conan_cache.clean_cache(package_reference, sources=not keep_sources)
+
+
+def install_or_build_all(build_order:list[str], profiles:ConanProfiles, remotes:list[str], allow_build:bool, keep_sources:bool):
+    for package_name in build_order:
+        install_or_build(PackageReference(package_name=package_name), profiles, remotes, allow_build, keep_sources)
