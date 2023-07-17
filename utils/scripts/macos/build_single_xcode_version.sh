@@ -18,6 +18,9 @@ echo ${scriptLocation}
 build_arch=$(uname -m)
 xcode_version=$(xcodebuild -version | grep Xcode | cut -d' ' -f2 | cut -d'.' -f1)
 
+host_arch=arm64
+#host_arch=${build_arch}
+
 build_profile="apple_clang${xcode_version}_${build_arch}"
 build_dir="${scriptLocation}/${build_profile}"
 
@@ -42,11 +45,11 @@ git clone --depth 1 ${audacity3_repo} --branch ${audacity3_branch}
 python3 ${conan_utils} export-recipes --build-order ${audacity3_build_order}
 
 python3 ${conan_utils} validate-recipe \
-        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${xcode_version}_${build_arch}_rel --profile-build build/macos/${build_profile} \
+        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${xcode_version}_${host_arch}_rel --profile-build build/macos/${build_profile} \
         --build-order ${audacity3_build_order} --recipe-config ${audacity3_build_config} --recipe audacity/conan/conanfile.py --enable-debug-processor sentry
 
 python3 ${conan_utils} validate-recipe \
-        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${xcode_version}_${build_arch}_deb --profile-build build/macos/${build_profile} \
+        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${xcode_version}_${host_arch}_deb --profile-build build/macos/${build_profile} \
         --build-order ${audacity3_build_order} --recipe-config ${audacity3_build_config} --recipe audacity/conan/conanfile.py
 
 rm -Rf audacity
@@ -55,11 +58,11 @@ git clone --depth 1 ${audacity4_repo} --branch ${audacity4_branch}
 python3 ${conan_utils} export-recipes --build-order ${audacity4_build_order}
 
 python3 ${conan_utils} validate-recipe \
-        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos-qt/apple_clang${xcode_version}_${build_arch}_rel --profile-build build/macos/${build_profile} \
+        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos-qt/apple_clang${xcode_version}_${host_arch}_rel --profile-build build/macos/${build_profile} \
         --build-order ${audacity4_build_order} --recipe-config ${audacity4_build_config} --recipe audacity/conan/conanfile.py --enable-debug-processor sentry
 
 python3 ${conan_utils} validate-recipe \
-        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos-qt/apple_clang${xcode_version}_${build_arch}_deb --profile-build build/macos/${build_profile} \
+        --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos-qt/apple_clang${xcode_version}_${host_arch}_deb --profile-build build/macos/${build_profile} \
         --build-order ${audacity4_build_order} --recipe-config ${audacity4_build_config} --recipe audacity/conan/conanfile.py
 
 rm -Rf audacity
