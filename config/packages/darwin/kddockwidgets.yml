@@ -1,0 +1,24 @@
+config:
+  version: 2.0.0-20230407-b3b45c7
+  options: |
+    qt/*:opengl=no
+    qt/*:openssl=False
+    qt/*:with_libjpeg=libjpeg-turbo
+    qt/*:with_sqlite3=False
+    qt/*:with_brotli=False
+    qt/*:with_md4c=False
+    qt/*:qtsvg=True
+    qt/*:qtdeclarative=True
+    qt/*:qttools=True
+    qt/*:qttranslations=True
+    qt/*:qtquicktimeline=True
+    qt/*:qtlottie=True
+    qt/*:qtimageformats=True
+    qt/*:qtlanguageserver=True
+    qt/*:qtshadertools=True
+    qt/*:disabled_features=glib
+    libtiff/*:lzma=False
+    libtiff/*:jpeg=libjpeg-turbo
+    libtiff/*:jbig=False
+    libtiff/*:libdeflate=False
+    libtiff/*:webp=False

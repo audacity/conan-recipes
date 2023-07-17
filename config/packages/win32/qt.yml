@@ -1,0 +1,23 @@
+config:
+  version: "6.3.1"
+  options: |
+    &:opengl=no
+    &:openssl=False
+    &:with_libjpeg=libjpeg-turbo
+    &:with_sqlite3=False
+    &:with_brotli=False
+    &:with_md4c=False
+    &:qtsvg=True
+    &:qtdeclarative=True
+    &:qttools=True
+    &:qttranslations=True
+    &:qtquicktimeline=True
+    &:qtlottie=True
+    &:qtimageformats=True
+    &:qtlanguageserver=True
+    &:qtshadertools=True
+    libtiff/*:lzma=False
+    libtiff/*:jpeg=libjpeg-turbo
+    libtiff/*:jbig=False
+    libtiff/*:libdeflate=False
+    libtiff/*:webp=False
