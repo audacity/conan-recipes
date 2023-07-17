@@ -196,8 +196,12 @@ def install_or_build(package_reference:PackageReference, profiles:ConanProfiles,
     except subprocess.CalledProcessError as e:
         if not allow_build:
             raise
-
-        build_package(package_reference, profiles, False, keep_sources)
+        
+        try:
+            recipe.install(profiles, remotes, True)
+        except:
+            print("conan install failed, trying conan build instead")
+            build_package(package_reference, profiles, False, keep_sources)
     finally:
         conan_cache.clean_cache(package_reference, sources=not keep_sources)
 
