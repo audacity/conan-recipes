@@ -142,7 +142,7 @@ class HarfbuzzConan(ConanFile):
                   destination=self.source_folder, strip_root=True)
 
     def build_requirements(self):
-        self.tool_requires("meson/1.0.1@audacity/stable")
+        self.tool_requires("meson/1.2.2@audacity/stable")
         if not self.conf.get("tools.gnu:pkg_config", default=False, check_type=str):
             self.tool_requires("pkgconf/1.9.3@audacity/stable")
 
