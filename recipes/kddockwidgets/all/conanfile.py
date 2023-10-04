@@ -75,20 +75,20 @@ class KDDockWidgetsConan(ConanFile):
         CMakeDeps(self).generate()
 
         tc = CMakeToolchain(self, generator="Ninja")
-        tc.cache_variables["KDDockWidgets_STATIC"] = not self.options.shared
-        tc.cache_variables["KDDockWidgets_EXAMPLES"] = self.options.build_examples
-        tc.cache_variables["KDDockWidgets_TESTS"] = self.options.build_tests
-        tc.cache_variables["KDDockWidgets_PYTHON_BINDINGS"] = self.options.build_python_bindings
-        tc.cache_variables["KDDockWidgets_QT6"] = self.options.build_for_qt6
+        tc.variables["KDDockWidgets_STATIC"] = not self.options.shared
+        tc.variables["KDDockWidgets_EXAMPLES"] = self.options.build_examples
+        tc.variables["KDDockWidgets_TESTS"] = self.options.build_tests
+        tc.variables["KDDockWidgets_PYTHON_BINDINGS"] = self.options.build_python_bindings
+        tc.variables["KDDockWidgets_QT6"] = self.options.build_for_qt6
 
-        if Version(self.version) < "2.0.0":
-            tc.cache_variables["KDDockWidgets_QTQUICK"] = True
+        if Version(self.version).major < "2":
+            tc.variables["KDDockWidgets_QTQUICK"] = True
         else:
-            tc.cache_variables["KDDockWidgets_FRONTENDS"] = 'qtwidgets;qtquick'
+            tc.variables["KDDockWidgets_FRONTENDS"] = 'qtwidgets;qtquick'
 
         if not self.__use_system_qt and cross_building(self, skip_x64_x86=True):
             host_tools = self.dependencies.direct_build["qt-tools"].package_folder
-            tc.cache_variables["QT_HOST_PATH"] = host_tools
+            tc.variables["QT_HOST_PATH"] = host_tools
         tc.generate()
 
     def build(self):
