@@ -39,7 +39,7 @@ def build_package(package_reference:PackageReference, profiles: ConanProfiles, r
 
 def build_all(build_order:list[str], profiles:ConanProfiles, remotes:list[str] = None, export_recipes:bool=False, keep_sources:bool=False):
     for package_name in build_order:
-        build_package(PackageReference(package_name=package_name), profiles, export_recipes, keep_sources, remotes)
+        build_package(PackageReference(package_name=package_name), profiles, remotes, export_recipes, keep_sources)
 
 
 def clean():
@@ -196,7 +196,7 @@ def install_or_build(package_reference:PackageReference, profiles:ConanProfiles,
     except:
         if not allow_build:
             raise
-        
+
         try:
             recipe.install(profiles, remotes, True)
         except:
