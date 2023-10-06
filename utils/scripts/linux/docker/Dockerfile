@@ -28,14 +28,9 @@ RUN apt install --yes gcc-${arg_gcc_version} g++-${arg_gcc_version} &&\
     update-alternatives --set g++ /usr/bin/g++-${arg_gcc_version} &&\
     update-alternatives --set gcov /usr/bin/gcov-${arg_gcc_version}
 
-RUN if [[ "${arg_ubuntu_version}" -lt "22.04" ]] ; then \
-        apt install --yes python3.10 python3.10-distutils python3.10-venv curl &&\
-        update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1 && \
-        update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 2 && \
-        update-alternatives --set python3 /usr/bin/python3.10; \
-    else \
-        apt install --yes python3-distutils python3-venv python3-pip curl; \
-    fi
+COPY ["install_python.sh", "/install_python.sh"]
+
+RUN bash -ex /install_python.sh
 
 RUN groupadd -r user && useradd -r -g user user
 RUN mkdir -p /home/user && chown -R user:user /home/user

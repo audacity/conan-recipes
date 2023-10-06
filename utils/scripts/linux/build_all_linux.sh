@@ -9,8 +9,8 @@ audacity3_branch=master
 audacity3_build_order=build_order.yml
 audacity3_build_config=audacity3
 
-audacity4_repo=https://github.com/crsib/audacity.git
-audacity4_branch=qt_conan2
+audacity4_repo=https://github.com/audacity/audacity.git
+audacity4_branch=qt
 audacity4_build_order=build_order_qt.yml
 audacity4_build_config=audacity4
 
