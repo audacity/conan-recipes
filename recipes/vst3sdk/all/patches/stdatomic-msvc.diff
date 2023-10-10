@@ -1,0 +1,11 @@
+--- a/pluginterfaces/CMakeLists.txt	2022-02-22 16:25:55.232736700 +0300
++++ b/pluginterfaces/CMakeLists.txt	2022-02-22 16:26:05.444665700 +0300
+@@ -40,7 +40,7 @@
+ # check for C11 atomic header
+ include(CheckIncludeFileCXX)
+ CHECK_INCLUDE_FILE_CXX("stdatomic.h" SMTG_USE_STDATOMIC_H)
+-if(SMTG_USE_STDATOMIC_H)
++if(SMTG_USE_STDATOMIC_H AND NOT MSVC)
+     target_compile_definitions(pluginterfaces
+         PRIVATE
+             "SMTG_USE_STDATOMIC_H=${SMTG_USE_STDATOMIC_H}"

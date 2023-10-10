@@ -1,0 +1,88 @@
+build_order:
+  - platforms: win32
+    packages:
+    - strawberryperl
+    - msys2
+    - winflexbison
+  - platforms: "*"
+    packages:
+    - audacity_build_helpers
+    - ninja
+    - gn
+    - nasm
+    - yasm
+    - meson
+    - m4
+    - autoconf
+    - automake
+    - pkgconf
+    - cmake
+  - platforms: linux|darwin
+    packages:
+    - gnu-config
+    - libtool
+    - flex
+    - bison
+  - platforms: linux
+    packages:
+    - gperf
+    - patchelf
+    - openssl
+    - libuuid
+    - linux-syscall-support
+    - xorg
+    - libiconv
+    - libxml2
+    - libffi
+    - wayland
+    - wayland-protocols
+    - xkeyboard-config
+    - xkbcommon
+  - platforms: "*"
+    packages:
+    - zlib
+    - zstd
+    - brotli
+    - bzip2
+    - sqlite3
+    - libpng
+    - md4c
+    - pcre2
+    - double-conversion
+    - libjpeg-turbo
+    - icu
+    - freetype
+    - harfbuzz
+    - libcurl
+    - ogg
+    - flac
+    - opus
+    - opusfile
+    - vorbis
+    - mpg123
+    - libid3tag
+    - libmp3lame
+    - libsndfile
+    - threadpool
+    - rapidjson
+    - catch2
+    - expat
+    - portaudio
+    - portmidi
+    - vst3sdk
+    - wavpack
+    - breakpad
+    - crashpad
+    - libtiff
+    - wxwidgets
+    - libwebp
+  - platforms: linux
+    packages:
+    - fontconfig
+  - platforms: darwin
+    packages:
+    - qt-tools
+  - platforms: "*"
+    packages:
+    - qt
+    - kddockwidgets

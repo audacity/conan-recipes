@@ -1,0 +1,9 @@
+sources:
+  1.6.0:
+    url: https://github.com/KDAB/KDDockWidgets/releases/download/v1.6.0/kddockwidgets-1.6.0.tar.gz
+    sha256: ab7503b96f4aa3ab76312c830dd268118169e3a367e40e9b6bfde66cb0bc4957
+  2.0.0-20230407-b3b45c7:
+    url:
+    - https://artifactory.audacityteam.org/artifactory/mirror/kddockwidgets/2.0/KDDockWidgets-2.0-20230407-b3b45c7.zip
+    - https://artifactory.audacityteam.org/artifactory/mirror/kddockwidgets/2.0.0-20230407-b3b45c7/KDDockWidgets-2.0-20230407-b3b45c7.zip
+    sha256: 4e223783bc6726ff7997fff3e79e24ad6f334f60eb1b32ce18f3ca754464592a

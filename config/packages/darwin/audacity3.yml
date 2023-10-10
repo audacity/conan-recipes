@@ -1,0 +1,27 @@
+config:
+  options: |
+    &:use_zlib=True
+    &:use_expat=True
+    &:use_libpng=True
+    &:use_libjpeg-turbo=True
+    &:use_wxwidgets=True
+    &:use_libmp3lame=True
+    &:use_mpg123=True
+    &:use_libid3tag=True
+    &:use_wavpack=True
+    &:use_ogg=True
+    &:use_flac=True
+    &:use_opus=True
+    &:use_vorbis=True
+    &:use_libsndfile=True
+    &:use_portaudio=True
+    &:use_threadpool=True
+    &:use_libcurl=True
+    &:use_rapidjson=True
+    &:use_portmidi=True
+    &:use_vst3sdk=True
+    &:use_catch2=True
+    &:use_breakpad=True
+    &:use_crashpad=True
+    &:use_libcurl=True
+    libid3tag/*:shared=False

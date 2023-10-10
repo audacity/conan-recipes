@@ -1,0 +1,11 @@
+--- src/processor/disassembler_objdump.cc	2023-05-12 19:26:15.000000000 +0300
++++ src/processor/disassembler_objdump.new.cc	2023-05-30 12:00:44.210371800 +0300
+@@ -85,7 +85,7 @@
+ }
+ 
+ bool ScopedTmpFile::Create() {
+-  fd_ = mkstemp(path_.data());
++  fd_ = mkstemp(const_cast<char*>(path_.data()));
+   if (fd_ < 0) {
+     unlink(path_.c_str());
+     fd_ = 0;

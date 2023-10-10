@@ -1,0 +1,22 @@
+config:
+  version: 3.1.3.4-audacity
+  options: |
+    libtiff/*:lzma=False
+    libtiff/*:jpeg=libjpeg-turbo
+    libtiff/*:jbig=False
+    libtiff/*:libdeflate=False
+    libtiff/*:webp=False
+    &:tiff=off
+    &:secretstore=False
+    &:opengl=False
+    &:propgrid=False
+    &:ribbon=False
+    &:richtext=False
+    &:stc=False
+    &:webview=False
+    &:help=False
+    &:html_help=False
+    &:fs_inet=False
+    &:protocol=False
+
+

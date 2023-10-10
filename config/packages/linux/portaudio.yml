@@ -1,0 +1,5 @@
+config:
+  version: 19.7.0
+  options: |
+    &:with_oss=True
+    &:with_jack=True

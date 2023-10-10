@@ -1,0 +1,6 @@
+config:
+  version: 19.7.0
+  options: |
+    &:with_asio=False
+    &:with_jack=False
+    &:with_wdmks=False

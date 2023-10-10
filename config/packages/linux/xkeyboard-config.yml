@@ -1,0 +1,4 @@
+config:
+  version: "system"
+  allow-build-missing: yes
+  use-both-profiles: yes

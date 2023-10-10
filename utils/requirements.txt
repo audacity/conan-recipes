@@ -1,0 +1,5 @@
+requests
+pyyaml
+python-dotenv
+sentry-cli
+symstore
