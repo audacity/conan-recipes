@@ -20,11 +20,15 @@ class OpusConan(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "fixed_point": [True, False],
+        "sse4_1": [True, False],
+        "avx": [True, False],
     }
     default_options = {
         "shared": False,
         "fPIC": True,
         "fixed_point": False,
+        "sse4_1": False,
+        "avx": False,
     }
 
     def export_sources(self):
@@ -53,8 +57,8 @@ class OpusConan(ConanFile):
     def generate(self):
         tc = CMakeToolchain(self)
         tc.variables["OPUS_FIXED_POINT"] = self.options.fixed_point
-        tc.variables["OPUS_X86_MAY_HAVE_SSE4_1"] = False
-        tc.variables["OPUS_X86_MAY_HAVE_AVX"] = False
+        tc.variables["OPUS_X86_MAY_HAVE_SSE4_1"] = self.options.sse4_1
+        tc.variables["OPUS_X86_MAY_HAVE_AVX"] = self.options.avx
         tc.generate()
 
     def build(self):
