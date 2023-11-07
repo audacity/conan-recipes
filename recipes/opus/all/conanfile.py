@@ -53,6 +53,8 @@ class OpusConan(ConanFile):
     def generate(self):
         tc = CMakeToolchain(self)
         tc.variables["OPUS_FIXED_POINT"] = self.options.fixed_point
+        tc.variables["OPUS_X86_MAY_HAVE_SSE4_1"] = False
+        tc.variables["OPUS_X86_MAY_HAVE_AVX"] = False
         tc.generate()
 
     def build(self):
