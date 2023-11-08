@@ -390,7 +390,12 @@ class wxWidgetsConan(ConanFile):
                     'gcc': 'gcc',
                     'clang': 'clang'}.get(str(self.settings.compiler))
 
-                arch_suffix = '_x64' if self.settings.arch == 'x86_64' else ''
+                if self.settings.arch == 'x86_64':
+                    arch_suffix = '_x64'
+                elif self.settings.arch == 'armv8':
+                    arch_suffix = '_arm64'
+                else:
+                    arch_suffix = ''
                 lib_suffix = '_dll' if self.options.shared else '_lib'
                 libdir = '%s%s%s' % (compiler_prefix, arch_suffix, lib_suffix)
                 libdir = f'lib/{libdir}'
