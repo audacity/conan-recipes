@@ -63,7 +63,7 @@ class LibsndfileConan(ConanFile):
             self.requires("ogg/1.3.5@audacity/stable")
             self.requires("vorbis/1.3.7@audacity/stable")
             self.requires("flac/1.4.2@audacity/stable")
-            self.requires("opus/1.4.0@audacity/stable")
+            self.requires("opus/[>=1.3 <2.0]@audacity/stable")
         if self.options.get_safe("with_mpeg", False):
             self.requires("mpg123/1.31.2@audacity/stable")
             self.requires("libmp3lame/3.100@audacity/stable")
