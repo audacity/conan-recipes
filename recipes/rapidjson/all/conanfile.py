@@ -1,5 +1,5 @@
 from conan import ConanFile
-from conan.tools.files import get, copy
+from conan.tools.files import get, copy, apply_conandata_patches, export_conandata_patches
 from conan.tools.layout import basic_layout
 import os
 
@@ -20,10 +20,16 @@ class RapidjsonConan(ConanFile):
         basic_layout(self, src_folder='src')
         self.folders.build = 'build'
         self.folders.generators = 'build/conan'
+        if self.settings.os == 'Windows' and self.settings.arch == 'armv8':
+            os.environ["CXXFLAGS"] = '-DRAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN'
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True,
                     destination=self.source_folder)
+        apply_conandata_patches(self)
+
+    def export_sources(self):
+        export_conandata_patches(self)
 
     def package(self):
         copy(self, pattern="license.txt", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses"))
