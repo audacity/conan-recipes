@@ -30,3 +30,4 @@ patches:
   - patch_file: patches/d9deaa8b76128613a84f3d085eb1e4b05631083a.patch
   - patch_file: patches/fix-cocoa-process.diff
   - patch_file: patches/regex_lib_cocoa_patch.patch
+  - patch_file: patches/win_arm64.patch

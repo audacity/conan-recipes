@@ -1,0 +1,39 @@
+--- ./build/cmake/init.cmake	2021-06-17 06:11:43.000000000 -0600
++++ ./build/cmake/init.cmake	2023-11-07 23:47:48.034509000 -0700
+@@ -119,6 +119,25 @@
+ endif()
+ wx_string_append(wxBUILD_FILE_ID "-${wxMAJOR_VERSION}.${wxMINOR_VERSION}")
+ 
++set(wxPLATFORM_ARCH)
++if(CMAKE_GENERATOR_PLATFORM)
++    if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
++        set(wxPLATFORM_ARCH "x64")
++    elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
++        set(wxPLATFORM_ARCH "arm64")
++    endif()
++elseif(CMAKE_VS_PLATFORM_NAME)
++    if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
++        set(wxPLATFORM_ARCH "x64")
++    elseif(CMAKE_VS_PLATFORM_NAME STREQUAL "ARM64")
++        set(wxPLATFORM_ARCH "arm64")
++    endif()
++else()
++    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
++        set(wxPLATFORM_ARCH "x64")
++    endif()
++endif()
++
+ set(wxARCH_SUFFIX)
+ 
+ # TODO: include compiler version in wxCOMPILER_PREFIX ?
+@@ -133,8 +152,8 @@
+         message(FATAL_ERROR "Unknown WIN32 compiler type")
+     endif()
+ 
+-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+-        set(wxARCH_SUFFIX "_x64")
++    if(wxPLATFORM_ARCH)
++        set(wxARCH_SUFFIX "_${wxPLATFORM_ARCH}")
+     endif()
+ else()
+     set(wxCOMPILER_PREFIX)
