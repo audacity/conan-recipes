@@ -117,7 +117,6 @@ class OpusFileConan(ConanFile):
             #==============================
             # TODO: to remove once https://github.com/conan-io/conan/pull/12817 available in conan client
             # Arm64 builds would have been updated by a patch as they need v17 of MSVC
-            expected_msvc_version = "v143" if self.version == "0.12" and self.settings.arch == "armv8" else "v140"
             replace_in_file(
                 self, vcxproj,
                 "<WholeProgramOptimization>true</WholeProgramOptimization>",
@@ -125,7 +124,7 @@ class OpusFileConan(ConanFile):
             )
             replace_in_file(
                 self, vcxproj,
-                f"<PlatformToolset>{expected_msvc_version}</PlatformToolset>",
+                f"<PlatformToolset>v143</PlatformToolset>",
                 f"<PlatformToolset>{MSBuildToolchain(self).toolset}</PlatformToolset>",
             )
             import_conan_generators = ""
