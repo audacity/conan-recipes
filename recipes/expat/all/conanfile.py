@@ -96,6 +96,16 @@ class ExpatConan(ConanFile):
         else:
             autotools = Autotools(self)
             autotools.install()
+
+            # Update dylib id
+            if self.settings.os == 'Macos':
+                libfolder = os.path.join(self.package_folder, "lib")
+                for lib in os.listdir(libfolder):
+                    libpath = os.path.join(libfolder, lib)
+                    if '.dylib' in lib and not os.path.islink(libpath):
+                        self.output.info('Updating dylib id for %s' % libpath)
+                        self.run("install_name_tool -id @rpath/{0} {1}".format(lib, libpath))
+
         rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
         rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
         rmdir(self, os.path.join(self.package_folder, "share"))
