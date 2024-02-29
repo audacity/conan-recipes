@@ -8,12 +8,15 @@ from impl.files import safe_rm_tree
 
 
 def get_cache_path(folder, package_reference:PackageReference):
-    cmd = [utils.get_conan(), 'cache', 'path', str(package_reference)]
+    try:
+        cmd = [utils.get_conan(), 'cache', 'path', str(package_reference)]
 
-    if folder != "export":
-        cmd += ['--folder', folder]
+        if folder != "export":
+            cmd += ['--folder', folder]
 
-    return subprocess.check_output(cmd).decode('utf-8').strip()
+        return subprocess.check_output(cmd).decode('utf-8').strip()
+    except subprocess.CalledProcessError:
+        return None
 
 
 def get_cache_path_export(package_reference:PackageReference):
@@ -27,7 +30,7 @@ def get_cache_path_export_source(package_reference:PackageReference):
 def get_cache_path_source(package_reference:PackageReference):
     cache_path = get_cache_path('source', package_reference)
 
-    if os.path.isdir(cache_path):
+    if cache_path and os.path.isdir(cache_path):
         return cache_path
 
     return conan_recipe_store.get_recipe(package_reference).local_source_dir
