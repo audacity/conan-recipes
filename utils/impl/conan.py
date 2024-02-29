@@ -81,6 +81,7 @@ def install_recipe(recipe_path:str, config_path:str, profiles:ConanProfiles, rem
 
         output = subprocess.check_output(cmd).decode('utf-8')
 
+        print("Output from conan install:")
         print(output, flush=True)
 
         if not output or len(output) == 0:
