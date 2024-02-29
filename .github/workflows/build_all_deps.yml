@@ -221,15 +221,15 @@ jobs:
       matrix:
         config:
         - name: XCode 14.2
-          os: macos-12
+          os: macos-13
           compiler: 14
           xcode_version: 14.2
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
           metadata: "platform: darwin"
-        - name: XCode 13.4.1
-          os: macos-12
-          compiler: 13
-          xcode_version: 13.4.1
+        - name: XCode 15.0.1
+          os: macos-13
+          compiler: 15
+          xcode_version: 15.0.1
           release_args:
           metadata: |
             upload_build_tools: true
@@ -310,7 +310,7 @@ jobs:
         - name: Windows
           os: windows-2022
         - name: MacOS
-          os: macos-12
+          os: macos-13
     needs: [update_conan_remotes]
     steps:
     - name: Checkout Repo
