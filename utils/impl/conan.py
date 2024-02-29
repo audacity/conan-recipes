@@ -77,9 +77,17 @@ def install_recipe(recipe_path:str, config_path:str, profiles:ConanProfiles, rem
                         cmd += ['-o:h', opt.strip()]
 
         cmd += [recipe_path]
-        print(cmd)
+        print(cmd, flush=True)
 
-        dependecies_graph = json.loads(subprocess.check_output(cmd))['graph']['nodes']
+        output = subprocess.check_output(cmd).decode('utf-8')
+
+        print(output, flush=True)
+
+        if not output or len(output) == 0:
+            print("Empty output, failed to collect dependencies")
+            return
+
+        dependecies_graph = json.loads(output)['graph']['nodes']
 
         for node in dependecies_graph.values():
             if node['id'] == '0':
