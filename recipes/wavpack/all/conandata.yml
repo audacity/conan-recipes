@@ -19,4 +19,4 @@ patches:
   5.6.0:
   - patch_file: patches/CMakeLists.txt.patch
   5.7.0:
-  - patch_file: patches/CMakeLists.txt.patch
+  - patch_file: patches/5.7.0/CMakeLists.txt.patch

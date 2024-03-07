@@ -1,0 +1,22 @@
+--- a/CMakeLists.txt 2024-03-01 07:37:15.000000000 +0300
++++ b/CMakeLists.txt 2024-03-07 12:00:26.012742800 +0300
+@@ -33,14 +33,14 @@
+ 
+ include(CheckLanguage)
+ 
+-check_language(ASM)
+-if(CMAKE_ASM_COMPILER)
+-  enable_language(ASM)
+-endif()
+-
+ if(MSVC)
+   enable_language(ASM_MASM)
+ else()
++  check_language(ASM)
++  if(CMAKE_ASM_COMPILER)
++    enable_language(ASM)
++  endif()
++  
+   check_language(ASM-ATT)
+   if(CMAKE_ASM-ATT_COMPILER)
+     enable_language(ASM-ATT)
