@@ -4,6 +4,9 @@ sources:
     - https://github.com/Tencent/rapidjson/archive/v1.1.0.tar.gz
     - https://artifactory.audacityteam.org/artifactory/mirror/rapidjson/1.1.0/v1.1.0.tar.gz
     sha256: bf7ced29704a1e696fbccf2a2b4ea068e7774fa37f6d7dd4039d0787f8bed98e
+  cci.20240709:
+    url: https://github.com/Tencent/rapidjson/archive/ab1842a2dae061284c0a62dca1cc6d5e7e37e346.zip
+    sha256: 208f551cd08586a0a642cbd8d2c59783419c8a7e4f7552e13a19bc4e806403a9
   cci.20220822:
     url: https://github.com/Tencent/rapidjson/archive/06d58b9e848c650114556a23294d0b6440078c61.tar.gz
     sha256: 30d28bbe0bfff9d8dc5d3cf62799b6ee550499cc1520e44bdece81e002480d19
