@@ -16,3 +16,4 @@ sources:
 patches:
   1.1.0:
     - patch_file: patches/win_arm64.patch
+    - patch_file: patches/fix_broken_assignment_operator.patch
