@@ -9,3 +9,4 @@ patches:
   - patch_file: patches/build-system.patch
   - patch_file: patches/portmidi.h.patch
   - patch_file: patches/disable_debug_in_pm_exit.patch
+  - patch_file: patches/fix_missing_includes.patch
