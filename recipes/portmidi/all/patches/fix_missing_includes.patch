@@ -1,0 +1,42 @@
+diff --git a/pm_linux/finddefault.c b/pm_linux/finddefault.c
+index b184bd9..05596b0 100644
+--- a/pm_linux/finddefault.c
++++ b/pm_linux/finddefault.c
+@@ -2,10 +2,13 @@
+    Roger Dannenberg, Jan 2009
+ */
+ 
++#include <ctype.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include "portmidi.h"
++#include "pmutil.h"
++#include "pminternal.h"
+ 
+ #define STRING_MAX 256
+ 
+diff --git a/pm_linux/finddefault.h b/pm_linux/finddefault.h
+new file mode 100644
+index 0000000..aeb0ff5
+--- /dev/null
++++ b/pm_linux/finddefault.h
+@@ -0,0 +1,6 @@
++#ifndef _FINDDEFAULT_H
++#define _FINDDEFAULT_H
++
++PmDeviceID find_default_device(char *path, int input, PmDeviceID id);
++
++#endif
+diff --git a/pm_linux/pmlinux.c b/pm_linux/pmlinux.c
+index 49e266d..67d45ce 100755
+--- a/pm_linux/pmlinux.c
++++ b/pm_linux/pmlinux.c
+@@ -14,6 +14,7 @@
+ #include "portmidi.h"
+ #include "pmutil.h"
+ #include "pminternal.h"
++#include "finddefault.h"
+ 
+ #ifdef PMALSA
+   #include "pmlinuxalsa.h"
