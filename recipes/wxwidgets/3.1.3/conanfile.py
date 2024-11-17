@@ -124,9 +124,9 @@ class wxWidgetsConan(ConanFile):
         dnf.check(['libX11-devel'])
         pacman.check(['libx11'])
 
-        apt.check(['libgtk-3-dev'])
-        dnf.check(['gtk3-devel'])
-        pacman.check(['gtk3'])
+        apt.check(['libgtk2.0-dev'])
+        dnf.check(['gtk2-devel'])
+        pacman.check(['gtk2'])
 
         if self.options.secretstore:
             apt.check(['libsecret-1-dev'])
@@ -138,9 +138,9 @@ class wxWidgetsConan(ConanFile):
             pacman.check(['mesa', 'glu'])
 
         if self.options.webview:
-            apt.check(['libwebkitgtk-3.0-dev', 'libsoup2.4-dev'])
-            dnf.check(['webkitgtk3-devel', 'libsoup-devel'])
-            pacman.check(['webkit2gtk', 'libsoup'])
+            apt.check(['libwebkitgtk-dev', 'libsoup2.4-dev'])
+            dnf.check(['webkitgtk2-devel', 'libsoup-devel'])
+            pacman.check(['webkitgtk', 'libsoup'])
 
         if self.options.mediactrl:
             apt.check(['libgstreamer0.10-dev', 'libgstreamer-plugins-base0.10-dev'])
@@ -199,7 +199,8 @@ class wxWidgetsConan(ConanFile):
             tc.variables['wxBUILD_USE_STATIC_RUNTIME'] = is_msvc_static_runtime(self)
             tc.variables['wxBUILD_MSVC_MULTIPROC'] = True
         if self._is_linux:
-            tc.variables['wxBUILD_TOOLKIT'] = 'gtk3'
+            # TODO : GTK3
+            # cmake.definitions['wxBUILD_TOOLKIT'] = 'gtk3'
             tc.variables['wxUSE_CAIRO'] = self.options.get_safe('cairo')
         # Disable some optional libraries that will otherwise lead to non-deterministic builds
         if self.settings.os != "Windows":
@@ -358,7 +359,7 @@ class wxWidgetsConan(ConanFile):
             suffix = ''
         else:
             prefix = 'wx_'
-            toolkit = 'gtk3'
+            toolkit = 'gtk2'
             version = ''
             suffix = version_suffix_major_minor
 
@@ -478,6 +479,6 @@ class wxWidgetsConan(ConanFile):
                 self.cpp_info.components['base'].system_libs.extend([
                     'uxtheme', 'version', 'shlwapi', 'oleacc'])
         else:
-            self.add_libraries_from_pc('gtk+-3.0', self.cpp_info.components['base'])
+            self.add_libraries_from_pc('gtk+-2.0', self.cpp_info.components['base'])
             self.add_libraries_from_pc('x11', self.cpp_info.components['base'])
             self.cpp_info.components['base'].system_libs.extend(['dl', 'pthread', 'SM', 'uuid'])
