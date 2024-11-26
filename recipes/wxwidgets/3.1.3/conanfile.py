@@ -200,7 +200,7 @@ class wxWidgetsConan(ConanFile):
             tc.variables['wxBUILD_MSVC_MULTIPROC'] = True
         if self._is_linux:
             # TODO : GTK3
-            # cmake.definitions['wxBUILD_TOOLKIT'] = 'gtk3'
+            tc.variables['wxBUILD_TOOLKIT'] = 'gtk2'
             tc.variables['wxUSE_CAIRO'] = self.options.get_safe('cairo')
         # Disable some optional libraries that will otherwise lead to non-deterministic builds
         if self.settings.os != "Windows":
