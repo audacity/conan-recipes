@@ -1,0 +1,58 @@
+From a74c34babde6fab2477c6d277cc00b74ca80d00e Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Wed, 28 Feb 2024 01:52:29 +0100
+Subject: [PATCH] Add a hack to avoid a problem with missing wxStaticText text
+
+Somehow, for some combination of characters, the native control didn't
+show anything at all in the control unless its size was one bigger than
+the size we computed. E.g. adding the following code to minimal sample:
+
+    auto p = new wxPanel(this);
+    new wxStaticText(p, wxID_ANY, " AI", wxPoint(10, 10));
+    new wxStaticText(p, wxID_ANY, " AJ", wxPoint(10, 40));
+    new wxStaticText(p, wxID_ANY, " AK", wxPoint(10, 70));
+
+    new wxStaticText(p, wxID_ANY, " BI", wxPoint(100, 10));
+    new wxStaticText(p, wxID_ANY, " BJ", wxPoint(100, 40));
+    new wxStaticText(p, wxID_ANY, " BK", wxPoint(100, 70));
+
+showed just a "hole" instead of the " AJ" string, even though all the
+others appeared correctly (observed under both Windows 10 and 11, at
+standard and 200% DPI).
+
+This looks like a bug both in our code (because we seem to not be
+computing the text extent correctly) and in the native control (because
+it should still show at least something even if the last pixel doesn't
+fit instead of showing nothing at all), but it's not clear how to fix
+the former and there is nothing we can do about the latter, so add an
+extra pixel to fix a pretty bad user-visible problem.
+
+(cherry picked from commit 496e27c7248c31e1787f9cc8b8ab4534335418b4)
+---
+ src/msw/stattext.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/msw/stattext.cpp b/src/msw/stattext.cpp
+index fd171211a8..bbfab285a9 100644
+--- a/src/msw/stattext.cpp
++++ b/src/msw/stattext.cpp
+@@ -116,6 +116,16 @@ wxSize wxStaticText::DoGetBestClientSize() const
+     // still not aligned to the same position.
+     heightTextTotal += 1;
+ 
++    // And this extra pixel is an even worse hack which is somehow needed to
++    // avoid the problem with the native control now showing any text at all
++    // for some particular width values: e.g. without this, using " AJ" as a
++    // label doesn't show anything at all on the screen, even though the
++    // control text is properly set and it has rougly the correct (definitely
++    // not empty) size. This looks like a bug in the native control because it
++    // really should show at least the first characters, but it's not clear
++    // what else can we do about it than just add this extra pixel.
++    widthTextMax++;
++
+     return wxSize(widthTextMax, heightTextTotal);
+ }
+ 
+-- 
+2.46.0
+
