@@ -2,7 +2,7 @@
 os = Windows
 arch = x86
 compiler = msvc
-compiler.version = 193
+compiler.version = 194
 compiler.runtime = dynamic
 compiler.runtime_type = Release
 compiler.cppstd = 17
