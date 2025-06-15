@@ -40,27 +40,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        # GCC 9
-        - name: Ubuntu 20.04 x86_64 GCC 9
-          os: ubuntu-20.04
-          gcc: 9
-          release_args: --enable-debug-processor sentry --skip-debug-data-upload
-          metadata: |
-            upload_build_tools: true
-            platform: linux
-        # GCC 10
-        - name: Ubuntu 20.04 x86_64 GCC 10
-          os: ubuntu-20.04
-          gcc: 10
-          release_args: --enable-debug-processor sentry --skip-debug-data-upload
-          metadata: |
-            platform: linux
-        # GCC 11
-        - name: Ubuntu 20.04 x86_64 GCC 11
-          os: ubuntu-20.04
-          gcc: 11
-          release_args:
-          metadata: "platform: linux"
         # GCC 12
         - name: Ubuntu 22.04 x86_64 GCC 12
           os: ubuntu-22.04
@@ -306,7 +285,7 @@ jobs:
       matrix:
         config:
         - name: Linux
-          os: ubuntu-20.04
+          os: ubuntu-22.04
         - name: Windows
           os: windows-2022
         - name: MacOS
