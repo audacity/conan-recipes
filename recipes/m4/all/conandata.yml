@@ -1,4 +1,9 @@
 sources:
+  1.4.20:
+    url:
+    - https://ftp.gnu.org/gnu/m4/m4-1.4.20.tar.gz
+    - https://ftpmirror.gnu.org/gnu/m4/m4-1.4.20.tar.gz
+    sha256: 6ac4fc31ce440debe63987c2ebbf9d7b6634e67a7c3279257dc7361de8bdb3ef
   1.4.19:
     url:
     - https://ftp.gnu.org/gnu/m4/m4-1.4.19.tar.gz
@@ -11,6 +16,11 @@ sources:
     - https://ftpmirror.gnu.org/gnu/m4/m4-1.4.18.tar.gz
     sha256: ab2633921a5cd38e48797bf5521ad259bdc4b979078034a3b790d7fec5493fab
 patches:
+  1.4.20:
+  - patch_file: patches/1.4.20-0001-ar-lib.patch
+  - patch_file: patches/1.4.20-0002-msvc-debug-assertion.patch
+  - patch_file: patches/1.4.20-0003-disable-hardening-in-source.patch
+  - patch_file: patches/1.4.20-0004-msvc-compilation-fix.patch
   1.4.19:
   - patch_file: patches/1.4.19-0001-open-files-in-binary-mode.patch
   - patch_file: patches/1.4.19-0002-ar-lib.patch

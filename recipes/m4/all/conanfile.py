@@ -45,6 +45,7 @@ class M4Conan(ConanFile):
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
+        apply_conandata_patches(self)
 
     def generate(self):
         env = VirtualBuildEnv(self)
@@ -89,7 +90,6 @@ class M4Conan(ConanFile):
         tc.generate(env)
 
     def _patch_sources(self):
-        apply_conandata_patches(self)
         if shutil.which("help2man") == None:
             # dummy file for configure
             help2man = os.path.join(self.source_folder, "help2man")

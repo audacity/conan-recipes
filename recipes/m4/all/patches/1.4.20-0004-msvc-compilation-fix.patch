@@ -1,0 +1,15 @@
+Fixes compilation on MSVC, see https://lists.gnu.org/archive/html/bug-m4/2025-06/msg00000.html
+
+diff --git a/lib/obstack.in.h b/lib/obstack.in.h
+index 698b6b3..91a5e44 100644
+--- a/lib/obstack.in.h
++++ b/lib/obstack.in.h
+@@ -590,7 +590,7 @@ extern int obstack_exit_failure;
+ 
+ # define obstack_free(h, obj)						      \
+   ((h)->temp.tempptr = (void *) (obj),					      \
+-   (((_OBSTACK_CPTR) (h)->chunk < (OBSTACK_CPTR) (h)->temp.tempptr	      \
++   (((_OBSTACK_CPTR) (h)->chunk < (_OBSTACK_CPTR) (h)->temp.tempptr	      \
+      && (_OBSTACK_CPTR) (h)->temp.tempptr < (_OBSTACK_CPTR) (h)->chunk_limit) \
+     ? (void) ((h)->next_free = (h)->object_base = (char *) (h)->temp.tempptr) \
+     : __obstack_free (h, (h)->temp.tempptr)))

@@ -54,7 +54,7 @@ class LibtoolConan(ConanFile):
 
         #TODO: consider adding m4 as direct dependency, perhaps when we start using version ranges.
         # https://github.com/conan-io/conan-center-index/pull/16248#discussion_r1116332095
-        #self.requires("m4/1.4.19")
+        #self.requires("m4/1.4.20")
 
     @property
     def _settings_build(self):
@@ -63,7 +63,7 @@ class LibtoolConan(ConanFile):
     def build_requirements(self):
         if hasattr(self, "settings_build"):
             self.tool_requires("automake/1.16.5@audacity/stable")
-            self.tool_requires("m4/1.4.19@audacity/stable")               # Needed by configure
+            self.tool_requires("m4/1.4.20@audacity/stable")               # Needed by configure
 
         self.tool_requires("gnu-config/cci.20210814@audacity/stable")
         if self._settings_build.os == "Windows":

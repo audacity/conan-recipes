@@ -41,10 +41,10 @@ class AutoconfConan(ConanFile):
         del self.info.settings.build_type
 
     def requirements(self):
-        self.requires("m4/1.4.19@audacity/stable") # Needed at runtime by downstream clients as well
+        self.requires("m4/1.4.20@audacity/stable") # Needed at runtime by downstream clients as well
 
     def build_requirements(self):
-        self.tool_requires("m4/1.4.19@audacity/stable")
+        self.tool_requires("m4/1.4.20@audacity/stable")
         if self._settings_build.os == "Windows":
             self.win_bash = True
             if not self.conf.get("tools.microsoft.bash:path", check_type=str):

@@ -38,7 +38,7 @@ class FlexConan(ConanFile):
     def requirements(self):
         # Flex requires M4 to be compiled. If consumer does not have M4
         # installed, Conan will need to know that Flex requires it.
-        self.requires("m4/1.4.19@audacity/stable")
+        self.requires("m4/1.4.20@audacity/stable")
 
     def layout(self):
         basic_layout(self, src_folder="src")
@@ -46,7 +46,7 @@ class FlexConan(ConanFile):
         self.folders.generators = 'build/generators'
 
     def build_requirements(self):
-        self.tool_requires("m4/1.4.19@audacity/stable")
+        self.tool_requires("m4/1.4.20@audacity/stable")
         if hasattr(self, "settings_build") and cross_building(self):
             self.tool_requires(f"{self.name}/{self.version}")
 

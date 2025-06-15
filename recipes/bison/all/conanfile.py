@@ -48,7 +48,7 @@ class BisonConan(ConanFile):
         basic_layout(self, src_folder="src")
 
     def requirements(self):
-        self.requires("m4/1.4.19@audacity/stable")
+        self.requires("m4/1.4.20@audacity/stable")
 
     def validate(self):
         if is_msvc(self) and self.version == "3.8.2":

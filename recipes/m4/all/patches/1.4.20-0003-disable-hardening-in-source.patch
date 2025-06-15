@@ -1,0 +1,22 @@
+This requires linking to ssp on some systems, which might not always present.
+If this is really desired:
+* add `-lssp` to LDFLAGS, and
+* add `-D_FORTIFY_SOURCE=2` to CPPFLAGS/CFLAGS
+
+diff --git a/lib/config.hin b/lib/config.hin
+index da8a569..920a90c 100644
+--- a/lib/config.hin
++++ b/lib/config.hin
+@@ -224,10 +224,10 @@
+       without upsetting newer glibc. */
+    #if defined __OPTIMIZE__ && __OPTIMIZE__
+    # ifndef _FORTIFY_SOURCE
+-   #  define _FORTIFY_SOURCE 2
++   //#  define _FORTIFY_SOURCE 2
+    # endif
+    #endif
+-  
++
+ 
+ /* Define to 1 if the system's ftello function has the Solaris bug. */
+ #undef FTELLO_BROKEN_AFTER_SWITCHING_FROM_READ_TO_WRITE
