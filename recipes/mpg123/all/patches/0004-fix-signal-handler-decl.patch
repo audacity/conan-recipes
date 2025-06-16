@@ -1,0 +1,117 @@
+diff --git a/src/compat/compat.c b/src/compat/compat.c
+index dacc77b..3e45624 100644
+--- a/src/compat/compat.c
++++ b/src/compat/compat.c
+@@ -506,21 +506,21 @@ size_t unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+ 
+ #ifndef NO_CATCHSIGNAL
+ #if (!defined(WIN32) || defined (__CYGWIN__)) && defined(HAVE_SIGNAL_H)
+-void (*catchsignal(int signum, void(*handler)()))()
++void (*catchsignal(int signum, void(*handler)(int)))(int)
+ {
+ 	struct sigaction new_sa;
+ 	struct sigaction old_sa;
+ 
+ #ifdef DONT_CATCH_SIGNALS
+ 	fprintf (stderr, "Not catching any signals.\n");
+-	return ((void (*)()) -1);
++	return ((void (*)(int)) -1);
+ #endif
+ 
+ 	new_sa.sa_handler = handler;
+ 	sigemptyset(&new_sa.sa_mask);
+ 	new_sa.sa_flags = 0;
+ 	if(sigaction(signum, &new_sa, &old_sa) == -1)
+-		return ((void (*)()) -1);
++		return ((void (*)(int)) -1);
+ 	return (old_sa.sa_handler);
+ }
+ #endif
+diff --git a/src/compat/compat.h b/src/compat/compat.h
+index f2b7af2..e9451c0 100644
+--- a/src/compat/compat.h
++++ b/src/compat/compat.h
+@@ -324,7 +324,7 @@ size_t unintr_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+ #include "true.h"
+ 
+ #if (!defined(WIN32) || defined (__CYGWIN__)) && defined(HAVE_SIGNAL_H)
+-void (*catchsignal(int signum, void(*handler)()))();
++void (*catchsignal(int signum, void(*handler)(int)))(int);
+ #endif
+ 
+ #endif
+diff --git a/src/libout123/buffer.c b/src/libout123/buffer.c
+index 42a1d31..5b97a1e 100644
+--- a/src/libout123/buffer.c
++++ b/src/libout123/buffer.c
+@@ -63,7 +63,7 @@ int outburst = 32768;
+    Another forked buffer process will have its on value. */
+ static int intflag = FALSE;
+ 
+-static void catch_interrupt (void)
++static void catch_interrupt (int signum)
+ {
+ 	intflag = TRUE;
+ }
+@@ -75,7 +75,7 @@ static int read_record(out123_handle *ao
+ ,	int who, void **buf, byte *prebuf, int *preoff, int presize, size_t *recsize);
+ static int buffer_loop(out123_handle *ao);
+ 
+-static void catch_child(void)
++static void catch_child(int signum)
+ {
+ 	/* Disabled for now. We do not really need that.
+ 	   Rather get return status in a controlled way in buffer_exit(). */
+diff --git a/src/mpg123.c b/src/mpg123.c
+index 291b52a..8ffd4b6 100644
+--- a/src/mpg123.c
++++ b/src/mpg123.c
+@@ -183,7 +183,7 @@ void set_intflag()
+ }
+ 
+ #if !defined(WIN32) && !defined(GENERIC)
+-static void catch_interrupt(void)
++static void catch_interrupt(int signum)
+ {
+ 	intflag = TRUE;
+ }
+@@ -200,11 +200,11 @@ static void handle_fatal_msg(const char *msg)
+ 		fprintf(stderr, "%s", msg);
+ 	handle_fatal();
+ }
+-static void catch_fatal_term(void)
++static void catch_fatal_term(int signum)
+ {
+ 	handle_fatal_msg("\nmpg123: death by SIGTERM\n");
+ }
+-static void catch_fatal_pipe(void)
++static void catch_fatal_pipe(int signum)
+ {
+ 	/* If the SIGPIPE is because of piped stderr, trying to write
+ 	   in the signal handler hangs the program. */
+diff --git a/src/out123.c b/src/out123.c
+index cde049f..faa31a5 100644
+--- a/src/out123.c
++++ b/src/out123.c
+@@ -1268,7 +1268,7 @@ int play_frame(void)
+ }
+ 
+ #if !defined(WIN32) && !defined(GENERIC)
+-static void catch_interrupt(void)
++static void catch_interrupt(int signum)
+ {
+         intflag = TRUE;
+ }
+diff --git a/src/streamdump.c b/src/streamdump.c
+index 986b6a0..62e3617 100644
+--- a/src/streamdump.c
++++ b/src/streamdump.c
+@@ -688,7 +688,7 @@ int dump_setup(struct stream *sd, mpg123_handle *mh)
+ 	if(ret != MPG123_OK)
+ 	{
+ 		error1("Unable to replace reader/open track for stream dump: %s\n", mpg123_strerror(mh));
+-		dump_close(sd);
++		dump_close();
+ 		return -1;
+ 	}
+ 	else return 0;

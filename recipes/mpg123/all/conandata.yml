@@ -19,6 +19,7 @@ patches:
   1.31.2:
   - patch_file: patches/0001-msvc-export-symbols.patch
   - patch_file: patches/0003-fix-mangle-include.patch
+  - patch_file: patches/0004-fix-signal-handler-decl.patch
   1.26.4:
   - patch_file: patches/0001-msvc-export-symbols.patch
   1.29.3:
