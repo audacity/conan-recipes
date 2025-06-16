@@ -1,0 +1,35 @@
+diff --git a/pm_linux/pmlinuxalsa.c b/pm_linux/pmlinuxalsa.c
+index 7422fd6..a5db92d 100755
+--- a/pm_linux/pmlinuxalsa.c
++++ b/pm_linux/pmlinuxalsa.c
+@@ -201,7 +201,7 @@ static PmError alsa_write_byte(PmInternal *midi, unsigned char byte,
+             /* compute relative time of event = timestamp - now + latency */
+             PmTimestamp now = (midi->time_proc ? 
+                                midi->time_proc(midi->time_info) : 
+-                               Pt_Time(NULL));
++                               Pt_Time());
+             int when = timestamp;
+             /* if timestamp is zero, send immediately */
+             /* otherwise compute time delay and use delay if positive */
+diff --git a/pm_test/latency.c b/pm_test/latency.c
+index 507648c..73c2684 100755
+--- a/pm_test/latency.c
++++ b/pm_test/latency.c
+@@ -116,7 +116,7 @@ void pt_callback(PtTimestamp timestamp, void *userData)
+     /* send a note on/off if user requested it */
+     if (test_out && (iteration % output_period == 0)) {
+         PmEvent buffer[1];
+-        buffer[0].timestamp = Pt_Time(NULL);
++        buffer[0].timestamp = Pt_Time();
+         if (note_on) {
+             /* note off */
+             buffer[0].message = Pm_Message(0x90, 60, 0);
+@@ -241,7 +241,7 @@ int main()
+     /* courteously turn off the last note, if necessary */
+     if (note_on) {
+        PmEvent buffer[1];
+-       buffer[0].timestamp = Pt_Time(NULL);
++       buffer[0].timestamp = Pt_Time();
+        buffer[0].message = Pm_Message(0x90, 60, 0);
+        Pm_Write(out, buffer, 1);
+     }
