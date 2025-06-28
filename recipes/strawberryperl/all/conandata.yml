@@ -10,6 +10,11 @@ sources:
       - https://strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit-portable.zip
       - https://artifactory.audacityteam.org/artifactory/mirror/strawberryperl/5.32.1.1/strawberry-perl-5.32.1.1-64bit-portable.zip
       sha256: 692646105b0f5e058198a852dc52a48f1cebcaf676d63bbdeae12f4eaee9bf5c
+    armv8:
+      url:
+      - https://strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit-portable.zip
+      - https://artifactory.audacityteam.org/artifactory/mirror/strawberryperl/5.32.1.1/strawberry-perl-5.32.1.1-64bit-portable.zip
+      sha256: 692646105b0f5e058198a852dc52a48f1cebcaf676d63bbdeae12f4eaee9bf5c
   5.30.0.1:
     x86:
       url: https://strawberryperl.com/download/5.30.0.1/strawberry-perl-5.30.0.1-32bit-portable.zip
