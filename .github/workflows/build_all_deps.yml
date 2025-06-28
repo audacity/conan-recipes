@@ -145,12 +145,25 @@ jobs:
           compiler: msvc2019
           release_args: --enable-debug-processor symstore --skip-debug-data-upload
           debug_args: --enable-debug-processor symstore --skip-debug-data-upload
-          metadata: "platform: win32"
+          arch: x86_64
+          metadata: |
+            upload_build_tools: false
+            platform: win32
         - name: MSVC 2022 x86_64
           os: windows-2022
           compiler: msvc2022
           release_args: --enable-debug-processor sentry --enable-debug-processor symstore --skip-debug-data-upload
           debug_args: --enable-debug-processor symstore --skip-debug-data-upload
+          arch: x86_64
+          metadata: |
+            upload_build_tools: true
+            platform: win32
+        - name: MSVC 2022 ARM64
+          os: windows-11-arm
+          compiler: msvc2022
+          release_args: --enable-debug-processor symstore --skip-debug-data-upload
+          debug_args: --enable-debug-processor symstore --skip-debug-data-upload
+          arch: arm64
           metadata: |
             upload_build_tools: true
             platform: win32
@@ -181,10 +194,16 @@ jobs:
       shell: bash
       run: |
         python3 utils/conan-utils.py export-recipes --build-order ${{ github.event.inputs.build_order }}
-        python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
-        python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
-        python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_deb --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.debug_args }}
-        python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_deb --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.debug_args }}
+
+        if [ "${{ matrix.config.arch }}" == "x86_64" ]; then
+          python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+          python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_rel --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+          python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_64_deb --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.debug_args }}
+          python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_x86_deb --profile-build build/windows/${{ matrix.config.compiler }}_x86_64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.debug_args }}
+        elif [ "${{ matrix.config.arch }}" == "arm64" ]; then
+          python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_arm64_deb --profile-build build/windows/${{ matrix.config.compiler }}_arm64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.debug_args }}
+          python3 utils/conan-utils.py --build-dir "${{ github.workspace }}/../../t" validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/windows/${{ matrix.config.compiler }}_arm64_rel --profile-build build/windows/${{ matrix.config.compiler }}_arm64 --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        fi
     - name: Upload to Cache
       shell: bash
       run: |
