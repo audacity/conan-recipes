@@ -1,5 +1,5 @@
 config:
-  version: 7.82.0
+  version: 8.12.1
   options: |
     &:with_ssl=schannel
     &:with_nghttp2=False
