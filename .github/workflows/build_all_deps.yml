@@ -140,12 +140,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: MSVC 2019 x86_64
-          os: windows-2019
-          compiler: msvc2019
-          release_args: --enable-debug-processor symstore --skip-debug-data-upload
-          debug_args: --enable-debug-processor symstore --skip-debug-data-upload
-          metadata: "platform: win32"
         - name: MSVC 2022 x86_64
           os: windows-2022
           compiler: msvc2022
