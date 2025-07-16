@@ -61,6 +61,7 @@ class ZlibConan(ConanFile):
         tc.variables["INSTALL_BIN_DIR"] = "bin"
         tc.variables["INSTALL_LIB_DIR"] = "lib"
         tc.variables["INSTALL_INC_DIR"] = "include"
+        tc.variables["ZLIB_BUILD_EXAMPLES"] = False
         tc.generate()
 
     def _patch_sources(self):

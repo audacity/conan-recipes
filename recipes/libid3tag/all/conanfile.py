@@ -31,7 +31,7 @@ class LibId3TagConan(ConanFile):
 
     def requirements(self):
         if self.options.zlib == "conan":
-            self.requires("zlib/1.2.13@audacity/stable")
+            self.requires("zlib/1.3.1@audacity/stable")
 
     def source(self):
         tools.files.get(self, **self.conan_data["sources"][self.version], strip_root=True)
