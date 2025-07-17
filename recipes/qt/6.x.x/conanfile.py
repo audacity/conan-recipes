@@ -264,7 +264,7 @@ class QtConan(ConanFile):
             raise ConanInvalidConfiguration("pcre2 is actually required by qt (QTBUG-92454). please use option qt:with_pcre2=True")
 
     def requirements(self):
-        self.requires("zlib/1.3.1@audacity/stable")
+        self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
         if self.options.openssl:
             self.requires("openssl/1.1.1t@audacity/stable")
         if self.options.with_pcre2:

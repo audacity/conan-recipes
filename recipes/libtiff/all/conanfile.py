@@ -80,7 +80,7 @@ class LibtiffConan(ConanFile):
 
     def requirements(self):
         if self.options.zlib:
-            self.requires("zlib/1.3.1@audacity/stable")
+            self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
         if self.options.get_safe("libdeflate"):
             self.requires("libdeflate/1.18")
         if self.options.lzma:

@@ -228,7 +228,7 @@ class OpenSSLConan(ConanFile):
 
     def requirements(self):
         if self._full_version < "1.1.0" and not self.options.get_safe("no_zlib"):
-            self.requires("zlib/1.3.1@audacity/stable")
+            self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
 
     def validate(self):
         if self.settings.os == "Emscripten":

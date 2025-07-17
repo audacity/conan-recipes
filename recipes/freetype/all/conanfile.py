@@ -64,9 +64,9 @@ class FreetypeConan(ConanFile):
 
     def requirements(self):
         if self.options.with_png:
-            self.requires("libpng/1.6.50@audacity/stable")
+            self.requires("libpng/[>=1.6.39 <1.7]@audacity/stable")
         if self.options.with_zlib:
-            self.requires("zlib/1.3.1@audacity/stable")
+            self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
         if self.options.with_bzip2:
             self.requires("bzip2/1.0.8@audacity/stable")
         if self.options.get_safe("with_brotli"):

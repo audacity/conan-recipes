@@ -113,7 +113,7 @@ class OpenSSLConan(ConanFile):
 
     def requirements(self):
         if not self.options.no_zlib:
-            self.requires("zlib/1.3.1")
+            self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
 
     def build_requirements(self):
         if self._settings_build.os == "Windows":

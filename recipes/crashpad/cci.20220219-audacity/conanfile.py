@@ -51,7 +51,7 @@ class CrashpadConan(ConanFile):
 
     def requirements(self):
         # FIXME: use mini_chromium conan package instead of embedded package (if possible)
-        self.requires("zlib/1.3.1@audacity/stable")
+        self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
         if self.settings.os in ("Linux", "FreeBSD"):
             self.requires("linux-syscall-support/cci.20200813@audacity/stable")
         if self.options.http_transport != "socket":

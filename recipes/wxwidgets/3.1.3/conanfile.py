@@ -161,7 +161,7 @@ class wxWidgetsConan(ConanFile):
 
     def requirements(self):
         if self.options.png == 'libpng':
-            self.requires('libpng/1.6.50@audacity/stable')
+            self.requires("libpng/[>=1.6.39 <1.7]@audacity/stable")
         if self.options.jpeg == 'libjpeg':
             self.requires('libjpeg/9d')
         elif self.options.jpeg == 'libjpeg-turbo':
@@ -171,7 +171,7 @@ class wxWidgetsConan(ConanFile):
         if self.options.tiff == 'libtiff':
             self.requires('libtiff/4.5.0@audacity/stable')
         if self.options.zlib == 'zlib':
-            self.requires('zlib/1.3.1@audacity/stable')
+            self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
         if self.options.expat == 'expat' and self.options.xml:
             self.requires('expat/2.5.0@audacity/stable')
 
