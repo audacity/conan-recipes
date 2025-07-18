@@ -1,0 +1,12 @@
+diff --git a/src/osx/cocoa/statline.mm b/src/osx/cocoa/statline.mm
+index 8590d36..c6106b2 100644
+--- a/src/osx/cocoa/statline.mm
++++ b/src/osx/cocoa/statline.mm
+@@ -42,6 +42,7 @@ long WXUNUSED(extraStyle))
+ {
+     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
+     wxNSBox* v = [[wxNSBox alloc] initWithFrame:r];
++    [v setBoxType:NSBoxSeparator];
+     wxWidgetCocoaImpl* c = new wxWidgetCocoaImpl( wxpeer, v );
+     return c;
+ }
