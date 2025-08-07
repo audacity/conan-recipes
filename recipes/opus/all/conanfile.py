@@ -61,6 +61,9 @@ class OpusConan(ConanFile):
         get(self, **self.conan_data["sources"][self.version],
             destination=self.source_folder, strip_root=True)
 
+        with open(os.path.join(self.source_folder, "package_version"), "w") as f:
+            f.write(f"PACKAGE_VERSION={self.version}\n")
+
     def generate(self):
         tc = CMakeToolchain(self)
         tc.cache_variables["OPUS_BUILD_SHARED_LIBRARY"] = self.options.shared
