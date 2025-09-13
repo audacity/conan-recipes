@@ -1,0 +1,747 @@
+From 47e219853c304f0034c8147153644afe0d29e33f Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Thu, 8 Jun 2023 20:40:05 -0700
+Subject: [PATCH] Avoid -Wdeprecated-copy for many event classes from clang 13
+
+Add new macros wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY() and
+wxDECLARE_NO_ASSIGN_DEF_COPY() and use them instead of
+wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN() and wxDECLARE_NO_ASSIGN_CLASS()
+respectively to ensure that we declare a (default, if possible) copy
+ctor in the classes declaring an assignment operator to avoid clang
+warnings about not doing it.
+
+(cherry picked from commit 6f8bc1018bd912cb6d817493bc65cc8b7346b6f2)
+Fix -Wdeprecated-copy warnings when building in C++20 mode
+
+Avoid implicit copy constructor warnings by using
+wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY/wxDECLARE_NO_ASSIGN_DEF_COPY
+instead of wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN.
+
+Closes #23625.
+
+Closes #23626.
+
+(cherry picked from commit 6c35c708d5b6a73475b728bf4d5dce453a12434b)
+---
+ include/wx/anystr.h                |  2 +-
+ include/wx/aui/auibar.h            |  2 +-
+ include/wx/aui/auibook.h           |  2 +-
+ include/wx/aui/framemanager.h      |  2 +-
+ include/wx/clrpicker.h             |  2 +-
+ include/wx/cmdline.h               |  2 +-
+ include/wx/collpane.h              |  2 +-
+ include/wx/colordlg.h              |  2 +-
+ include/wx/dateevt.h               |  2 +-
+ include/wx/defs.h                  | 11 +++++++++++
+ include/wx/dialog.h                |  2 +-
+ include/wx/dialup.h                |  2 +-
+ include/wx/event.h                 | 30 +++++++++++++++---------------
+ include/wx/filectrl.h              |  2 +-
+ include/wx/filepicker.h            |  2 +-
+ include/wx/fontpicker.h            |  2 +-
+ include/wx/fswatcher.h             |  2 +-
+ include/wx/generic/grid.h          |  8 ++++----
+ include/wx/generic/laywin.h        |  4 ++--
+ include/wx/html/htmlwin.h          |  4 ++--
+ include/wx/hyperlink.h             |  2 +-
+ include/wx/osx/core/cfdictionary.h |  8 ++++++++
+ include/wx/process.h               |  2 +-
+ include/wx/rtti.h                  |  4 ++++
+ include/wx/socket.h                |  2 +-
+ include/wx/taskbar.h               |  2 +-
+ include/wx/timer.h                 |  2 +-
+ include/wx/treelist.h              |  2 +-
+ include/wx/valnum.h                | 25 ++++++-------------------
+ include/wx/webview.h               |  2 +-
+ include/wx/wizard.h                |  2 +-
+ interface/wx/defs.h                | 21 ++++++++++++++++++++-
+ 32 files changed, 95 insertions(+), 66 deletions(-)
+
+diff --git a/include/wx/anystr.h b/include/wx/anystr.h
+index 082d83f151..9cbe43d7da 100644
+--- a/include/wx/anystr.h
++++ b/include/wx/anystr.h
+@@ -132,7 +132,7 @@ private:
+     const wxString * const m_str;
+     const wxString::const_iterator m_iter;
+ 
+-    wxDECLARE_NO_ASSIGN_CLASS(wxAnyStrPtr);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxAnyStrPtr);
+ };
+ 
+ #endif // _WX_ANYSTR_H_
+diff --git a/include/wx/aui/auibar.h b/include/wx/aui/auibar.h
+index 05b841983a..79603e91d9 100644
+--- a/include/wx/aui/auibar.h
++++ b/include/wx/aui/auibar.h
+@@ -97,7 +97,7 @@ private:
+     int m_toolId;
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxAuiToolBarEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxAuiToolBarEvent);
+ };
+ 
+ 
+diff --git a/include/wx/aui/auibook.h b/include/wx/aui/auibook.h
+index 221d2a4ed2..8276bed72b 100644
+--- a/include/wx/aui/auibook.h
++++ b/include/wx/aui/auibook.h
+@@ -79,7 +79,7 @@ private:
+ 
+ #ifndef SWIG
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxAuiNotebookEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxAuiNotebookEvent);
+ #endif
+ };
+ 
+diff --git a/include/wx/aui/framemanager.h b/include/wx/aui/framemanager.h
+index 17c9a84153..7bf83aa84b 100644
+--- a/include/wx/aui/framemanager.h
++++ b/include/wx/aui/framemanager.h
+@@ -667,7 +667,7 @@ public:
+ 
+ #ifndef SWIG
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxAuiManagerEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxAuiManagerEvent);
+ #endif
+ };
+ 
+diff --git a/include/wx/clrpicker.h b/include/wx/clrpicker.h
+index 4b51a96d0e..8bb74d9b65 100644
+--- a/include/wx/clrpicker.h
++++ b/include/wx/clrpicker.h
+@@ -183,7 +183,7 @@ public:
+ private:
+     wxColour m_colour;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxColourPickerEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxColourPickerEvent);
+ };
+ 
+ // ----------------------------------------------------------------------------
+diff --git a/include/wx/cmdline.h b/include/wx/cmdline.h
+index c2b4a10e69..729ac0cb21 100644
+--- a/include/wx/cmdline.h
++++ b/include/wx/cmdline.h
+@@ -176,7 +176,7 @@ public:
+ 
+ private:
+     const wxCmdLineParser& m_parser;
+-    wxDECLARE_NO_ASSIGN_CLASS(wxCmdLineArgs);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxCmdLineArgs);
+ };
+ 
+ // ----------------------------------------------------------------------------
+diff --git a/include/wx/collpane.h b/include/wx/collpane.h
+index 168dc7c06e..9965463e63 100644
+--- a/include/wx/collpane.h
++++ b/include/wx/collpane.h
+@@ -92,7 +92,7 @@ public:
+ private:
+     bool m_bCollapsed;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxCollapsiblePaneEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxCollapsiblePaneEvent);
+ };
+ 
+ // ----------------------------------------------------------------------------
+diff --git a/include/wx/colordlg.h b/include/wx/colordlg.h
+index 7fb04dd097..5e724f48f1 100644
+--- a/include/wx/colordlg.h
++++ b/include/wx/colordlg.h
+@@ -65,7 +65,7 @@ public:
+ private:
+     wxColour m_colour;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxColourDialogEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxColourDialogEvent);
+ };
+ 
+ wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_CORE, wxEVT_COLOUR_CHANGED, wxColourDialogEvent);
+diff --git a/include/wx/dateevt.h b/include/wx/dateevt.h
+index 8b1d424dfe..5354199b8b 100644
+--- a/include/wx/dateevt.h
++++ b/include/wx/dateevt.h
+@@ -39,7 +39,7 @@ public:
+ private:
+     wxDateTime m_date;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxDateEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxDateEvent);
+ };
+ 
+ // ----------------------------------------------------------------------------
+diff --git a/include/wx/defs.h b/include/wx/defs.h
+index a1c2ea5b15..a128a1d902 100644
+--- a/include/wx/defs.h
++++ b/include/wx/defs.h
+@@ -2985,8 +2985,14 @@ typedef const void* WXWidget;
+ 
+ #if defined(__cplusplus) && __cplusplus >= 201103L
+     #define wxMEMBER_DELETE = delete
++    #define wxDECLARE_DEFAULT_COPY_CTOR(classname) \
++        public:                                    \
++            classname(const classname&) = default;
+ #else
+     #define wxMEMBER_DELETE
++
++    // We can't do this without C++11 "= default".
++    #define wxDECLARE_DEFAULT_COPY_CTOR(classname)
+ #endif
+ 
+ #define wxDECLARE_NO_COPY_CLASS(classname)      \
+@@ -3008,6 +3014,11 @@ typedef const void* WXWidget;
+     private:                                    \
+         classname& operator=(const classname&) wxMEMBER_DELETE
+ 
++#define wxDECLARE_NO_ASSIGN_DEF_COPY(classname)                 \
++        wxDECLARE_DEFAULT_COPY_CTOR(classname)                  \
++    private:                                                    \
++        classname& operator=(const classname&) wxMEMBER_DELETE
++
+ /* deprecated variants _not_ requiring a semicolon after them */
+ #define DECLARE_NO_COPY_CLASS(classname) \
+     wxDECLARE_NO_COPY_CLASS(classname);
+diff --git a/include/wx/dialog.h b/include/wx/dialog.h
+index 55dc6d0fe2..e155907e93 100644
+--- a/include/wx/dialog.h
++++ b/include/wx/dialog.h
+@@ -378,7 +378,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxWindowModalDialogEvent (*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWindowModalDialogEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxWindowModalDialogEvent);
+ };
+ 
+ wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_CORE, wxEVT_WINDOW_MODAL_DIALOG_CLOSED , wxWindowModalDialogEvent );
+diff --git a/include/wx/dialup.h b/include/wx/dialup.h
+index b682aa226d..3cd186de14 100644
+--- a/include/wx/dialup.h
++++ b/include/wx/dialup.h
+@@ -179,7 +179,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxDialUpEvent(*this); }
+ 
+ private:
+-    wxDECLARE_NO_ASSIGN_CLASS(wxDialUpEvent);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxDialUpEvent);
+ };
+ 
+ // the type of dialup event handler function
+diff --git a/include/wx/event.h b/include/wx/event.h
+index fd25c7a1ca..0e7745e628 100644
+--- a/include/wx/event.h
++++ b/include/wx/event.h
+@@ -1200,7 +1200,7 @@ protected:
+     int               m_commandInt;
+     long              m_extraLong;     // Additional information (e.g. select/deselect)
+ 
+-    wxDECLARE_NO_ASSIGN_CLASS(wxEventBasicPayloadMixin);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxEventBasicPayloadMixin);
+ };
+ 
+ class WXDLLIMPEXP_BASE wxEventAnyPayloadMixin : public wxEventBasicPayloadMixin
+@@ -1649,7 +1649,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxScrollEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxScrollEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxScrollEvent);
+ };
+ 
+ // ScrollWin event class, derived fom wxEvent. wxScrollWinEvents
+@@ -2372,7 +2372,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxPaintEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxPaintEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxPaintEvent);
+ };
+ 
+ class WXDLLIMPEXP_CORE wxNcPaintEvent : public wxEvent
+@@ -2385,7 +2385,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxNcPaintEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxNcPaintEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxNcPaintEvent);
+ };
+ 
+ // Erase background event class
+@@ -2461,7 +2461,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxChildFocusEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxChildFocusEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxChildFocusEvent);
+ };
+ 
+ // Activate event class
+@@ -2524,7 +2524,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxInitDialogEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxInitDialogEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxInitDialogEvent);
+ };
+ 
+ // Miscellaneous menu event class
+@@ -2692,7 +2692,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxMaximizeEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxMaximizeEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxMaximizeEvent);
+ };
+ 
+ // Joystick event class
+@@ -2962,7 +2962,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxSysColourChangedEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxSysColourChangedEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxSysColourChangedEvent);
+ };
+ 
+ /*
+@@ -3022,15 +3022,15 @@ public:
+  */
+ class WXDLLIMPEXP_CORE wxDisplayChangedEvent : public wxEvent
+ {
+-private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxDisplayChangedEvent);
+-
+ public:
+     wxDisplayChangedEvent()
+         : wxEvent(0, wxEVT_DISPLAY_CHANGED)
+         { }
+ 
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxDisplayChangedEvent(*this); }
++
++private:
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxDisplayChangedEvent);
+ };
+ 
+ /*
+@@ -3056,7 +3056,7 @@ private:
+     wxSize m_oldDPI;
+     wxSize m_newDPI;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxDPIChangedEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxDPIChangedEvent);
+ };
+ 
+ /*
+@@ -3205,7 +3205,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxWindowCreateEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWindowCreateEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxWindowCreateEvent);
+ };
+ 
+ class WXDLLIMPEXP_CORE wxWindowDestroyEvent : public wxCommandEvent
+@@ -3218,7 +3218,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxWindowDestroyEvent(*this); }
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWindowDestroyEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxWindowDestroyEvent);
+ };
+ 
+ // A help event is sent when the user clicks on a window in context-help mode.
+@@ -3435,7 +3435,7 @@ struct WXDLLIMPEXP_BASE wxEventTableEntry : public wxEventTableEntryBase
+     const int& m_eventType;
+ 
+ private:
+-    wxDECLARE_NO_ASSIGN_CLASS(wxEventTableEntry);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxEventTableEntry);
+ };
+ 
+ // an entry used in dynamic event table managed by wxEvtHandler::Connect()
+diff --git a/include/wx/filectrl.h b/include/wx/filectrl.h
+index 51193716a3..d543958e3d 100644
+--- a/include/wx/filectrl.h
++++ b/include/wx/filectrl.h
+@@ -115,7 +115,7 @@ protected:
+     wxString m_directory;
+     wxArrayString m_files;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileCtrlEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxFileCtrlEvent);
+ };
+ 
+ typedef void ( wxEvtHandler::*wxFileCtrlEventFunction )( wxFileCtrlEvent& );
+diff --git a/include/wx/filepicker.h b/include/wx/filepicker.h
+index c17e820bf2..6958b44c24 100644
+--- a/include/wx/filepicker.h
++++ b/include/wx/filepicker.h
+@@ -55,7 +55,7 @@ public:
+ private:
+     wxString m_path;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileDirPickerEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxFileDirPickerEvent);
+ };
+ 
+ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_FILEPICKER_CHANGED, wxFileDirPickerEvent );
+diff --git a/include/wx/fontpicker.h b/include/wx/fontpicker.h
+index 323ab8df40..512b71e044 100644
+--- a/include/wx/fontpicker.h
++++ b/include/wx/fontpicker.h
+@@ -218,7 +218,7 @@ public:
+ private:
+     wxFont m_font;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFontPickerEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxFontPickerEvent);
+ };
+ 
+ // ----------------------------------------------------------------------------
+diff --git a/include/wx/fswatcher.h b/include/wx/fswatcher.h
+index 388fbc9c0f..c55d0de968 100644
+--- a/include/wx/fswatcher.h
++++ b/include/wx/fswatcher.h
+@@ -205,7 +205,7 @@ protected:
+     wxFileName m_newPath;
+     wxString m_errorMsg;
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileSystemWatcherEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxFileSystemWatcherEvent);
+ };
+ 
+ typedef void (wxEvtHandler::*wxFileSystemWatcherEventFunction)
+diff --git a/include/wx/generic/grid.h b/include/wx/generic/grid.h
+index 529523c471..e9b8376c64 100644
+--- a/include/wx/generic/grid.h
++++ b/include/wx/generic/grid.h
+@@ -2604,7 +2604,7 @@ private:
+         m_selecting = sel;
+     }
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxGridEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxGridEvent);
+ };
+ 
+ class WXDLLIMPEXP_CORE wxGridSizeEvent : public wxNotifyEvent,
+@@ -2660,7 +2660,7 @@ private:
+         m_y = y;
+     }
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxGridSizeEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxGridSizeEvent);
+ };
+ 
+ 
+@@ -2725,7 +2725,7 @@ protected:
+     wxGridCellCoords  m_bottomRight;
+     bool              m_selecting;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxGridRangeSelectEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxGridRangeSelectEvent);
+ };
+ 
+ 
+@@ -2762,7 +2762,7 @@ private:
+     int m_col;
+     wxWindow* m_window;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxGridEditorCreatedEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxGridEditorCreatedEvent);
+ };
+ 
+ 
+diff --git a/include/wx/generic/laywin.h b/include/wx/generic/laywin.h
+index d226766cf0..0066be9312 100644
+--- a/include/wx/generic/laywin.h
++++ b/include/wx/generic/laywin.h
+@@ -97,7 +97,7 @@ protected:
+     wxLayoutAlignment       m_alignment;
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxQueryLayoutInfoEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxQueryLayoutInfoEvent);
+ };
+ 
+ typedef void (wxEvtHandler::*wxQueryLayoutInfoEventFunction)(wxQueryLayoutInfoEvent&);
+@@ -137,7 +137,7 @@ protected:
+     wxRect                  m_rect;
+ 
+ private:
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxCalculateLayoutEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxCalculateLayoutEvent);
+ };
+ 
+ typedef void (wxEvtHandler::*wxCalculateLayoutEventFunction)(wxCalculateLayoutEvent&);
+diff --git a/include/wx/html/htmlwin.h b/include/wx/html/htmlwin.h
+index 472fffbc81..112202658c 100644
+--- a/include/wx/html/htmlwin.h
++++ b/include/wx/html/htmlwin.h
+@@ -603,7 +603,7 @@ private:
+ 
+     bool m_bLinkWasClicked;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxHtmlCellEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxHtmlCellEvent);
+ };
+ 
+ 
+@@ -630,7 +630,7 @@ public:
+ private:
+     wxHtmlLinkInfo m_linkInfo;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxHtmlLinkEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxHtmlLinkEvent);
+ };
+ 
+ 
+diff --git a/include/wx/hyperlink.h b/include/wx/hyperlink.h
+index 072c05efd3..1354712cd9 100644
+--- a/include/wx/hyperlink.h
++++ b/include/wx/hyperlink.h
+@@ -120,7 +120,7 @@ private:
+     // URL associated with the hyperlink control that the used clicked on.
+     wxString m_url;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxHyperlinkEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxHyperlinkEvent);
+ };
+ 
+ 
+diff --git a/include/wx/osx/core/cfdictionary.h b/include/wx/osx/core/cfdictionary.h
+index d3028e90c7..fe7d60d80d 100644
+--- a/include/wx/osx/core/cfdictionary.h
++++ b/include/wx/osx/core/cfdictionary.h
+@@ -61,6 +61,14 @@ public:
+     {
+     }
+ 
++    /*! @method     operator=
++        @abstract   Assigns the other ref's pointer to us when the otherRef is the same type.
++        @param otherRef The other ref holder to copy.
++        @discussion The incoming pointer is retained, the original pointer is released, and this object
++                    is made to point to the new pointer.
++    */
++    wxCFDictionaryRefCommon& operator=(const wxCFDictionaryRefCommon&) = default;
++
+     wxCFTypeRef GetValue(const void* key)
+     {
+         CFTypeRef val = CFDictionaryGetValue(this->m_ptr, key);
+diff --git a/include/wx/process.h b/include/wx/process.h
+index 733275d99a..cf69a24fee 100644
+--- a/include/wx/process.h
++++ b/include/wx/process.h
+@@ -179,7 +179,7 @@ public:
+     int m_pid,
+         m_exitcode;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxProcessEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxProcessEvent);
+ };
+ 
+ typedef void (wxEvtHandler::*wxProcessEventFunction)(wxProcessEvent&);
+diff --git a/include/wx/rtti.h b/include/wx/rtti.h
+index 34d8d387bf..5440ea0f33 100644
+--- a/include/wx/rtti.h
++++ b/include/wx/rtti.h
+@@ -148,6 +148,10 @@ WXDLLIMPEXP_BASE wxObject *wxCreateDynamicObject(const wxString& name);
+     wxDECLARE_NO_ASSIGN_CLASS(name);                                          \
+     wxDECLARE_DYNAMIC_CLASS(name)
+ 
++#define wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(name)                      \
++    wxDECLARE_NO_ASSIGN_DEF_COPY(name);                                       \
++    wxDECLARE_DYNAMIC_CLASS(name)
++
+ #define wxDECLARE_DYNAMIC_CLASS_NO_COPY(name)                                 \
+     wxDECLARE_NO_COPY_CLASS(name);                                            \
+     wxDECLARE_DYNAMIC_CLASS(name)
+diff --git a/include/wx/socket.h b/include/wx/socket.h
+index 4a66716984..971364c7e3 100644
+--- a/include/wx/socket.h
++++ b/include/wx/socket.h
+@@ -427,7 +427,7 @@ public:
+     wxSocketNotify  m_event;
+     void           *m_clientData;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxSocketEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxSocketEvent);
+ };
+ 
+ 
+diff --git a/include/wx/taskbar.h b/include/wx/taskbar.h
+index c209a1027b..eb2f284a18 100644
+--- a/include/wx/taskbar.h
++++ b/include/wx/taskbar.h
+@@ -103,7 +103,7 @@ public:
+     virtual wxEvent *Clone() const wxOVERRIDE { return new wxTaskBarIconEvent(*this); }
+ 
+ private:
+-    wxDECLARE_NO_ASSIGN_CLASS(wxTaskBarIconEvent);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxTaskBarIconEvent);
+ };
+ 
+ typedef void (wxEvtHandler::*wxTaskBarIconEventFunction)(wxTaskBarIconEvent&);
+diff --git a/include/wx/timer.h b/include/wx/timer.h
+index 42af63d9a9..1b60e6a84c 100644
+--- a/include/wx/timer.h
++++ b/include/wx/timer.h
+@@ -185,7 +185,7 @@ public:
+ private:
+     wxTimer* m_timer;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxTimerEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxTimerEvent);
+ };
+ 
+ typedef void (wxEvtHandler::*wxTimerEventFunction)(wxTimerEvent&);
+diff --git a/include/wx/treelist.h b/include/wx/treelist.h
+index 68d15ca733..70f2e4ab13 100644
+--- a/include/wx/treelist.h
++++ b/include/wx/treelist.h
+@@ -515,7 +515,7 @@ private:
+ 
+     friend class wxTreeListCtrl;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxTreeListEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxTreeListEvent);
+ };
+ 
+ // Event types and event table macros.
+diff --git a/include/wx/valnum.h b/include/wx/valnum.h
+index 024c383875..375d2a679c 100644
+--- a/include/wx/valnum.h
++++ b/include/wx/valnum.h
+@@ -260,7 +260,7 @@ private:
+ 
+     ValueType * const m_value;
+ 
+-    wxDECLARE_NO_ASSIGN_CLASS(wxNumValidator);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxNumValidator);
+ };
+ 
+ } // namespace wxPrivate
+@@ -292,12 +292,7 @@ protected:
+                       "This style doesn't make sense for integers." );
+     }
+ 
+-    wxIntegerValidatorBase(const wxIntegerValidatorBase& other)
+-        : wxNumValidatorBase(other)
+-    {
+-        m_min = other.m_min;
+-        m_max = other.m_max;
+-    }
++    // Default copy ctor is ok.
+ 
+     // Provide methods for wxNumValidator use.
+     wxString ToString(LongestValueType value) const;
+@@ -320,7 +315,7 @@ private:
+     // Minimal and maximal values accepted (inclusive).
+     LongestValueType m_min, m_max;
+ 
+-    wxDECLARE_NO_ASSIGN_CLASS(wxIntegerValidatorBase);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxIntegerValidatorBase);
+ };
+ 
+ // Validator for integer numbers. It can actually work with any integer type
+@@ -350,7 +345,7 @@ public:
+     virtual wxObject *Clone() const wxOVERRIDE { return new wxIntegerValidator(*this); }
+ 
+ private:
+-    wxDECLARE_NO_ASSIGN_CLASS(wxIntegerValidator);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxIntegerValidator);
+ };
+ 
+ // Helper function for creating integer validators which allows to avoid
+@@ -393,15 +388,7 @@ protected:
+         m_factor = 1.0;
+     }
+ 
+-    wxFloatingPointValidatorBase(const wxFloatingPointValidatorBase& other)
+-        : wxNumValidatorBase(other)
+-    {
+-        m_precision = other.m_precision;
+-        m_factor = other.m_factor;
+-
+-        m_min = other.m_min;
+-        m_max = other.m_max;
+-    }
++    // Default copy ctor is ok.
+ 
+     // Provide methods for wxNumValidator use.
+     wxString ToString(LongestValueType value) const;
+@@ -430,7 +417,7 @@ private:
+     // Minimal and maximal values accepted (inclusive).
+     LongestValueType m_min, m_max;
+ 
+-    wxDECLARE_NO_ASSIGN_CLASS(wxFloatingPointValidatorBase);
++    wxDECLARE_NO_ASSIGN_DEF_COPY(wxFloatingPointValidatorBase);
+ };
+ 
+ // Validator for floating point numbers. It can be used with float, double or
+diff --git a/include/wx/webview.h b/include/wx/webview.h
+index 9975325392..4a525422bd 100644
+--- a/include/wx/webview.h
++++ b/include/wx/webview.h
+@@ -268,7 +268,7 @@ private:
+     wxString m_target;
+     wxWebViewNavigationActionFlags m_actionFlags;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWebViewEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxWebViewEvent);
+ };
+ 
+ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_WEBVIEW, wxEVT_WEBVIEW_NAVIGATING, wxWebViewEvent );
+diff --git a/include/wx/wizard.h b/include/wx/wizard.h
+index 3048d75041..42277d7cd3 100644
+--- a/include/wx/wizard.h
++++ b/include/wx/wizard.h
+@@ -285,7 +285,7 @@ private:
+     bool m_direction;
+     wxWizardPage*    m_page;
+ 
+-    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWizardEvent);
++    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxWizardEvent);
+ };
+ 
+ // ----------------------------------------------------------------------------
+diff --git a/interface/wx/defs.h b/interface/wx/defs.h
+index 3a07a81dab..44377347be 100644
+--- a/interface/wx/defs.h
++++ b/interface/wx/defs.h
+@@ -1492,10 +1492,29 @@ typedef double wxDouble;
+     In such case, this macro can be used to disable the automatic assignment
+     operator generation.
+ 
+-    @see wxDECLARE_NO_COPY_CLASS()
++    @see wxDECLARE_NO_COPY_CLASS(), wxDECLARE_NO_ASSIGN_DEF_COPY()
+  */
+ #define wxDECLARE_NO_ASSIGN_CLASS(classname)
+ 
++/**
++    Macro disabling the generation of default assignment operator but
++    generating a default copy constructor.
++
++    This macro can be useful for the classes that can't be copied after
++    creation, but may be copy-constructed using the default compiler-generated
++    copy constructor.
++
++    Note that using wxDECLARE_NO_ASSIGN_CLASS() for such macros results in @c
++    -Wdeprecated-copy warning from clang 13, while this macro avoids such
++    warnings.
++
++    Default copy constructor is only generated when using C++11 or later,
++    otherwise this macro is identical to wxDECLARE_NO_ASSIGN_CLASS().
++
++    @since 3.1.6
++ */
++#define wxDECLARE_NO_ASSIGN_DEF_COPY(classname)
++
+ /**
+     This macro can be used in a class declaration to disable the generation of
+     default copy ctor and assignment operator.
+-- 
+2.46.0
+

@@ -1,0 +1,39 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8909de6..e54374e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,7 +7,7 @@
+ # Licence:     wxWindows licence
+ #############################################################################
+ 
+-cmake_minimum_required(VERSION 2.8.12)
++cmake_minimum_required(VERSION 3.10)
+ 
+ if(NOT CMAKE_CONFIGURATION_TYPES)
+     get_property(HAVE_MULTI_CONFIG_GENERATOR GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+diff --git a/build/cmake/modules/cotire.cmake b/build/cmake/modules/cotire.cmake
+index 97275d6..b515a3a 100644
+--- a/build/cmake/modules/cotire.cmake
++++ b/build/cmake/modules/cotire.cmake
+@@ -37,7 +37,7 @@ set(__COTIRE_INCLUDED TRUE)
+ if (NOT CMAKE_SCRIPT_MODE_FILE)
+ 	cmake_policy(PUSH)
+ endif()
+-cmake_minimum_required(VERSION 2.8.12)
++cmake_minimum_required(VERSION 3.10)
+ if (NOT CMAKE_SCRIPT_MODE_FILE)
+ 	cmake_policy(POP)
+ endif()
+diff --git a/samples/minimal/CMakeLists.txt b/samples/minimal/CMakeLists.txt
+index 8f64044..0f89e26 100644
+--- a/samples/minimal/CMakeLists.txt
++++ b/samples/minimal/CMakeLists.txt
+@@ -14,7 +14,7 @@
+ #
+ 
+ # Declare the minimum required CMake version
+-cmake_minimum_required(VERSION 2.8.12)
++cmake_minimum_required(VERSION 3.10)
+ 
+ # Name the project
+ project(minimal)
