@@ -1,6 +1,7 @@
 sources:
   1.6.50:
-    url: https://sourceforge.net/projects/libpng/files/libpng16/1.6.50/libpng-1.6.50.tar.xz
+    url:
+      - https://artifactory.audacityteam.org/artifactory/mirror/libpng/1.6.50/libpng-1.6.50.tar.xz
     sha256: 4df396518620a7aa3651443e87d1b2862e4e88cad135a8b93423e01706232307
   1.6.48:
     url: https://sourceforge.net/projects/libpng/files/libpng16/1.6.48/libpng-1.6.48.tar.xz
