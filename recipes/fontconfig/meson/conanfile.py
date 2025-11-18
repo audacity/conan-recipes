@@ -51,7 +51,7 @@ class FontconfigConan(ConanFile):
         self.folders.generators = 'build/generators'
 
     def requirements(self):
-        self.requires("freetype/2.13.0@audacity/stable")
+        self.requires("freetype/2.14.1@audacity/stable")
         self.requires("expat/2.5.0@audacity/stable")
         if self.settings.os == "Linux":
             self.requires("libuuid/1.0.3@audacity/stable")

@@ -91,7 +91,7 @@ class HarfbuzzConan(ConanFile):
 
     def requirements(self):
         if self.options.with_freetype:
-            self.requires("freetype/2.13.0@audacity/stable")
+            self.requires("freetype/2.14.1@audacity/stable")
         if self.options.with_icu:
             self.requires("icu/71.1@audacity/stable")
         if self.options.with_glib:
