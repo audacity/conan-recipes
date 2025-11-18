@@ -94,7 +94,7 @@ class LibtiffConan(ConanFile):
         if self.options.jbig:
             self.requires("jbig/20160605")
         if self.options.get_safe("zstd"):
-            self.requires("zstd/1.5.5@audacity/stable")
+            self.requires("zstd/1.5.7@audacity/stable")
         if self.options.get_safe("webp"):
             self.requires("libwebp/1.3.0")
 
