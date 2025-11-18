@@ -300,7 +300,7 @@ class QtConan(ConanFile):
         if self.options.qtwayland:
             self.requires("wayland/1.21.0@audacity/stable")
         if self.options.with_brotli:
-            self.requires("brotli/1.0.9@audacity/stable")
+            self.requires("brotli/1.1.0@audacity/stable")
         if self.options.get_safe("qtwebengine") and self.settings.os == "Linux":
             self.requires("expat/2.4.8")
             self.requires("opus/1.3.1")

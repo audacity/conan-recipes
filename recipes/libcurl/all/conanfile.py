@@ -182,7 +182,7 @@ class LibcurlConan(ConanFile):
         if self.options.with_zlib:
             self.requires("zlib/[>=1.2.13 <1.4]@audacity/stable")
         if self.options.with_brotli:
-            self.requires("brotli/1.0.9@audacity/stable")
+            self.requires("brotli/1.1.0@audacity/stable")
         if self.options.with_zstd:
             self.requires("zstd/1.5.7@audacity/stable")
         if self.options.with_c_ares:

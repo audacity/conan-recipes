@@ -70,7 +70,7 @@ class FreetypeConan(ConanFile):
         if self.options.with_bzip2:
             self.requires("bzip2/1.0.8@audacity/stable")
         if self.options.get_safe("with_brotli"):
-            self.requires("brotli/1.0.9@audacity/stable")
+            self.requires("brotli/1.1.0@audacity/stable")
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
