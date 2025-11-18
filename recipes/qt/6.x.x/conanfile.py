@@ -311,7 +311,7 @@ class QtConan(ConanFile):
         if self.options.with_dbus:
             self.requires("dbus/1.12.20")
         if self.options.get_safe("with_md4c", False):
-            self.requires("md4c/0.4.8@audacity/stable")
+            self.requires("md4c/0.5.2@audacity/stable")
 
     def build_requirements(self):
         self.build_requires("cmake/[>=3.22.0]@audacity/stable")
