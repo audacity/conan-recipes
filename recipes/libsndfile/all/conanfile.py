@@ -96,6 +96,7 @@ class LibsndfileConan(ConanFile):
             tc.variables["ENABLE_MPEG"] = self.options.with_mpeg
         # Fix iOS/tvOS/watchOS
         tc.variables["CMAKE_MACOSX_BUNDLE"] = False
+        tc.cache_variables["CMAKE_POLICY_VERSION_MINIMUM"] = "3.5" # CMake 4 support
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
