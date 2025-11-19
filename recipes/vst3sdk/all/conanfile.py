@@ -35,6 +35,7 @@ class Vst3SDKConan(ConanFile):
         tc.cache_variables["SMTG_MYPLUGINS_SRC_PATH"] = False
         tc.cache_variables["SMTG_RUN_VST_VALIDATOR"] = False
         tc.cache_variables["SMTG_CREATE_PLUGIN_LINK"] = False
+        tc.cache_variables["CMAKE_POLICY_VERSION_MINIMUM"] = "3.5" # CMake 4 support
         tc.generate()
 
     @property
