@@ -90,6 +90,16 @@ class CrashpadConan(ConanFile):
 
         apply_conandata_patches(self)
 
+        # Fix distutils import for Python 3.12+
+        find_mac_sdk = os.path.join(self.source_folder, "third_party", "mini_chromium", "mini_chromium", "build", "find_mac_sdk.py")
+        if os.path.exists(find_mac_sdk):
+            replace_in_file(self, find_mac_sdk,
+                "import distutils.version",
+                "try:\n    from packaging import version\n    StrictVersion = version.Version\nexcept ImportError:\n    from distutils import version as distutils_version\n    StrictVersion = distutils_version.StrictVersion")
+            replace_in_file(self, find_mac_sdk,
+                "distutils.version.StrictVersion",
+                "StrictVersion")
+
     @property
     def _gn_os(self):
         if is_apple_os(self):
