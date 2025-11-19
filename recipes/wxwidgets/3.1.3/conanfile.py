@@ -251,6 +251,7 @@ class wxWidgetsConan(ConanFile):
                 tc.variables[item] = False
 
         tc.cache_variables["CMAKE_CONFIGURATION_TYPES"] = "Release;Debug;MinSizeRel;RelWithDebInfo"
+        tc.cache_variables["CMAKE_POLICY_VERSION_MINIMUM"] = "3.5" # CMake 4 support
 
         tc.generate()
 
