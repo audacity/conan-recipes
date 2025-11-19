@@ -113,6 +113,7 @@ class ConanRecipe(ConanFile):
             tc.variables['PA_USE_ALSA'] = self.options.with_alsa
             tc.variables['PA_ALSA_DYNAMIC'] = self.options.with_alsa_dynamic
 
+        tc.cache_variables["CMAKE_POLICY_VERSION_MINIMUM"] = "3.5" # CMake 4 support
         tc.generate()
 
     def build(self):
