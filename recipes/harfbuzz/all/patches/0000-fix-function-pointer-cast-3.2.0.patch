@@ -1,0 +1,57 @@
+--- src/hb-ft.cc.orig	2025-11-19 11:28:03.683551924 +0300
++++ src/hb-ft.cc	2025-11-19 11:28:36.158422159 +0300
+@@ -737,6 +737,14 @@
+   hb_face_destroy ((hb_face_t *) ft_face->generic.data);
+ }
+ 
++/* Wrapper function to match FT_Generic_Finalizer signature */
++static void
++hb_ft_face_finalize_wrapper (void *data)
++{
++  FT_Face ft_face = (FT_Face) data;
++  hb_ft_face_finalize (ft_face);
++}
++
+ /**
+  * hb_ft_face_create_cached:
+  * @ft_face: FT_Face to work upon
+@@ -759,13 +767,13 @@
+ hb_face_t *
+ hb_ft_face_create_cached (FT_Face ft_face)
+ {
+-  if (unlikely (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_ft_face_finalize))
++  if (unlikely (!ft_face->generic.data || ft_face->generic.finalizer != hb_ft_face_finalize_wrapper))
+   {
+     if (ft_face->generic.finalizer)
+       ft_face->generic.finalizer (ft_face);
+ 
+     ft_face->generic.data = hb_ft_face_create (ft_face, nullptr);
+-    ft_face->generic.finalizer = (FT_Generic_Finalizer) hb_ft_face_finalize;
++    ft_face->generic.finalizer = hb_ft_face_finalize_wrapper;
+   }
+ 
+   return hb_face_reference ((hb_face_t *) ft_face->generic.data);
+@@ -951,6 +959,14 @@
+   hb_blob_destroy ((hb_blob_t *) ft_face->generic.data);
+ }
+ 
++/* Wrapper function to match FT_Generic_Finalizer signature */
++static void
++_release_blob_wrapper (void *data)
++{
++  FT_Face ft_face = (FT_Face) data;
++  _release_blob (ft_face);
++}
++
+ /**
+  * hb_ft_font_set_funcs:
+  * @font: #hb_font_t to work upon
+@@ -1029,7 +1045,7 @@
+ #endif
+ 
+   ft_face->generic.data = blob;
+-  ft_face->generic.finalizer = (FT_Generic_Finalizer) _release_blob;
++  ft_face->generic.finalizer = _release_blob_wrapper;
+ 
+   _hb_ft_font_set_funcs (font, ft_face, true);
+   hb_ft_font_set_load_flags (font, FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
