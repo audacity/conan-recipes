@@ -22,7 +22,7 @@ class LibtiffConan(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "lzma": [True, False],
-        "jpeg": [False, "libjpeg", "libjpeg-turbo", "mozjpeg"],
+        "jpeg": [False, "libjpeg-turbo"],
         "zlib": [True, False],
         "libdeflate": [True, False],
         "zstd": [True, False],
@@ -34,7 +34,7 @@ class LibtiffConan(ConanFile):
         "shared": False,
         "fPIC": True,
         "lzma": True,
-        "jpeg": "libjpeg",
+        "jpeg": "libjpeg-turbo",
         "zlib": True,
         "libdeflate": True,
         "zstd": True,
@@ -85,12 +85,8 @@ class LibtiffConan(ConanFile):
             self.requires("libdeflate/1.18")
         if self.options.lzma:
             self.requires("xz_utils/5.4.2")
-        if self.options.jpeg == "libjpeg":
-            self.requires("libjpeg/9e")
-        elif self.options.jpeg == "libjpeg-turbo":
+        if self.options.jpeg == "libjpeg-turbo":
             self.requires("libjpeg-turbo/2.1.5@audacity/stable")
-        elif self.options.jpeg == "mozjpeg":
-            self.requires("mozjpeg/4.1.1")
         if self.options.jbig:
             self.requires("jbig/20160605")
         if self.options.get_safe("zstd"):
@@ -179,12 +175,8 @@ class LibtiffConan(ConanFile):
             self.cpp_info.requires.append("libdeflate::libdeflate")
         if self.options.lzma:
             self.cpp_info.requires.append("xz_utils::xz_utils")
-        if self.options.jpeg == "libjpeg":
-            self.cpp_info.requires.append("libjpeg::libjpeg")
-        elif self.options.jpeg == "libjpeg-turbo":
+        if self.options.jpeg == "libjpeg-turbo":
             self.cpp_info.requires.append("libjpeg-turbo::libjpeg-turbo")
-        elif self.options.jpeg == "mozjpeg":
-            self.cpp_info.requires.append("mozjpeg::libjpeg")
         if self.options.jbig:
             self.cpp_info.requires.append("jbig::jbig")
         if self.options.get_safe("zstd"):

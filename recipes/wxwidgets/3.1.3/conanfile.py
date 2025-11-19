@@ -42,7 +42,7 @@ class wxWidgetsConan(ConanFile):
                "compatibility": ["2.8", "3.0", "3.1"],
                "zlib": ["off", "sys", "zlib"],
                "png": ["off", "sys", "libpng"],
-               "jpeg": ["off", "sys", "libjpeg", "libjpeg-turbo", "mozjpeg"],
+               "jpeg": ["off", "sys", "libjpeg-turbo"],
                "tiff": ["off", "sys", "libtiff"],
                "expat": ["off", "sys", "expat"],
                "secretstore": [True, False],
@@ -162,12 +162,8 @@ class wxWidgetsConan(ConanFile):
     def requirements(self):
         if self.options.png == 'libpng':
             self.requires("libpng/[>=1.6.39 <1.7]@audacity/stable")
-        if self.options.jpeg == 'libjpeg':
-            self.requires('libjpeg/9d')
-        elif self.options.jpeg == 'libjpeg-turbo':
+        if self.options.jpeg == 'libjpeg-turbo':
             self.requires('libjpeg-turbo/2.1.5@audacity/stable')
-        elif self.options.jpeg == 'mozjpeg':
-            self.requires('mozjpeg/3.3.1')
         if self.options.tiff == 'libtiff':
             self.requires('libtiff/4.5.0@audacity/stable')
         if self.options.zlib == 'zlib':
@@ -416,12 +412,8 @@ class wxWidgetsConan(ConanFile):
             self.cpp_info.components['core'].requires.append('regex')
         if self.options.png == 'libpng':
             self.cpp_info.components['core'].requires.append('libpng::libpng')
-        if self.options.jpeg == 'libjpeg':
-            self.cpp_info.components['core'].requires.append('libjpeg::libjpeg')
-        elif self.options.jpeg == 'libjpeg-turbo':
+        if self.options.jpeg == 'libjpeg-turbo':
             self.cpp_info.components['core'].requires.append('libjpeg-turbo::libjpeg-turbo')
-        elif self.options.jpeg == 'mozjpeg':
-            self.cpp_info.components['core'].requires.append('mozjpeg::mozjpeg')
         if self.options.tiff == 'libtiff':
             self.cpp_info.components['core'].requires.append('libtiff::libtiff')
         if self.options.zlib == 'zlib':
