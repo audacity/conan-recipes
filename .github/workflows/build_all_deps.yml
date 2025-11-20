@@ -193,16 +193,16 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - name: XCode 14.2
-          os: macos-13
-          compiler: 14
-          xcode_version: 14.2
+        - name: XCode 16.2
+          os: macos-14
+          compiler: 16
+          xcode_version: 16.2
           release_args: --enable-debug-processor sentry --skip-debug-data-upload
           metadata: "platform: darwin"
-        - name: XCode 15.0.1
-          os: macos-13
+        - name: XCode 15.4
+          os: macos-14
           compiler: 15
-          xcode_version: 15.0.1
+          xcode_version: 15.4
           release_args:
           metadata: |
             upload_build_tools: true
@@ -238,10 +238,10 @@ jobs:
       shell: bash
       run: |
         python3 utils/conan-utils.py export-recipes --build-order ${{ github.event.inputs.build_order }}
-        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x86_64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
-        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_arm64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
-        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x86_64_deb --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py
-        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_arm64_deb --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_x86_64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py
+        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x86_64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_arm64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_arm64_rel --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_arm64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py ${{ matrix.config.release_args }}
+        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_x86_64_deb --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_arm64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py
+        python3 utils/conan-utils.py validate-recipe --remote conan-utils-audacity-binaries-conan2 --profile-host host/macos/apple_clang${{ matrix.config.compiler }}_arm64_deb --profile-build build/macos/apple_clang${{ matrix.config.compiler }}_arm64  --build-order ${{ github.event.inputs.build_order }} --recipe-config ${{ github.event.inputs.build_config }} --recipe audacity/conan/conanfile.py
     - name: Upload to Cache
       shell: bash
       run: |
@@ -283,7 +283,7 @@ jobs:
         - name: Windows
           os: windows-2022
         - name: MacOS
-          os: macos-13
+          os: macos-14
     needs: [update_conan_remotes]
     steps:
     - name: Checkout Repo
