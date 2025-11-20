@@ -105,6 +105,10 @@ class OpenSSLConan(ConanFile):
             self.options.no_threads = True
             self.options.no_stdio = True
 
+        # Engines are not used, and are causing resigning issues on MacOS
+        if self.settings.os == "Macos":
+            self.options.no_engine = True
+
     def configure(self):
         if self.options.shared:
             self.options.rm_safe("fPIC")

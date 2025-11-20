@@ -1,7 +1,7 @@
 config:
-  version: 8.12.1
+  version: 8.17.0
   options: |
-    &:with_ssl=darwinssl
+    &:with_ssl=openssl
     &:with_nghttp2=False
     &:with_libssh2=False
     &:with_c_ares=False

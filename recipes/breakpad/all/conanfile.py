@@ -56,7 +56,7 @@ class BreakpadConan(ConanFile):
 
     def requirements(self):
         if self.settings.os != 'Windows':
-            self.requires('libcurl/8.12.1@audacity/stable')
+            self.requires('libcurl/8.17.0@audacity/stable')
 
         if self.needs_linux_syscall_support:
             self.requires('linux-syscall-support/cci.20200813@audacity/stable', visible=False, build=True)

@@ -57,7 +57,7 @@ class CrashpadConan(ConanFile):
         if self.options.http_transport != "socket":
             del self.options.with_tls
         if self.options.http_transport == "libcurl":
-            self.requires("libcurl/8.12.1@audacity/stable")
+            self.requires("libcurl/8.17.0@audacity/stable")
         if self.options.get_safe("with_tls") == "openssl":
             self.requires("openssl/1.1.1q@audacity/stable")
 

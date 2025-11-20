@@ -31,7 +31,7 @@ class LibcurlConan(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "build_executable": [True, False],
-        "with_ssl": [False, "openssl", "wolfssl", "schannel", "darwinssl", "mbedtls", "libressl"],
+        "with_ssl": [False, "openssl", "wolfssl", "schannel", "mbedtls", "libressl"],
         "with_file": [True, False],
         "with_ftp": [True, False],
         "with_http": [True, False],
@@ -154,9 +154,6 @@ class LibcurlConan(ConanFile):
         if Version(self.version) < "8.11.0":
             del self.options.with_websockets
 
-        # Default options
-        self.options.with_ssl = "darwinssl" if is_apple_os(self) else "openssl"
-
     def configure(self):
         if self.options.shared:
             self.options.rm_safe("fPIC")
@@ -199,8 +196,6 @@ class LibcurlConan(ConanFile):
     def validate(self):
         if self.options.with_ssl == "schannel" and self.settings.os != "Windows":
             raise ConanInvalidConfiguration("schannel only suppported on Windows.")
-        if self.options.with_ssl == "darwinssl" and not is_apple_os(self):
-            raise ConanInvalidConfiguration("darwinssl only suppported on Apple like OS (Macos, iOS, watchOS or tvOS).")
         if self.options.with_ssl == "openssl":
             openssl = self.dependencies["openssl"]
             if self.options.with_ntlm and openssl.options.no_des:
@@ -273,14 +268,6 @@ class LibcurlConan(ConanFile):
             replace_in_file(self, os.path.join(self.source_folder, "include", "curl", "curl.h"),
                                   "define CURL_MAX_WRITE_SIZE 16384",
                                   "define CURL_MAX_WRITE_SIZE 10485760")
-
-        # https://github.com/curl/curl/issues/2835
-        # for additional info, see this comment https://github.com/conan-io/conan-center-index/pull/1008#discussion_r386122685
-        if self.settings.compiler == "apple-clang" and self.settings.compiler.version == "9.1":
-            if self.options.with_ssl == "darwinssl":
-                replace_in_file(self, os.path.join(self.source_folder, "lib", "vtls", "sectransp.c"),
-                                      "#define CURL_BUILD_MAC_10_13 MAC_OS_X_VERSION_MAX_ALLOWED >= 101300",
-                                      "#define CURL_BUILD_MAC_10_13 0")
 
     def _patch_autotools(self):
         if self._is_using_cmake_build:
@@ -452,7 +439,6 @@ class LibcurlConan(ConanFile):
             f"--with-libpsl={self._yes_no(self.options.with_libpsl)}",
             f"--with-libgsasl={self._yes_no(self.options.with_libgsasl)}",
             f"--with-schannel={self._yes_no(self.options.with_ssl == 'schannel')}",
-            f"--with-secure-transport={self._yes_no(self.options.with_ssl == 'darwinssl')}",
             f"--with-brotli={self._yes_no(self.options.with_brotli)}",
             f"--enable-shared={self._yes_no(self.options.shared)}",
             f"--enable-static={self._yes_no(not self.options.shared)}",
@@ -489,39 +475,53 @@ class LibcurlConan(ConanFile):
         if self.options.with_ssl == "openssl":
             path = unix_path(self, self.dependencies["openssl"].package_folder)
             tc.configure_args.append(f"--with-openssl={path}")
+            # Explicitly add library path for configure tests
+            tc.extra_ldflags.append(f"-L{path}/lib")
         elif self.options.with_ssl == "libressl":
             path = unix_path(self, self.dependencies["libressl"].package_folder)
             tc.configure_args.append(f"--with-openssl={path}")
+            # Explicitly add library path for configure tests
+            tc.extra_ldflags.append(f"-L{path}/lib")
         else:
             tc.configure_args.append("--without-openssl")
 
         if self.options.with_ssl == "wolfssl":
             path = unix_path(self, self.dependencies["wolfssl"].package_folder)
             tc.configure_args.append(f"--with-wolfssl={path}")
+            # Explicitly add library path for configure tests
+            tc.extra_ldflags.append(f"-L{path}/lib")
         else:
             tc.configure_args.append("--without-wolfssl")
 
         if self.options.with_ssl == "mbedtls":
             path = unix_path(self, self.dependencies["mbedtls"].package_folder)
             tc.configure_args.append(f"--with-mbedtls={path}")
+            # Explicitly add library path for configure tests
+            tc.extra_ldflags.append(f"-L{path}/lib")
         else:
             tc.configure_args.append("--without-mbedtls")
 
         if self.options.with_libssh2:
             path = unix_path(self, self.dependencies["libssh2"].package_folder)
             tc.configure_args.append(f"--with-libssh2={path}")
+            # Explicitly add library path for configure tests
+            tc.extra_ldflags.append(f"-L{path}/lib")
         else:
             tc.configure_args.append("--without-libssh2")
 
         if self.options.with_nghttp2:
             path = unix_path(self, self.dependencies["libnghttp2"].package_folder)
             tc.configure_args.append(f"--with-nghttp2={path}")
+            # Explicitly add library path for configure tests
+            tc.extra_ldflags.append(f"-L{path}/lib")
         else:
             tc.configure_args.append("--without-nghttp2")
 
         if self.options.with_zlib:
             path = unix_path(self, self.dependencies["zlib"].package_folder)
             tc.configure_args.append(f"--with-zlib={path}")
+            # Explicitly add library path for configure tests
+            tc.extra_ldflags.append(f"-L{path}/lib")
         else:
             tc.configure_args.append("--without-zlib")
 
@@ -766,8 +766,6 @@ class LibcurlConan(ConanFile):
             self.cpp_info.components["curl"].frameworks.append("SystemConfiguration")
             if self.options.with_ldap:
                 self.cpp_info.components["curl"].system_libs.append("ldap")
-            if self.options.with_ssl == "darwinssl":
-                self.cpp_info.components["curl"].frameworks.append("Security")
 
         if self._is_mingw:
             # provide pthread for dependent packages

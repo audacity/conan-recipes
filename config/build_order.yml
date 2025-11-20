@@ -20,13 +20,13 @@ build_order:
     packages:
     - gnu-config
     - libtool
+    - openssl
     - flex
     - bison
   - platforms: linux
     packages:
     - gperf
     - patchelf
-    - openssl
     - libuuid
     - linux-syscall-support
   - platforms: "*"
