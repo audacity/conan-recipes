@@ -271,7 +271,7 @@ def run_conan_command(args):
         directories.install_dir = directories.build_dir
 
         conan.install_or_build_all(get_build_order(args.build_order), get_profiles(args), args.remote, True, False)
-        conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, False, False)
+        conan.install_recipe(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote, True, False)
     elif args.subparser_name == 'build-order':
         print(conan.print_build_order(args.recipe, resolve_recipe_config(args), get_profiles(args), args.remote))
     else:
