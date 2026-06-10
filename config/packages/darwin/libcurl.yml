@@ -2,6 +2,7 @@ config:
   version: 8.17.0
   options: |
     &:with_ssl=openssl
+    &:with_ca_bundle=/etc/ssl/cert.pem
     &:with_nghttp2=False
     &:with_libssh2=False
     &:with_c_ares=False
