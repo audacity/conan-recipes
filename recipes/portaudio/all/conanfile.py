@@ -88,7 +88,7 @@ class ConanRecipe(ConanFile):
             self.output.write("ASIO SDK 2.3.4 used under GPL-3.0 (dual-licensed with Steinberg ASIO License)\n")
 
             get(self,
-                url="https://raw.githubusercontent.com/musescore/muse_deps/main/asiosdk/ASIO-SDK_2.3.4_2025-10-15/ASIO-SDK_2.3.4_2025-10-15.zip",
+                url="https://download.steinberg.net/sdk_downloads/ASIO-SDK_2.3.4_2025-10-15.zip",
                 sha256="d5ebf0c20dd2c5f43771fd0c1418f4b361bf52434ee670097cfa6b3a335e2eca",
                 destination=os.path.realpath(os.path.join(self.source_folder, "..")))
 
